@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T22:07:59+00:00",
+  "title": "Design System: TIGERIS AI OS",
+  "extensions": {
+    "colorMeta": {
+      "bone-canvas": {
+        "role": "neutral",
+        "displayName": "Bone Canvas",
+        "canonical": "#f3f2ef",
+        "tonalRamp": ["#0b0b0a", "#272625", "#464543", "#676664", "#8a8987", "#aeaeac", "#d1d1cf", "#efeeed"]
+      },
+      "panel-white": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d1d1d1", "#eeeeee"]
+      },
+      "raised-bone": {
+        "role": "neutral",
+        "displayName": "Raised Bone",
+        "canonical": "#ecebe6",
+        "tonalRamp": ["#0b0b0a", "#272624", "#464542", "#676662", "#8a8985", "#afaeaa", "#d1d1ce", "#efeeec"]
+      },
+      "sand": {
+        "role": "neutral",
+        "displayName": "Sand",
+        "canonical": "#ebe0c8",
+        "tonalRamp": ["#0e0b05", "#2b261b", "#4b4435", "#6e6551", "#918875", "#b5ad9d", "#d7d0c3", "#f3eee3"]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e2e0d9",
+        "tonalRamp": ["#0c0b09", "#272623", "#464541", "#686660", "#8b8983", "#afaea9", "#d2d1cd", "#efeeeb"]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#c9c5ba",
+        "tonalRamp": ["#0c0b08", "#282621", "#47453e", "#69665d", "#8c8980", "#b1aea6", "#d3d1ca", "#f0eee9"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#17261f",
+        "tonalRamp": ["#070d0a", "#202924", "#3c4842", "#5a6a62", "#7e8e86", "#a4b2ab", "#c9d4ce", "#e8f1ec"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#4c5a53",
+        "tonalRamp": ["#080c0a", "#212825", "#3d4843", "#5c6a63", "#7f8d86", "#a6b1ab", "#cad4cf", "#e9f1ed"]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "#5b6862",
+        "tonalRamp": ["#080c0a", "#212825", "#3e4843", "#5d6964", "#808c87", "#a6b1ac", "#cbd3cf", "#eaf0ed"]
+      },
+      "sovereign-emerald": {
+        "role": "primary",
+        "displayName": "Sovereign Emerald",
+        "canonical": "#0f4a36",
+        "tonalRamp": ["#000f08", "#0f2d21", "#264e3e", "#3f725d", "#659580", "#91b8a6", "#badacb", "#dcf6e9"]
+      },
+      "sovereign-emerald-hover": {
+        "role": "primary",
+        "displayName": "Sovereign Emerald Hover",
+        "canonical": "#155f46",
+        "tonalRamp": ["#001007", "#062e20", "#1d503d", "#34745b", "#5c977f", "#8abaa5", "#b5dbca", "#d8f7e9"]
+      },
+      "sovereign-emerald-soft": {
+        "role": "primary",
+        "displayName": "Sovereign Emerald Soft",
+        "canonical": "#e4efe8",
+        "tonalRamp": ["#090c0a", "#232825", "#404743", "#606963", "#838c86", "#a9b0ab", "#cdd3cf", "#ebf0ed"]
+      },
+      "deep-emerald": {
+        "role": "primary",
+        "displayName": "Deep Emerald",
+        "canonical": "#0d2219",
+        "tonalRamp": ["#060d09", "#1d2a24", "#394a41", "#566c61", "#7a8f84", "#a1b3aa", "#c6d5ce", "#e6f2ec"]
+      },
+      "provenance-gold": {
+        "role": "secondary",
+        "displayName": "Provenance Gold",
+        "canonical": "#b8924f",
+        "tonalRamp": ["#140800", "#352200", "#5a4009", "#81601e", "#a58349", "#c6aa7b", "#e4cea8", "#feecce"]
+      },
+      "provenance-gold-text": {
+        "role": "secondary",
+        "displayName": "Provenance Gold Text",
+        "canonical": "#7a5a22",
+        "tonalRamp": ["#140900", "#342304", "#584017", "#7f602d", "#a28454", "#c3aa83", "#e3ceae", "#fdecd3"]
+      },
+      "provenance-gold-soft": {
+        "role": "secondary",
+        "displayName": "Provenance Gold Soft",
+        "canonical": "#f6eedc",
+        "tonalRamp": ["#0d0b06", "#2a261e", "#4a4539", "#6c6557", "#8f897a", "#b3ada1", "#d5d1c6", "#f2eee6"]
+      },
+      "route-teal": {
+        "role": "tertiary",
+        "displayName": "Route Teal",
+        "canonical": "#1a6a6e",
+        "tonalRamp": ["#000f11", "#012d2f", "#154e51", "#2c7276", "#569599", "#86b9bb", "#b1dadc", "#d6f6f7"]
+      },
+      "route-teal-soft": {
+        "role": "tertiary",
+        "displayName": "Route Teal Soft",
+        "canonical": "#e1efee",
+        "tonalRamp": ["#080c0c", "#212827", "#3e4746", "#5d6968", "#808c8b", "#a7b0b0", "#cbd3d2", "#eaf0ef"]
+      },
+      "observed-green": {
+        "role": "tertiary",
+        "displayName": "Observed Green",
+        "canonical": "#18674b",
+        "tonalRamp": ["#001007", "#032f1f", "#19503b", "#30755a", "#59987d", "#88bba4", "#b3dcc8", "#d7f8e8"]
+      },
+      "observed-green-soft": {
+        "role": "tertiary",
+        "displayName": "Observed Green Soft",
+        "canonical": "#e3f0e8",
+        "tonalRamp": ["#080c0a", "#222825", "#3f4742", "#5e6963", "#828c86", "#a8b0ab", "#ccd3cf", "#eaf0ec"]
+      },
+      "caution-amber": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "#8c540e",
+        "tonalRamp": ["#180600", "#3c1e00", "#633a07", "#8d581c", "#b17d48", "#d1a47a", "#eec9a7", "#ffe9cd"]
+      },
+      "caution-amber-soft": {
+        "role": "tertiary",
+        "displayName": "Caution Amber Soft",
+        "canonical": "#fbedd8",
+        "tonalRamp": ["#0e0a05", "#2c251c", "#4c4436", "#706453", "#938776", "#b6ac9e", "#d8d0c4", "#f4eee4"]
+      },
+      "blocked-red": {
+        "role": "tertiary",
+        "displayName": "Blocked Red",
+        "canonical": "#a2392e",
+        "tonalRamp": ["#200000", "#480f0a", "#75281f", "#a54236", "#ca695c", "#e89588", "#ffbdb2", "#ffdfd6"]
+      },
+      "blocked-red-soft": {
+        "role": "tertiary",
+        "displayName": "Blocked Red Soft",
+        "canonical": "#f8e3df",
+        "tonalRamp": ["#0f0a08", "#2d2422", "#4f423f", "#72625e", "#968582", "#b9aaa7", "#dacecc", "#f6ecea"]
+      },
+      "gulf-sea": {
+        "role": "neutral",
+        "displayName": "Gulf Sea",
+        "canonical": "#9fcccb",
+        "tonalRamp": ["#020e0e", "#142b2b", "#2c4b4b", "#476e6e", "#6b9291", "#96b5b4", "#bdd7d6", "#dff3f3"]
+      },
+      "gulf-land": {
+        "role": "neutral",
+        "displayName": "Gulf Land",
+        "canonical": "#f0e4c9",
+        "tonalRamp": ["#0e0b04", "#2b2619", "#4c4433", "#6f654f", "#928872", "#b5ad9b", "#d7d0c1", "#f3eee2"]
+      },
+      "gulf-coast": {
+        "role": "neutral",
+        "displayName": "Gulf Coast",
+        "canonical": "#f7f1e2",
+        "tonalRamp": ["#0d0b07", "#29261f", "#49453b", "#6b6659", "#8e897d", "#b2aea3", "#d4d1c8", "#f1eee7"]
+      },
+      "gilt-border": {
+        "role": "neutral",
+        "displayName": "Gilt Border",
+        "canonical": "#b89b66",
+        "tonalRamp": ["#120900", "#322406", "#55421b", "#7b6231", "#9e8557", "#c0ab85", "#e0cfb0", "#fbedd4"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The page title, one per screen."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Panel and section titles."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Cited values in evidence lists and scenario results."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Page description, max 62ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Working text and table cells."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Footers, metadata, navigation sublines; the 13px floor."
+      },
+      "badge": {
+        "displayName": "Badge",
+        "purpose": "Truth and status badges only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 8px 24px -8px rgb(23 38 31 / 0.18)",
+        "purpose": "Popovers, menus, sheets, dialogs, map controls and graph edge labels only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Default curve for entries, exits and layout changes."
+      },
+      {
+        "name": "duration-fast",
+        "value": "160ms",
+        "purpose": "Exits and small state changes."
+      },
+      {
+        "name": "duration-base",
+        "value": "240ms",
+        "purpose": "Entries and route transitions."
+      },
+      {
+        "name": "duration-slow",
+        "value": "320ms",
+        "purpose": "Larger layout moves."
+      },
+      {
+        "name": "indicator-spring",
+        "value": "spring, bounce 0, visualDuration 280ms",
+        "purpose": "Tab underline and nav highlight."
+      },
+      {
+        "name": "control-transition",
+        "value": "150ms colour/background/border",
+        "purpose": "Buttons and links."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one emerald action in a panel or dialog.",
+      "html": "<button class=\"ds-btn-primary\">Record decision</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:0;border-radius:6px;background:var(--color-brand);color:#fff;font:500 14px/1 'Inter Variable',Inter,Arial,sans-serif;cursor:pointer;transition:background-color .15s,transform .15s}.ds-btn-primary:hover{background:var(--color-brand-hover)}.ds-btn-primary:active{transform:scale(.98)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-gold);outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button: white with a strong hairline.",
+      "html": "<button class=\"ds-btn-secondary\">Open lineage</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;height:40px;padding:0 16px;border:1px solid var(--color-line-strong);border-radius:6px;background:var(--color-panel);color:var(--color-ink);font:500 14px/1 'Inter Variable',Inter,Arial,sans-serif;cursor:pointer;transition:background-color .15s,border-color .15s}.ds-btn-secondary:hover{background:var(--color-raised);border-color:rgb(15 74 54/.5)}.ds-btn-secondary:focus-visible{outline:2px solid var(--color-gold);outline-offset:2px}"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Top-bar search across signals, cases and entities.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search signals, cases, entities…\" aria-label=\"Search\">",
+      "css": ".ds-input{height:40px;width:320px;padding:0 12px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-panel);color:var(--color-ink);font:400 14px 'Inter Variable',Inter,Arial,sans-serif}.ds-input::placeholder{color:var(--color-ink-faint)}.ds-input:focus-visible{border-color:var(--color-brand);outline:2px solid var(--color-gold);outline-offset:2px}"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Active item in emerald on a soft emerald fill with an inline-start rule.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\">Sector Intelligence</a><a class=\"ds-nav-item\" href=\"#\">AI Command</a><a class=\"ds-nav-item\" href=\"#\">Foresight &amp; Scenarios</a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:4px;width:240px;padding:12px;background:var(--color-raised)}.ds-nav-item{display:flex;align-items:center;padding:10px 12px;border-radius:8px;border-inline-start:3px solid transparent;color:var(--color-ink-muted);font:400 14.5px 'Inter Variable',Inter,Arial,sans-serif;text-decoration:none;transition:color .15s}.ds-nav-item:hover{color:var(--color-ink)}.ds-nav-item.is-active{background:var(--color-brand-soft);border-inline-start-color:var(--color-brand);color:var(--color-brand);font-weight:600}.ds-nav-item:focus-visible{outline:2px solid var(--color-gold);outline-offset:2px}"
+    },
+    {
+      "name": "Truth Badges",
+      "kind": "chip",
+      "refersTo": "truth-badge-sourced",
+      "description": "Claim labels: text plus icon, dashed for inferred, hatched for synthetic.",
+      "html": "<span class=\"ds-badge ds-sourced\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/></svg>Sourced</span> <span class=\"ds-badge ds-inferred\">Inferred</span> <span class=\"ds-badge ds-synthetic\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M10 2v7.31L4.2 19.2A2 2 0 0 0 6 22h12a2 2 0 0 0 1.8-2.8L14 9.3V2\"/><path d=\"M8.5 2h7\"/></svg>Synthetic</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border:1px solid;border-radius:4px;font:600 12px/1.33 'Inter Variable',Inter,Arial,sans-serif;white-space:nowrap}.ds-sourced{background:var(--color-cyan-soft);border-color:rgb(26 106 110/.5);color:var(--color-cyan)}.ds-inferred{background:transparent;border-style:dashed;border-color:rgb(26 106 110/.6);color:var(--color-cyan)}.ds-synthetic{background:var(--color-gold-soft) repeating-linear-gradient(135deg,rgb(184 146 79/.18) 0 2px,transparent 2px 6px);border-color:rgb(184 146 79/.6);color:var(--color-gold-bright)}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The working surface: white, hairline border, raised-bone footer.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-h\"><h2>Figures cited in this case</h2><p>Every figure resolves to a source record.</p></header><div class=\"ds-panel-b\">20.9 million b/d · Average oil flow, 2023</div><footer class=\"ds-panel-f\"><span>6 figures</span><a href=\"#\">View all</a></footer></section>",
+      "css": ".ds-panel{width:420px;border:1px solid var(--color-line);border-radius:12px;background:var(--color-panel);overflow:hidden;font-family:'Inter Variable',Inter,Arial,sans-serif}.ds-panel-h{padding:16px 20px 12px}.ds-panel-h h2{margin:0;font:600 18px/1.4 'Source Serif 4 Variable','Source Serif 4',Georgia,serif;color:var(--color-ink)}.ds-panel-h p{margin:2px 0 0;font-size:14px;color:var(--color-ink-muted)}.ds-panel-b{padding:12px 20px;border-top:1px solid var(--color-line);font-size:14px;color:var(--color-ink)}.ds-panel-f{display:flex;justify-content:space-between;padding:10px 20px;border-top:1px solid var(--color-line);background:rgb(236 235 230/.5);font-size:13px;color:var(--color-ink-muted)}.ds-panel-f a{color:var(--color-cyan);font-weight:500;text-decoration:none}.ds-panel-f a:hover{text-decoration:underline}"
+    },
+    {
+      "name": "Demonstration Banner",
+      "kind": "custom",
+      "refersTo": "demo-banner",
+      "description": "The standing disclosure that this is a demonstration build.",
+      "html": "<p class=\"ds-banner\">Demonstration: fictional institution, synthetic and dated public snapshot data. No live feeds.</p>",
+      "css": ".ds-banner{margin:0;padding:4px 16px;text-align:center;background:var(--color-gold-soft) repeating-linear-gradient(135deg,rgb(184 146 79/.18) 0 2px,transparent 2px 6px);border-bottom:1px solid rgb(184 146 79/.4);color:var(--color-gold-bright);font:600 13px 'Inter Variable',Inter,Arial,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sovereign Light",
+    "overview": "TIGERIS is the room where an institution decides. The system answers that with daylight rather than drama: a warm bone canvas, white working panels, ink that is almost black-green, and two quiet authorities. Deep emerald carries power: the primary action, the active place in the navigation, the approved state. Gold carries provenance: where a thing came from, and the standing reminder that this build is a demonstration. Everything else is hairline and type.\n\nThe surfaces are operate-mode screens that people work in for hours. Density is moderate and tabular; structure comes from thin borders and spacing, not from colour fields or shadows. Serif headings (Source Serif 4) give the record its formality; Inter carries the working text. Motion is short and only ever says that something entered, left, was selected or moved. Truth is never decorative: every badge pairs text with an icon, synthetic and illustrative material carries a hatched texture, and a missing number is shown as missing.\n\nThe system rejects the default intelligence-dashboard look: no dark cockpit, no glowing accents, no vanity KPI tiles, no live-feed theatre.",
+    "keyCharacteristics": [
+      "Light, warm, low-chroma ground; white panels with 1px hairlines.",
+      "One emerald action per area; gold reserved for provenance and the demonstration disclosure.",
+      "Serif for headings and cited figures, sans for everything worked with.",
+      "Flat at rest; a shadow means the thing is floating above the page.",
+      "Status always as text plus icon (plus border style or hatch), never colour alone.",
+      "Logical properties throughout, so English and Arabic (RTL) share one layout."
+    ],
+    "rules": [
+      {
+        "name": "The Two Authorities Rule",
+        "body": "Emerald acts, gold attests. Emerald is for what a person does (act, select, approve); gold is for where something came from and that this is a demonstration. Neither is used for decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Text-Is-Tested Rule",
+        "body": "Every colour used as text meets 4.5:1 on canvas, panel and raised surfaces. Provenance Gold (#b8924f) fails that, so gold text is always Provenance Gold Text (#7a5a22).",
+        "section": "colors"
+      },
+      {
+        "name": "The Truth-Hue Reservation Rule",
+        "body": "Teal, green, amber and red belong to the truth and status vocabulary. A chart series, an illustration or a category never borrows them.",
+        "section": "colors"
+      },
+      {
+        "name": "The 13px Floor Rule",
+        "body": "No running text below 13px; 12px is reserved for badges and short tags.",
+        "section": "typography"
+      },
+      {
+        "name": "The Serif-For-The-Record Rule",
+        "body": "Serif marks what will be kept: titles and cited figures. Controls, labels and tables stay in the sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Number Rule",
+        "body": "Counts, figures and times in lists use tabular numerals so columns align.",
+        "section": "typography"
+      },
+      {
+        "name": "The Side-By-Side Collapses Rule",
+        "body": "Any row that sets a value, a label and actions side by side on desktop stacks them on phones; nothing is squeezed into a column narrower than its longest word.",
+        "section": "layout"
+      },
+      {
+        "name": "The Floating-Only Rule",
+        "body": "If it sits in the page flow, it has no shadow. Panels and cards are separated by hairlines, never by elevation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Dash-Means-Uncertain Rule",
+        "body": "A dashed line (on a badge, an edge or a map route) always encodes an inferred, assumed or illustrative claim.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** keep one Sovereign Emerald (#0f4a36) primary action per panel or dialog.",
+      "**Do** pair every status with text and an icon; add a dashed border or the gold hatch for inferred, assumed, synthetic and illustrative material.",
+      "**Do** show a missing value as missing (\"Source not connected\", or \"—\" in a table cell) instead of a filler number.",
+      "**Do** use Provenance Gold Text (#7a5a22) whenever gold is text.",
+      "**Do** separate panels with 1px Hairline (#e2e0d9) borders and spacing, not shadows.",
+      "**Do** keep running text at 13px or larger and page descriptions within 62ch.",
+      "**Do** write layout with logical properties (start/end, ps/pe, ms/me) so Arabic mirrors without overrides.",
+      "**Do** keep motion to 150–320ms with the ease-out curve, and let reduced motion keep fades and colour changes while dropping movement."
+    ],
+    "donts": [
+      "**Don't** label anything LIVE or animate data as if it were streaming; movement is \"Illustrative simulation\".",
+      "**Don't** show a confidence as a bare percentage; use the band (high, moderate, low, insufficient) with its basis.",
+      "**Don't** put a shadow on anything that sits in the page flow.",
+      "**Don't** use teal, green, amber or red for categories, chart series or decoration; they belong to truth and status.",
+      "**Don't** use Provenance Gold (#b8924f) as text, or put gold on primary actions.",
+      "**Don't** go dark, add glows, gradients or glass, or build KPI tiles with invented values.",
+      "**Don't** apply another company's branding, palette or typefaces; reference sites are for study only.",
+      "**Don't** load fonts or assets from a CDN; everything is self-hosted."
+    ]
+  }
+}

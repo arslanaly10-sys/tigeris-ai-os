@@ -31,10 +31,12 @@ test.describe('command centre', () => {
   test('shows persistent context, demo banner and an attention queue', async ({ page }) => {
     await signInAs(page, /Intelligence Analyst/);
     await expect(page.getByRole('note').filter({ hasText: 'DEMONSTRATION MODE' })).toBeVisible();
-    await expect(page.getByText('Gulf Sovereign Investment Authority (Demo)').first()).toBeVisible();
+    await expect(
+      page.getByText('Gulf Sovereign Investment Authority (Demo)').filter({ visible: true }).first(),
+    ).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Attention queue' })).toBeVisible();
     await expect(
-      page.getByRole('link', { name: /MSC Aries seizure near the Strait of Hormuz/ }),
+      page.getByRole('link', { name: /MSC Aries seizure near the Strait of Hormuz/ }).first(),
     ).toBeVisible();
     // No view in the MVP may claim live data.
     await expect(page.getByText(/^Live$/)).toHaveCount(0);

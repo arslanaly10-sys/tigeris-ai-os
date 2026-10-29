@@ -6,6 +6,10 @@ import { authRoutes } from './modules/auth/routes';
 import { caseRoutes } from './modules/cases';
 import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
+import { graphRoutes } from './modules/graph';
+import { ingestionRoutes } from './modules/ingestion';
+import { searchRoutes } from './modules/search';
+import { signalRoutes } from './modules/signals';
 import { sourceRoutes } from './modules/sources';
 
 export interface BuildOptions {
@@ -39,5 +43,9 @@ export async function buildApp(opts: BuildOptions) {
   await commandCentreRoutes(app, deps);
   await caseRoutes(app, deps);
   await sourceRoutes(app, deps);
+  await signalRoutes(app, deps);
+  await graphRoutes(app, deps);
+  await ingestionRoutes(app, deps);
+  await searchRoutes(app, deps);
   return app;
 }

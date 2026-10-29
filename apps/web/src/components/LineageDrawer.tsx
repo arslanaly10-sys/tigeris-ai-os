@@ -20,7 +20,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-b border-line px-5 py-4">
       <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{title}</h3>
-      <dl className="divide-y divide-line/70">{children}</dl>
+      <dl className="divide-y divide-line">{children}</dl>
     </section>
   );
 }
@@ -106,7 +106,7 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
                   href={e.source.url}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1 break-all text-navy-700 underline underline-offset-2"
+                  className="inline-flex items-center gap-1 break-all text-cyan underline underline-offset-2"
                 >
                   {e.source.url}
                   <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />

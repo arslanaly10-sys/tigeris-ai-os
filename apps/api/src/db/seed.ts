@@ -3,6 +3,7 @@
 import { appendAudit } from '../audit/audit';
 import { config } from '../config';
 import { ALL_INSTITUTIONS, type InstitutionFixture } from '../fixtures/demo';
+import { seedPhase2 } from './seed-phase2';
 import { createDb, withInstitution, type Db } from './client';
 import {
   caseEvents,
@@ -21,15 +22,26 @@ const DAY = 86_400_000;
 const at = (v: string | ((now: number) => string) | null, now: number) =>
   v === null ? null : new Date(typeof v === 'function' ? v(now) : v);
 
-export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.now()): Promise<string> {
+export interface SeededIds {
+  institutionId: string;
+  principalIds: Map<string, string>;
+  sourceIds: Map<string, string>;
+  evidenceIds: Map<string, string>;
+  caseIds: Map<string, string>;
+}
+
+export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.now()): Promise<SeededIds> {
   const [inst] = await db
     .insert(institutions)
     .values({ key: f.key, name: f.name, isSynthetic: f.isSynthetic })
     .returning({ id: institutions.id });
   const institutionId = inst!.id;
+  const principalIds = new Map<string, string>();
+  const sourceIds = new Map<string, string>();
+  const evidenceIds = new Map<string, string>();
+  const caseIds = new Map<string, string>();
 
   await withInstitution(db, institutionId, async (tx) => {
-    const principalIds = new Map<string, string>();
     for (const p of f.principals) {
       const [row] = await tx
         .insert(principals)
@@ -48,7 +60,6 @@ export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.
       }
     }
 
-    const sourceIds = new Map<string, string>();
     for (const s of f.sources) {
       const { ref, ...rest } = s;
       const [row] = await tx
@@ -58,7 +69,6 @@ export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.
       sourceIds.set(ref, row!.id);
     }
 
-    const evidenceIds = new Map<string, string>();
     for (const e of f.evidence) {
       const [row] = await tx
         .insert(evidenceObjects)
@@ -94,7 +104,6 @@ export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.
       }
     }
 
-    const caseIds = new Map<string, string>();
     for (const c of f.cases) {
       const createdAt = new Date(now - Math.max(...c.events.map((e) => e.daysAgo), c.updatedDaysAgo) * DAY);
       const [row] = await tx
@@ -170,13 +179,16 @@ export async function seedInstitution(db: Db, f: InstitutionFixture, now = Date.
     });
   });
 
-  return institutionId;
+  return { institutionId, principalIds, sourceIds, evidenceIds, caseIds };
 }
 
 export async function seedAll(url = config.DATABASE_OWNER_URL) {
   const { db, close } = createDb(url, 1);
   try {
-    for (const f of ALL_INSTITUTIONS) await seedInstitution(db, f);
+    for (const f of ALL_INSTITUTIONS) {
+      const ids = await seedInstitution(db, f);
+      if (f.key === 'gsia-demo') await seedPhase2(db, ids);
+    }
   } finally {
     await close();
   }

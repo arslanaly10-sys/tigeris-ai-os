@@ -8,6 +8,8 @@ import { CasesListPage } from '@/pages/CasesList';
 import { CommandCentrePage } from '@/pages/CommandCentre';
 import { PlannedModulePage } from '@/pages/PlannedModule';
 import { SignInPage } from '@/pages/SignIn';
+import { GraphPage } from '@/pages/Graph';
+import { SignalReviewPage } from '@/pages/SignalReview';
 import { SourcesPage } from '@/pages/Sources';
 
 function Protected() {
@@ -19,7 +21,7 @@ function Protected() {
   }
   if (!auth.data)
     return (
-      <p role="alert" className="m-8 rounded-md border border-red bg-red-soft px-4 py-3 text-sm text-red">
+      <p role="alert" className="m-8 rounded-lg border border-red/60 bg-red-soft px-4 py-3 text-sm text-red">
         The TIGERIS service is unavailable.
       </p>
     );
@@ -30,8 +32,10 @@ function Protected() {
         <Route index element={<CommandCentrePage ctx={ctx} />} />
         <Route path="cases" element={<CasesListPage />} />
         <Route path="cases/:key" element={<CaseWorkspacePage />} />
-        <Route path="sources" element={<SourcesPage />} />
-        {NAV.filter((n) => n.phase > 1).map((n) => (
+        <Route path="sources" element={<SourcesPage ctx={ctx} />} />
+        <Route path="signals" element={<SignalReviewPage />} />
+        <Route path="graph" element={<GraphPage />} />
+        {NAV.filter((n) => n.phase > 0).map((n) => (
           <Route key={n.path} path={n.path.slice(1)} element={<PlannedModulePage item={n} />} />
         ))}
         <Route path="*" element={<Navigate to="/" replace />} />

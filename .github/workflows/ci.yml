@@ -40,6 +40,8 @@ jobs:
         run: pnpm test
       - name: Install Playwright browser
         run: pnpm --filter @tigeris/web exec playwright install --with-deps chromium
+      - name: Reset seeded data (integration tests mutate it)
+        run: pnpm db:reset
       - name: End-to-end and accessibility
         run: pnpm test:e2e
       - uses: actions/upload-artifact@v4

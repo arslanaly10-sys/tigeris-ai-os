@@ -83,3 +83,37 @@ export type Urgency = (typeof URGENCIES)[number];
 /** The four scenario horizons are comparison windows, not forecast-accuracy claims. */
 export const HORIZONS = ['72h', '90d', '1y', '5y'] as const;
 export type Horizon = (typeof HORIZONS)[number];
+
+export const SIGNAL_TYPES = ['maritime', 'land', 'energy', 'supply_chain', 'institutional'] as const;
+export type SignalType = (typeof SIGNAL_TYPES)[number];
+
+export const SIGNAL_DISPOSITIONS = ['new', 'monitoring', 'corroborated', 'dismissed', 'case_opened'] as const;
+export type SignalDisposition = (typeof SIGNAL_DISPOSITIONS)[number];
+
+/** Analyst triage actions on a signal (App Flow step 3). */
+export const SIGNAL_ACTIONS = ['corroborate', 'challenge', 'monitor', 'dismiss', 'open_case'] as const;
+export type SignalAction = (typeof SIGNAL_ACTIONS)[number];
+
+export const ENTITY_TYPES = [
+  'event',
+  'vessel',
+  'chokepoint',
+  'port',
+  'terminal',
+  'commodity',
+  'asset',
+  'institution',
+  'portfolio',
+  'holding',
+  'service',
+  'route',
+  'region',
+] as const;
+export type EntityType = (typeof ENTITY_TYPES)[number];
+
+/** Graph edges: observed / sourced / inferred / assumed / synthetic. Never unlabelled (FR-15). */
+export const RELATIONSHIP_CLASSES = ['observed', 'sourced', 'inferred', 'assumed', 'synthetic'] as const;
+export type RelationshipClass = (typeof RELATIONSHIP_CLASSES)[number];
+
+export const VALIDATION_OUTCOMES = ['accepted', 'warned', 'quarantined', 'rejected', 'duplicate'] as const;
+export type ValidationOutcome = (typeof VALIDATION_OUTCOMES)[number];

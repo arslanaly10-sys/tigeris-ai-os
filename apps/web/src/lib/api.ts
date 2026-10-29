@@ -5,6 +5,13 @@ import type {
   CommandCentre,
   DemoPrincipal,
   EvidenceItem,
+  GraphPayload,
+  IngestionJobItem,
+  MapLayers,
+  SearchResult,
+  SignalAction,
+  SignalDetail,
+  SignalSummary,
   SourceSummary,
 } from '@tigeris/shared';
 
@@ -46,4 +53,18 @@ export const api = {
   case: (key: string) => request<CaseDetail>('GET', `/api/cases/${encodeURIComponent(key)}`),
   evidence: (id: string) => request<EvidenceItem>('GET', `/api/evidence/${encodeURIComponent(id)}`),
   sources: () => request<SourceSummary[]>('GET', '/api/sources'),
+  signals: () => request<SignalSummary[]>('GET', '/api/signals'),
+  signal: (key: string) => request<SignalDetail>('GET', `/api/signals/${encodeURIComponent(key)}`),
+  triage: (key: string, action: SignalAction, rationale: string) =>
+    request<{ signal: SignalDetail; caseKey: string | null }>(
+      'POST',
+      `/api/signals/${encodeURIComponent(key)}/actions`,
+      { action, rationale },
+    ),
+  graph: () => request<GraphPayload>('GET', '/api/graph'),
+  caseGraph: (key: string) => request<GraphPayload>('GET', `/api/cases/${encodeURIComponent(key)}/graph`),
+  mapLayers: () => request<MapLayers>('GET', '/api/map/layers'),
+  ingestion: () => request<IngestionJobItem[]>('GET', '/api/ingestion'),
+  runSampleIngestion: () => request<{ jobId: string }>('POST', '/api/ingestion/sample'),
+  search: (q: string) => request<SearchResult[]>('GET', `/api/search?q=${encodeURIComponent(q)}`),
 };

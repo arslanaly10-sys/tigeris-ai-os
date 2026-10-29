@@ -44,7 +44,11 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
 
 ## Phase status
 
-- **Phase 1 — Foundation** (this build): monorepo, CI, schema v1 with row-level security, demo roles,
-  app shell, Command Centre, MSC Aries case (Situation + Evidence), lineage drawer, audit primitives.
-- Phase 2 — Evidence and graph · Phase 3 — Reasoning and scenarios · Phase 4 — Governance and decisions ·
-  Phase 5 — Complete cases, map and UX · Phase 6 — Release candidate.
+- **Phase 1 — Foundation**: monorepo, CI, schema v1 with row-level security, demo roles, app shell,
+  Command Centre, MSC Aries case, lineage drawer, hash-chained audit.
+- **Phase 2 — Evidence and graph**: sovereign dark redesign; offline Gulf map (MapLibre + deck.gl, Natural
+  Earth) with illustrative replay; Signal Review with triage (corroborate / challenge / monitor / dismiss /
+  open case); temporal intelligence graph with labelled links and bounded traversal; case Impact Graph and
+  Timeline; snapshot ingestion with validation rules v1 and quarantine; institution-scoped search.
+- Phase 3 — Reasoning and scenarios · Phase 4 — Governance and decisions · Phase 5 — Complete cases and UX ·
+  Phase 6 — Release candidate.

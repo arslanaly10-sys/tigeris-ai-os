@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, FlaskConical, KeyRound, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Database, FileCheck2, FlaskConical, Landmark, Server } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Wordmark } from '@/components/layout/Brand';
 import { api } from '@/lib/api';
-import { ROLE_LABEL, ROLE_PURPOSE } from '@/lib/roles';
+import { ROLE_LABEL } from '@/lib/roles';
+import { GulfSilhouette } from '@/components/map/GulfSilhouette';
 
 /**
- * Sign-in (FR-01–FR-04, UI brief §8). Production authenticates through the institution's identity
- * provider with MFA; this demonstration build offers seeded roles only and says so plainly.
+ * Sign-in (FR-01–FR-04, UI brief §8). Pilot and production deployments authenticate through the
+ * institution's identity provider with MFA. This demonstration build has no password form: it offers
+ * seeded, clearly labelled roles only.
  */
 export function SignInPage() {
   const navigate = useNavigate();
@@ -22,112 +24,115 @@ export function SignInPage() {
   });
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <aside className="relative flex flex-col justify-between overflow-hidden bg-navy-950 px-6 py-8 text-navy-100 sm:px-10 lg:py-12">
-        <svg
-          className="pointer-events-none absolute -end-24 -bottom-24 h-96 w-96 text-navy-800"
-          viewBox="0 0 100 100"
-          aria-hidden
-        >
-          <g fill="none" stroke="currentColor" strokeWidth="0.6">
-            {[0, 1, 2, 3].map((i) => (
-              <g key={i} transform={`scale(${1 - i * 0.2}) translate(${i * 12.5} ${i * 12.5})`}>
-                <rect x="20" y="20" width="60" height="60" />
-                <rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)" />
-              </g>
-            ))}
-          </g>
-        </svg>
-        <div className="relative">
-          <Wordmark />
-          <h1 className="mt-10 max-w-md text-3xl leading-tight text-white sm:text-4xl">
-            Intelligence into Capability.
-            <span className="block text-gold-bright">Capital into Sovereign Advantage.</span>
-          </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-navy-300">
-            An institution-owned intelligence and decision layer. Validated evidence becomes governed,
-            traceable options for human authority.
+    <div className="relative grid min-h-dvh overflow-hidden bg-canvas lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,40rem)]">
+      <div className="relative hidden lg:block" aria-hidden>
+        <GulfSilhouette className="absolute inset-0 h-full w-full" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-canvas rtl:bg-gradient-to-l" />
+        <div className="absolute start-10 bottom-10 max-w-sm">
+          <p className="text-xs font-medium uppercase tracking-[0.35em] text-ink-muted">
+            Intelligence into capability
           </p>
+          <p className="mt-2 text-xs font-medium uppercase tracking-[0.35em] text-gold-bright">
+            Capital into sovereign advantage
+          </p>
+          <span className="mt-4 block h-px w-12 bg-gold" />
         </div>
-        <ul className="relative mt-10 space-y-3 text-sm">
-          <li className="flex gap-3">
-            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
-            <span>
-              Pilot and production deployments sign in through the institution&rsquo;s own identity provider
-              with MFA. No public registration.
-            </span>
-          </li>
-          <li className="flex gap-3">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
-            <span>
-              Data, graph, policies and memory stay inside the institution&rsquo;s deployment boundary. These
-              visual cues are not a security certification.
-            </span>
-          </li>
-        </ul>
-      </aside>
+      </div>
 
-      <main className="flex flex-col bg-ivory px-4 py-8 sm:px-10 lg:py-12">
-        <div className="pattern-synthetic mb-6 flex items-start gap-3 rounded-lg border border-gold bg-gold-soft px-4 py-3 text-sm text-gold-text">
-          <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <p>
-            <strong className="font-semibold">Demonstration Mode.</strong> Choose a seeded role to explore the
-            fictional {principals.data?.institution.name ?? 'demonstration institution'}. All institution data
-            is synthetic; public facts are dated snapshots pending factual review. No real credentials are
-            used.
-          </p>
-        </div>
+      <main className="motif relative flex items-center justify-center px-4 py-10 sm:px-8">
+        <div className="w-full max-w-md rounded-2xl border border-line-strong bg-panel/95 px-6 py-8 shadow-2xl sm:px-9">
+          <Wordmark stacked />
+          <h1 className="mt-8 text-center text-2xl text-ink sm:text-3xl">Secure institutional access</h1>
+          <p className="mt-1 text-center text-sm text-ink-muted">Sign in to your sovereign workspace</p>
 
-        <h2 className="text-2xl text-ink">Choose a demonstration role</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Each role sees the same case through its own authority boundary.
-        </p>
+          <div className="mt-7">
+            <button
+              type="button"
+              disabled
+              aria-describedby="sso-note"
+              className="flex h-12 w-full items-center justify-center gap-2.5 rounded-lg border border-line-strong text-sm font-medium text-ink-muted"
+            >
+              <Landmark className="h-4 w-4 text-gold" aria-hidden />
+              Continue with institutional SSO
+            </button>
+            <p id="sso-note" className="mt-1.5 text-center text-xs text-ink-faint">
+              Not connected in this demonstration build. Pilots use the institution&rsquo;s identity provider
+              with MFA.
+            </p>
+          </div>
 
-        {principals.isPending ? (
-          <p className="mt-6 text-sm text-ink-muted">Loading roles…</p>
-        ) : principals.isError ? (
-          <p
-            role="alert"
-            className="mt-6 rounded-md border border-red bg-red-soft px-4 py-3 text-sm text-red"
-          >
-            The demonstration service is unavailable. Check that the API is running and the database is
-            seeded.
-          </p>
-        ) : (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {principals.data.principals.map((p) => {
-              const role = p.roles[0]!;
-              return (
+          <div className="my-6 flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.2em] text-ink-faint">
+            <span className="h-px flex-1 bg-line" />
+            Demonstration access
+            <span className="h-px flex-1 bg-line" />
+          </div>
+
+          <div className="pattern-synthetic mb-4 flex items-start gap-2.5 rounded-lg border border-gold/50 bg-gold-soft px-3 py-2.5 text-xs text-gold-bright">
+            <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+            <p>
+              <strong className="font-semibold">Demonstration Mode.</strong> Choose a seeded role in the
+              fictional {principals.data?.institution.name ?? 'demonstration institution'}. No real
+              credentials are used.
+            </p>
+          </div>
+
+          <h2 className="sr-only">Choose a demonstration role</h2>
+          {principals.isPending ? (
+            <p className="text-sm text-ink-muted">Loading roles…</p>
+          ) : principals.isError ? (
+            <p
+              role="alert"
+              className="rounded-lg border border-red/60 bg-red-soft px-4 py-3 text-sm text-red"
+            >
+              The demonstration service is unavailable. Check that the API is running and the database is
+              seeded.
+            </p>
+          ) : (
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+              {principals.data.principals.map((p) => (
                 <li key={p.id}>
                   <button
                     type="button"
                     disabled={start.isPending}
                     onClick={() => start.mutate(p.id)}
-                    className="group flex h-full w-full flex-col rounded-lg border border-line bg-paper p-4 text-start transition-colors hover:border-navy-600 hover:bg-white disabled:opacity-60"
+                    className="group flex w-full items-center gap-3 bg-panel px-3.5 py-2.5 text-start transition-colors hover:bg-raised disabled:opacity-60"
                   >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-gold-text">
-                        {ROLE_LABEL[role]}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-ink">{p.displayName}</span>
+                      <span className="block text-xs text-ink-faint">
+                        {ROLE_LABEL[p.roles[0]!]} · {p.title}
                       </span>
-                      <ArrowRight
-                        className="h-4 w-4 text-ink-muted transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5"
-                        aria-hidden
-                      />
                     </span>
-                    <span className="mt-1.5 font-serif text-lg font-semibold text-ink">{p.displayName}</span>
-                    <span className="text-sm text-ink-muted">{p.title}</span>
-                    <span className="mt-2 text-xs leading-relaxed text-ink-muted">{ROLE_PURPOSE[role]}</span>
+                    <ChevronRight
+                      className="h-4 w-4 text-ink-faint group-hover:text-gold-bright rtl:rotate-180"
+                      aria-hidden
+                    />
                   </button>
                 </li>
-              );
-            })}
+              ))}
+            </ul>
+          )}
+          {start.isError ? (
+            <p role="alert" className="mt-3 text-sm text-red">
+              Could not start the demonstration session. Try again.
+            </p>
+          ) : null}
+
+          <ul className="mt-7 grid grid-cols-3 gap-2 border-t border-line pt-5 text-center text-[11px] text-ink-muted">
+            <li className="flex flex-col items-center gap-1.5">
+              <Database className="h-4 w-4 text-gold" aria-hidden />
+              Institution-owned data
+            </li>
+            <li className="flex flex-col items-center gap-1.5">
+              <Server className="h-4 w-4 text-gold" aria-hidden />
+              Built for on-premise
+            </li>
+            <li className="flex flex-col items-center gap-1.5">
+              <FileCheck2 className="h-4 w-4 text-gold" aria-hidden />
+              All access is audited
+            </li>
           </ul>
-        )}
-        {start.isError ? (
-          <p role="alert" className="mt-4 text-sm text-red">
-            Could not start the demonstration session. Try again.
-          </p>
-        ) : null}
+        </div>
       </main>
     </div>
   );

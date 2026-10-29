@@ -17,7 +17,7 @@ export interface NavItem {
   path: string;
   label: string;
   icon: LucideIcon;
-  /** Delivery phase in which the module becomes functional (Implementation Plan §4). */
+  /** Delivery phase in which the module becomes functional (Implementation Plan §4); 0 = built. */
   phase: number;
   purpose: string;
   willDo: string[];
@@ -29,7 +29,7 @@ export const NAV: NavItem[] = [
     path: '/',
     label: 'Command Centre',
     icon: LayoutDashboard,
-    phase: 1,
+    phase: 0,
     purpose: 'Attention queue: what needs attention, why, and who acts next.',
     willDo: [],
   },
@@ -37,7 +37,7 @@ export const NAV: NavItem[] = [
     path: '/signals',
     label: 'Signals & Early Warning',
     icon: Radar,
-    phase: 2,
+    phase: 0,
     purpose: 'Validated, unvalidated, conflicting and dismissed signals with source health and disposition.',
     willDo: [
       'Signal detail with publisher, event and retrieval times, rights and corroboration',
@@ -49,7 +49,7 @@ export const NAV: NavItem[] = [
     path: '/cases',
     label: 'Intelligence Cases',
     icon: Brain,
-    phase: 1,
+    phase: 0,
     purpose: 'Case list and case workspaces — the primary work object of the OS.',
     willDo: [],
   },
@@ -57,7 +57,7 @@ export const NAV: NavItem[] = [
     path: '/graph',
     label: 'Intelligence Graph',
     icon: Share2,
-    phase: 2,
+    phase: 0,
     purpose: 'Shared entities, dependencies and temporal causal links across the institution.',
     willDo: [
       'Entities, routes, assets, suppliers and exposures with stable identifiers',
@@ -104,7 +104,7 @@ export const NAV: NavItem[] = [
     path: '/sources',
     label: 'Data & Sources',
     icon: Database,
-    phase: 1,
+    phase: 0,
     purpose: 'Source registry: class, terms, approval, cadence and freshness.',
     willDo: [],
   },

@@ -22,11 +22,11 @@ export function Sheet({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-navy-950/40" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-navy-950/70" />
         <Dialog.Content
           className={cn(
-            'fixed inset-y-0 z-50 flex w-full max-w-lg flex-col bg-paper shadow-xl outline-none',
-            side === 'end' ? 'end-0 border-s border-line' : 'start-0 border-e border-line',
+            'fixed inset-y-0 z-50 flex w-full max-w-lg flex-col bg-panel shadow-2xl outline-none',
+            side === 'end' ? 'end-0 border-s border-line-strong' : 'start-0 border-e border-line-strong',
           )}
         >
           <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
@@ -41,13 +41,45 @@ export function Sheet({
               )}
             </div>
             <Dialog.Close
-              className="rounded-md p-1.5 text-ink-muted hover:bg-navy-100 hover:text-ink"
+              className="rounded-md p-1.5 text-ink-muted hover:bg-raised hover:text-ink"
               aria-label="Close"
             >
               <X className="h-5 w-5" aria-hidden />
             </Dialog.Close>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+/** Centred dialog for short confirmations that need a typed rationale. */
+export function Modal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-navy-950/70" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line-strong bg-panel p-5 shadow-2xl outline-none">
+          <Dialog.Title className="font-serif text-lg font-semibold text-ink">{title}</Dialog.Title>
+          {description ? (
+            <Dialog.Description className="mt-1 text-sm text-ink-muted">{description}</Dialog.Description>
+          ) : (
+            <Dialog.Description className="sr-only">{title}</Dialog.Description>
+          )}
+          <div className="mt-4">{children}</div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

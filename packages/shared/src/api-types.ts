@@ -1,12 +1,19 @@
 import type {
   CaseState,
   ClaimClass,
+  ConfidenceBand,
   ConfidenceBasis,
   DataMode,
+  EntityType,
+  RelationshipClass,
   Role,
   Sensitivity,
+  SignalAction,
+  SignalDisposition,
+  SignalType,
   SourceClass,
   Urgency,
+  ValidationOutcome,
   ValidationStatus,
 } from './vocabulary';
 
@@ -121,4 +128,124 @@ export interface CommandCentre {
   attention: AttentionItem[];
   counts: { openCases: number; awaitingReview: number; awaitingDecision: number; staleSources: number };
   sourceHealth: SourceSummary[];
+}
+
+export interface SignalEventItem {
+  id: string;
+  action: SignalAction;
+  fromDisposition: SignalDisposition;
+  toDisposition: SignalDisposition;
+  actor: string;
+  rationale: string;
+  occurredAt: string;
+}
+
+export interface SignalSummary {
+  id: string;
+  key: string;
+  title: string;
+  summary: string;
+  signalType: SignalType;
+  domain: string;
+  urgency: Urgency;
+  dataMode: DataMode;
+  disposition: SignalDisposition;
+  confidenceBand: ConfidenceBand;
+  locationLabel: string | null;
+  detectedAt: string;
+  /** Event and retrieval times come from the signal's primary evidence. */
+  eventTime: string | null;
+  retrievedAt: string | null;
+  primarySource: SourceSummary | null;
+  validationStatus: ValidationStatus | null;
+  caseKey: string | null;
+}
+
+export interface SignalDetail extends SignalSummary {
+  evidence: EvidenceItem[];
+  events: SignalEventItem[];
+  /** Actions the current principal may take now (server-computed). */
+  allowedActions: SignalAction[];
+}
+
+export interface GraphNode {
+  id: string;
+  key: string;
+  type: EntityType;
+  name: string;
+  description: string;
+  claimClass: ClaimClass;
+  /** Hops from the case origin (0 = origin). Absent for whole-graph views. */
+  hop?: number;
+  lon: number | null;
+  lat: number | null;
+  geoPrecision: 'exact' | 'approximate' | 'illustrative' | null;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  predicate: string;
+  relationshipClass: RelationshipClass;
+  confidenceBand: ConfidenceBand;
+  rationale: string;
+  status: 'active' | 'challenged' | 'retired';
+  evidence: { evidenceId: string; title: string; stance: 'supporting' | 'contradicting' | 'contextual' }[];
+}
+
+export interface GraphPayload {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  maxHops: number;
+}
+
+export interface MovementTrack {
+  id: string;
+  key: string;
+  kind: 'vessel' | 'truck';
+  label: string;
+  dataMode: DataMode;
+  claimClass: ClaimClass;
+  /** [lon, lat, secondsFromStart] */
+  points: [number, number, number][];
+}
+
+export interface MapLayers {
+  entities: GraphNode[];
+  edges: GraphEdge[];
+  tracks: MovementTrack[];
+  /** Replay window length in seconds. */
+  durationSeconds: number;
+  movementSource: SourceSummary | null;
+}
+
+export interface ValidationRunItem {
+  id: string;
+  externalId: string;
+  outcome: ValidationOutcome;
+  rationale: string;
+  checks: { rule: string; result: 'pass' | 'warn' | 'fail'; detail: string }[];
+  evidenceId: string | null;
+}
+
+export interface IngestionJobItem {
+  id: string;
+  packageId: string;
+  packageSha256: string;
+  source: string | null;
+  ruleSetVersion: string;
+  actor: string | null;
+  status: 'completed' | 'rejected';
+  counts: { accepted: number; warned: number; quarantined: number; rejected: number };
+  completedAt: string;
+  runs: ValidationRunItem[];
+}
+
+export interface SearchResult {
+  kind: 'case' | 'signal' | 'entity';
+  ref: string;
+  title: string;
+  detail: string;
+  href: string;
 }

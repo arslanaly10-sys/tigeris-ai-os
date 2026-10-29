@@ -10,7 +10,7 @@ export function PlannedModulePage({ item }: { item: NavItem }) {
       <PageHeader title={item.label} description={item.purpose} />
       <Panel className="max-w-2xl">
         <div className="flex gap-4 px-5 py-5">
-          <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-gold-text" aria-hidden />
+          <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-gold-bright" aria-hidden />
           <div>
             <p className="font-semibold text-ink">Arrives in Phase {item.phase}</p>
             <p className="mt-1 text-sm text-ink-muted">

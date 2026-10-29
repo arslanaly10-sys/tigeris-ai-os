@@ -21,7 +21,7 @@ export function CasesListPage() {
           <table className="w-full min-w-[48rem] text-sm">
             <caption className="sr-only">Cases in your institution</caption>
             <thead>
-              <tr className="border-b border-line bg-ivory text-xs text-ink-muted">
+              <tr className="border-b border-line bg-raised/50 text-xs text-ink-muted">
                 <th scope="col" className="px-5 py-3 text-start font-medium">
                   Case
                 </th>
@@ -41,7 +41,7 @@ export function CasesListPage() {
             </thead>
             <tbody className="divide-y divide-line">
               {q.data.map((c) => (
-                <tr key={c.id} className="hover:bg-ivory">
+                <tr key={c.id} className="hover:bg-raised/50">
                   <td className="px-5 py-3">
                     <Link to={`/cases/${c.key}`} className="font-medium text-ink hover:underline">
                       {c.title}

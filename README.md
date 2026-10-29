@@ -34,13 +34,16 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
 
 ## Layout
 
-| Path                | Purpose                                                        |
-| ------------------- | -------------------------------------------------------------- |
-| `apps/web`          | React + Vite client (Overview, sector centres, case workspace) |
-| `apps/api`          | Fastify API, SQL migrations, seed fixtures, isolation tests    |
-| `packages/shared`   | Truth vocabulary, case lifecycle, API types                    |
-| `docs/decisions.md` | Product and technical decisions                                |
-| `CLAUDE.md`         | Rules for AI-assisted development                              |
+| Path                          | Purpose                                                        |
+| ----------------------------- | -------------------------------------------------------------- |
+| `apps/web`                    | React + Vite client (Overview, sector centres, case workspace) |
+| `apps/api`                    | Fastify API, SQL migrations, seed fixtures, isolation tests    |
+| `packages/shared`             | Truth vocabulary, case lifecycle, API types                    |
+| `docs/prd.md`                 | Product requirements (FR/TR/AC) and status                     |
+| `docs/architecture.md`        | Stack, isolation, modules, canonical model, connectors, AI     |
+| `docs/implementation-plan.md` | Build slices A–K with status                                   |
+| `docs/decisions.md`           | Product and technical decisions                                |
+| `CLAUDE.md`                   | Rules for AI-assisted development                              |
 
 ## Phase status
 
@@ -60,3 +63,7 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
   confidence basis; internal deterministic model gateway with grounding checks; AI Command run console.
 - Phase 4 — Governance and decisions · Phase 5 — Complete cases and UX ·
   Phase 6 — Release candidate.
+- **Phase 4 — Governance and memory**: recommendation from a scenario's draft options, mandatory expert
+  review, versioned decision policy (pass / hold / block with reasons, two-person rule, author and reviewer
+  separation) enforced in code and again in the database, manual handoff to the operations owner, and
+  institution-scoped searchable memory of approved decisions with outcomes.

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { PalmMark } from '@/components/illustrations/PalmMark';
 import { SkylineHero } from '@/components/illustrations/Scenes';
+import GradientWaves from '@/components/react-bits/GradientWaves';
 import { Collapse, StaggerItem, StaggerList } from '@/components/ui/motion';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -128,6 +129,28 @@ export function SignInPage() {
     <div className="grid min-h-dvh bg-canvas lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
       <aside className="relative hidden overflow-hidden lg:block">
         <SkylineHero className="absolute inset-0 h-full w-full" />
+        {/* The Arabian Gulf in front of the skyline: React Bits GradientWaves in the palette's teal, sand and gold.
+            Still for people who ask for reduced motion (the component checks the setting itself). */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%]" aria-hidden>
+          <GradientWaves
+            lightMode
+            horizonColor="#9fcccb"
+            waveColor="#1a6a6e"
+            crestColor="#f6eedc"
+            speed={0.25}
+            amplitude={2.2}
+            tilt={74}
+            height={5}
+            zoom={2.4}
+            fogDepth={40}
+            brightness={1.1}
+            grain={0.06}
+            intro={false}
+            mouseInteraction={false}
+            swellOnClick={false}
+            quality="medium"
+          />
+        </div>
         <div className="relative flex h-full flex-col px-12 pt-12 pb-8 xl:px-16">
           <div className="flex items-center gap-4">
             <PalmMark className="h-16 w-16" />

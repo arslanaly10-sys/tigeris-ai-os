@@ -1,0 +1,129 @@
+import { expect, test } from '@playwright/test';
+import { expectAccessible, openNav, signInAs } from './helpers';
+
+test.describe('sign-in (FR-04, AC-01)', () => {
+  test('offers seven labelled demonstration roles and no real credentials', async ({ page }) => {
+    await page.goto('/sign-in');
+    await expect(page.getByText('Demonstration Mode.', { exact: false })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose a demonstration role' })).toBeVisible();
+    await expect(page.getByRole('listitem').getByRole('button')).toHaveCount(7);
+    await expect(page.locator('input[type="password"]')).toHaveCount(0);
+    await expectAccessible(page);
+  });
+
+  test('redirects protected routes to sign-in', async ({ page, context }) => {
+    await context.clearCookies();
+    await page.goto('/cases/HMZ-2024-0413');
+    await expect(page).toHaveURL(/\/sign-in$/);
+  });
+
+  test('can be completed with the keyboard alone', async ({ page }) => {
+    await page.goto('/sign-in');
+    const first = page.getByRole('button', { name: /Executive \/ Governor/ });
+    await first.focus();
+    await expect(first).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1, name: 'Command Centre' })).toBeVisible();
+  });
+});
+
+test.describe('command centre', () => {
+  test('shows persistent context, demo banner and an attention queue', async ({ page }) => {
+    await signInAs(page, /Intelligence Analyst/);
+    await expect(page.getByRole('note').filter({ hasText: 'DEMONSTRATION MODE' })).toBeVisible();
+    await expect(page.getByText('Gulf Sovereign Investment Authority (Demo)').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Attention queue' })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /MSC Aries seizure near the Strait of Hormuz/ }),
+    ).toBeVisible();
+    // No view in the MVP may claim live data.
+    await expect(page.getByText(/^Live$/)).toHaveCount(0);
+    await expectAccessible(page);
+  });
+
+  test('puts the expert review first for the domain expert', async ({ page }) => {
+    await signInAs(page, /Domain Expert/);
+    const first = page
+      .getByRole('heading', { name: 'Attention queue' })
+      .locator('xpath=ancestor::section')
+      .getByRole('link')
+      .first();
+    await expect(first).toContainText('CAP-ALLOC-01');
+    await expect(first).toContainText('Your action');
+  });
+});
+
+test.describe('case workspace (AC-03, AC-04)', () => {
+  test('traces a figure to its source and shows the disputed crew count', async ({ page }) => {
+    await signInAs(page, /Intelligence Analyst/);
+    await page.goto('/cases/HMZ-2024-0413');
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'MSC Aries seizure near the Strait of Hormuz' }),
+    ).toBeVisible();
+    await expect(page.getByRole('list', { name: 'Case lifecycle' }).getByText('Analysis')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    await expect(page.getByText('A band with its basis')).toBeVisible();
+    await expectAccessible(page);
+
+    await page.getByRole('tab', { name: /Evidence/ }).click();
+    await expect(page.getByText('Conflicting sources.')).toBeVisible();
+    await expect(page.getByRole('cell', { name: '25 persons' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '24 persons' })).toBeVisible();
+    await expectAccessible(page);
+
+    await page.getByRole('button', { name: 'Lineage for Average oil flow, 2023' }).click();
+    const drawer = page.getByRole('dialog', { name: 'Lineage' });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByText('20.9 million b/d')).toBeVisible();
+    await expect(drawer.getByText('U.S. Energy Information Administration')).toBeVisible();
+    await expect(drawer.getByText('Not captured — snapshot pending')).toBeVisible();
+    await expect(drawer.getByRole('link', { name: /eia\.gov/ })).toHaveAttribute(
+      'href',
+      /eia\.gov\/todayinenergy/,
+    );
+    await expectAccessible(page, '[role="dialog"]');
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+  });
+
+  test('labels synthetic exposure as synthetic', async ({ page }) => {
+    await signInAs(page, /Intelligence Analyst/);
+    await page.goto('/cases/HMZ-2024-0413');
+    const row = page.getByRole('listitem').filter({ hasText: 'Holdings with Hormuz route dependency' });
+    await expect(row.getByText('Synthetic', { exact: true })).toBeVisible();
+  });
+
+  test('never reveals another institution’s case', async ({ page }) => {
+    await signInAs(page, /Intelligence Analyst/);
+    await page.goto('/cases/NRI-TEST-01');
+    await expect(page.getByRole('heading', { name: 'Case not found' })).toBeVisible();
+  });
+});
+
+test.describe('shell', () => {
+  test('exposes all eleven navigation items and labels later-phase modules honestly', async ({ page }) => {
+    await signInAs(page, /Executive/);
+    await openNav(page);
+    const nav = page.getByRole('navigation', { name: 'Primary' }).filter({ visible: true });
+    await expect(nav.getByRole('link')).toHaveCount(11);
+    await nav.getByRole('link', { name: /Scenarios & Foresight/ }).click();
+    await expect(page.getByText('Arrives in Phase 3')).toBeVisible();
+    await expectAccessible(page);
+  });
+
+  test('mirrors the layout in RTL preview', async ({ page }) => {
+    await signInAs(page, /Executive/);
+    await page.getByRole('button', { name: 'RTL preview' }).click();
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await page.getByRole('button', { name: 'RTL preview' }).click();
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  });
+
+  test('signs out and records the session end', async ({ page }) => {
+    await signInAs(page, /Auditor/);
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/sign-in$/);
+  });
+});

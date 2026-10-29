@@ -1,0 +1,34 @@
+{
+  "name": "tigeris-ai-os",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TIGERIS AI OS \u2014 AI-Native Sovereign Intelligence Operating System (MVP)",
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @tigeris/api --filter @tigeris/web dev",
+    "build": "pnpm -r build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @tigeris/web test:e2e",
+    "db:setup": "bash scripts/db-setup.sh",
+    "db:migrate": "pnpm --filter @tigeris/api db:migrate",
+    "db:seed": "pnpm --filter @tigeris/api db:seed",
+    "db:reset": "pnpm db:setup && pnpm db:migrate && pnpm db:seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.19.0"
+  }
+}

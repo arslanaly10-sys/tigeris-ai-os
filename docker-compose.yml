@@ -1,0 +1,39 @@
+# Local development / demonstration stack.
+# The `demo` network is internal: containers on it have no route to the internet (TR-031, demo profile).
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+      interval: 5s
+      retries: 10
+    networks: [demo, host-access]
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: tigeris
+      MINIO_ROOT_PASSWORD: tigeris-dev-only
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio:/data
+    networks: [demo, host-access]
+
+volumes:
+  pgdata:
+  minio:
+
+networks:
+  demo:
+    internal: true
+  host-access: {}

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+    env:
+      PG_SUPERUSER_URL: postgres://postgres:postgres@localhost:5432/postgres
+      DATABASE_OWNER_URL: postgres://tigeris_owner:tigeris_owner_dev@localhost:5432/tigeris
+      DATABASE_APP_URL: postgres://tigeris_app:tigeris_app_dev@localhost:5432/tigeris
+      SESSION_SECRET: ci-only-session-secret-ci-only-session-secret
+      DEMO_INSTITUTION_KEY: gsia-demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - name: Database (roles, migrations, seed)
+        run: pnpm db:reset
+      - name: Unit, integration and tenant isolation tests
+        run: pnpm test
+      - name: Install Playwright browser
+        run: pnpm --filter @tigeris/web exec playwright install --with-deps chromium
+      - name: End-to-end and accessibility
+        run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report

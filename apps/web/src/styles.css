@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+
+/*
+ * TIGERIS design tokens — navy-led direction (decision D-05).
+ * Navy for structure and authority surfaces; ivory/white for reading; emerald for verified;
+ * restrained gold for focus and decision emphasis; amber/red only for caution and blocked states.
+ * Text colours meet WCAG 2.2 AA on their intended surfaces.
+ */
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', Arial, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
+
+  --color-navy-950: #0a1424;
+  --color-navy-900: #0f1d33;
+  --color-navy-800: #172a45;
+  --color-navy-700: #22395a;
+  --color-navy-600: #34507a;
+  --color-navy-300: #9fb0c8;
+  --color-navy-100: #e3e8f0;
+
+  --color-ivory: #f6f3ec;
+  --color-paper: #ffffff;
+  --color-line: #ded8cb;
+  --color-line-strong: #c9c1b0;
+  --color-ink: #1b2533;
+  --color-ink-muted: #556070;
+
+  --color-gold: #b7995d;
+  --color-gold-bright: #c9ad72;
+  --color-gold-text: #7d6331;
+  --color-gold-soft: #f1e8d4;
+
+  --color-emerald: #1f6e55;
+  --color-emerald-soft: #dcefe6;
+  --color-amber: #93561a;
+  --color-amber-soft: #f6e7d3;
+  --color-red: #a9443c;
+  --color-red-soft: #f6e0dd;
+}
+
+@layer base {
+  html {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Patterned fill so SYNTHETIC / ILLUSTRATIVE never rely on colour alone. */
+@utility pattern-synthetic {
+  background-image: repeating-linear-gradient(135deg, rgb(183 153 93 / 0.22) 0 4px, transparent 4px 8px);
+}
+
+@utility pattern-illustrative {
+  background-image: repeating-linear-gradient(45deg, rgb(85 96 112 / 0.16) 0 3px, transparent 3px 7px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

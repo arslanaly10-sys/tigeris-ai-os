@@ -2,9 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 export function Panel({ className, ...props }: HTMLAttributes<HTMLElement>) {
-  return (
-    <section className={cn('card-shadow rounded-xl border border-line bg-panel', className)} {...props} />
-  );
+  return <section className={cn('rounded-xl border border-line bg-panel', className)} {...props} />;
 }
 
 export function PanelHeader({
@@ -33,5 +31,22 @@ export function PanelHeader({
       </div>
       {action}
     </header>
+  );
+}
+
+/**
+ * A card's foot: its total or its "View all". In a row of cards it grows to fill the card's stretched height,
+ * so cards share a bottom edge without leaving a blank band (taste review: ragged rows and panel voids).
+ */
+export function PanelFooter({ children, grow = true }: { children: ReactNode; grow?: boolean }) {
+  return (
+    <div
+      className={cn(
+        'mt-auto flex items-end border-t border-line bg-raised/50 px-5 py-2.5 text-[13px] text-ink-muted',
+        grow && 'flex-1',
+      )}
+    >
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">{children}</div>
+    </div>
   );
 }

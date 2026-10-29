@@ -368,7 +368,7 @@ export function GulfMap({
   };
 
   const mm = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`; // taste-skill-ignore: replay clock (T+hh:mm)
   const source = layers.movementSource;
 
   return (
@@ -383,12 +383,12 @@ export function GulfMap({
 
       {showTracks ? (
         <div className="pointer-events-none absolute end-3 top-3 flex flex-col items-end gap-1">
-          <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-bright shadow-sm">
+          <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-bright float-shadow">
             <FlaskConical className="h-3.5 w-3.5" aria-hidden />
             Illustrative simulation
           </span>
           {source ? (
-            <span className="rounded bg-panel/90 px-2 py-0.5 text-[11px] text-ink-muted shadow-sm">
+            <span className="rounded bg-panel/90 px-2 py-0.5 text-[12px] text-ink-muted float-shadow">
               {source.publisher} ·{' '}
               {source.freshness === 'stale' ? (
                 <span className="font-semibold text-amber">stale</span>
@@ -402,7 +402,7 @@ export function GulfMap({
       ) : null}
 
       {interactive && !failed ? (
-        <div className="absolute end-3 bottom-16 flex flex-col overflow-hidden rounded-md border border-line bg-panel shadow-sm">
+        <div className="absolute end-3 bottom-16 flex flex-col overflow-hidden rounded-md border border-line bg-panel float-shadow">
           <button
             type="button"
             aria-label="Zoom in"
@@ -423,7 +423,7 @@ export function GulfMap({
       ) : null}
 
       {showTracks && showControls && !failed ? (
-        <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-lg border border-line bg-panel/95 px-3 py-2 shadow-sm">
+        <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-lg border border-line bg-panel/95 px-3 py-2 float-shadow">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
@@ -451,7 +451,7 @@ export function GulfMap({
             aria-valuetext={`Replay minute ${mm(time)} of ${mm(duration)}`}
             className="h-1 min-w-0 flex-1 accent-[#0f4a36]"
           />
-          <span className="tabular w-24 shrink-0 text-end text-[11px] text-ink-muted">
+          <span className="tabular w-24 shrink-0 text-end text-[12px] text-ink-muted">
             T+{mm(time)} replay
           </span>
           <label className="sr-only" htmlFor="replay-speed">
@@ -461,7 +461,7 @@ export function GulfMap({
             id="replay-speed"
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value) as (typeof SPEEDS)[number])}
-            className="rounded border border-line-strong bg-panel px-1.5 py-0.5 text-[11px] text-ink"
+            className="rounded border border-line-strong bg-panel px-1.5 py-0.5 text-[12px] text-ink"
           >
             {SPEEDS.map((s) => (
               <option key={s} value={s}>
@@ -477,7 +477,7 @@ export function GulfMap({
 
 export function MapLegend({ showTracks = true }: { showTracks?: boolean }) {
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted" aria-label="Map legend">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-ink-muted" aria-label="Map legend">
       <li className="flex items-center gap-1.5">
         <span className="h-0.5 w-5 bg-cyan" aria-hidden /> Sourced / observed link
       </li>
@@ -504,9 +504,8 @@ export function MapLegend({ showTracks = true }: { showTracks?: boolean }) {
       </li>
       {showTracks ? (
         <li className="flex items-center gap-1.5">
-          <span className="h-0.5 w-5 bg-gradient-to-r from-transparent to-cyan" aria-hidden /> Vessel ·{' '}
-          <span className="h-0.5 w-5 bg-gradient-to-r from-transparent to-gold-bright" aria-hidden /> Truck
-          (illustrative)
+          <span className="h-0.5 w-5 bg-cyan" aria-hidden /> Vessel ·{' '}
+          <span className="h-0.5 w-5 bg-gold-bright" aria-hidden /> Truck (illustrative)
         </li>
       ) : null}
     </ul>
@@ -526,12 +525,12 @@ export function MapItemList({ layers, focusKeys }: { layers: MapLayers; focusKey
         <ul className="mt-2 grid gap-1 sm:grid-cols-2">
           {shown.map((e) => (
             <li key={e.id} className="text-ink-muted">
-              <span className="text-ink">{e.name}</span> — {e.type}, {e.geoPrecision} location, {e.claimClass}
+              <span className="text-ink">{e.name}</span>: {e.type}, {e.geoPrecision} location, {e.claimClass}
             </li>
           ))}
           {layers.tracks.map((t) => (
             <li key={t.id} className="text-ink-muted">
-              <span className="text-ink">{t.label}</span> — {t.kind} track, illustrative replay
+              <span className="text-ink">{t.label}</span>: {t.kind} track, illustrative replay
             </li>
           ))}
         </ul>

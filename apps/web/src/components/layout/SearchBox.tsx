@@ -91,7 +91,7 @@ export function SearchBox({ className }: { className?: string }) {
             transition={{ duration: DURATION.fast, ease: EASE_OUT }}
             id={listId}
             role="listbox"
-            className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line bg-panel py-1 card-shadow"
+            className="float-shadow absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line bg-panel py-1"
           >
             {items.length === 0 ? (
               <li

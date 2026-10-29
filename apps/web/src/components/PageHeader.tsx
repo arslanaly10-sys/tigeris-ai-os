@@ -27,20 +27,11 @@ export function PageHeader({
   const { t } = useI18n();
   const showStrip = lastUpdated !== undefined || sourceStatus !== undefined;
   return (
-    <div className="relative mb-6 overflow-hidden">
-      {illustration ? (
-        <div className="pointer-events-none absolute inset-y-0 end-0 hidden w-[46%] md:block rtl:-scale-x-100">
-          {illustration}
-        </div>
-      ) : null}
-      <div className="relative flex flex-wrap items-end justify-between gap-4 py-1">
+    <div className="mb-6 flex items-end justify-between gap-6">
+      <div className="flex min-w-0 flex-1 flex-wrap items-end justify-between gap-4 py-1">
         <div className="min-w-0 max-w-3xl">
-          {eyebrow ? (
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold-bright">
-              {eyebrow}
-            </p>
-          ) : null}
-          <h1 className="text-3xl leading-tight text-ink sm:text-[2.35rem]">{title}</h1>
+          {eyebrow ? <p className="mb-1 text-[13px] text-ink-muted">{eyebrow}</p> : null}
+          <h1 className="text-2xl leading-tight text-ink sm:text-[1.75rem]">{title}</h1>
           {description ? <p className="mt-1.5 text-[15px] text-ink-muted">{description}</p> : null}
           {showStrip ? (
             <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-faint">
@@ -58,6 +49,11 @@ export function PageHeader({
         </div>
         {meta}
       </div>
+      {illustration ? (
+        <div className="pointer-events-none hidden h-28 w-[22rem] shrink-0 overflow-hidden rounded-xl border border-line lg:block rtl:-scale-x-100">
+          {illustration}
+        </div>
+      ) : null}
     </div>
   );
 }

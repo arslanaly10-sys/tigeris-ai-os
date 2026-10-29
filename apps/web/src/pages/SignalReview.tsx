@@ -285,7 +285,7 @@ function SignalDetailPanel({ signalKey }: { signalKey: string }) {
       </div>
 
       <div className="border-t border-line px-5 py-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Triage</h3>
+        <h3 className="text-xs font-semibold text-ink-faint">Triage</h3>
         {s.allowedActions.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">
             {s.disposition === 'dismissed' || s.disposition === 'case_opened'
@@ -340,7 +340,7 @@ export function SignalReviewPage() {
       <SectorSubnav />
       <PageHeader
         title="Signal Review"
-        description="Signals for analyst triage. Inspect source and freshness, then corroborate, challenge, monitor, dismiss or open a case — every action needs a rationale."
+        description="Signals for analyst triage. Inspect source and freshness, then corroborate, challenge, monitor, dismiss or open a case. Every action needs a rationale."
       />
       <LoadState isPending={q.isPending} error={q.error} />
       {q.data ? (

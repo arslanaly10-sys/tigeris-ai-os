@@ -75,7 +75,7 @@ function EntityNode({ data }: NodeProps<Node<EntityNodeData>>) {
   return (
     <div
       className={cn(
-        'card-shadow w-52 rounded-xl border bg-panel px-3 py-2.5',
+        'w-52 rounded-xl border bg-panel px-3 py-2.5',
         n.hop === 0 ? 'border-red/70' : 'border-line-strong',
         data.dimmed && 'opacity-40',
       )}
@@ -92,12 +92,12 @@ function EntityNode({ data }: NodeProps<Node<EntityNodeData>>) {
         </span>
         <div className="min-w-0">
           <p className="text-[13px] leading-tight font-semibold text-ink">{n.name}</p>
-          <p className="mt-0.5 text-[11px] capitalize text-ink-faint">{n.type}</p>
+          <p className="mt-0.5 text-[13px] capitalize text-ink-faint">{n.type}</p>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <ClaimBadge value={n.claimClass} className="text-[10px]" />
-        {n.hop !== undefined ? <span className="text-[10px] text-ink-faint">{HOP_LABEL[n.hop]}</span> : null}
+        <ClaimBadge value={n.claimClass} className="text-[13px]" />
+        {n.hop !== undefined ? <span className="text-[13px] text-ink-faint">{HOP_LABEL[n.hop]}</span> : null}
       </div>
       <Handle type="source" position={Position.Right} className="!h-1.5 !w-1.5 !border-0 !bg-line-strong" />
     </div>
@@ -148,10 +148,10 @@ function ImpactEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             borderColor: style.stroke,
           }}
-          className="nodrag nopan pointer-events-auto absolute rounded-md border bg-panel px-1.5 py-0.5 text-[10.5px] font-medium text-ink shadow-sm hover:bg-raised"
+          className="nodrag nopan pointer-events-auto absolute rounded-md border bg-panel px-1.5 py-0.5 text-[13px] font-medium text-ink float-shadow hover:bg-raised"
         >
           {e.predicate}
-          <span className="sr-only"> — {style.label} link. Open details.</span>
+          <span className="sr-only">, {style.label} link. Open details.</span>
         </button>
       </EdgeLabelRenderer>
     </>
@@ -262,7 +262,7 @@ export function ImpactGraph({
   return (
     <div className={cn('flex flex-col', className)}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted" aria-label="Link legend">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink-muted" aria-label="Link legend">
           {Object.entries(EDGE_STYLE).map(([cls, s]) => (
             <li key={cls} className="flex items-center gap-1.5">
               <svg width="22" height="6" aria-hidden>
@@ -406,10 +406,10 @@ export function ImpactGraph({
               <dd className="text-ink">{openEdge.rationale}</dd>
             </dl>
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Evidence</h3>
+              <h3 className="text-xs font-semibold text-ink-faint">Evidence</h3>
               {openEdge.evidence.length === 0 ? (
                 <p className="mt-1 text-ink-muted">
-                  No evidence record — this link is {openEdge.relationshipClass} and must be read as such.
+                  No evidence record. This link is {openEdge.relationshipClass} and must be read as such.
                 </p>
               ) : (
                 <ul className="mt-2 space-y-2">

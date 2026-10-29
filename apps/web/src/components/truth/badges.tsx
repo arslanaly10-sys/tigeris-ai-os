@@ -61,7 +61,7 @@ function Tag({ spec, className }: { spec: Spec; className?: string }) {
     <span
       title={spec.title}
       className={cn(
-        'inline-flex items-center gap-1 whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide',
+        'inline-flex items-center gap-1 whitespace-nowrap rounded border px-1.5 py-0.5 text-[12px] font-semibold',
         spec.className,
         className,
       )}
@@ -113,13 +113,13 @@ const CLAIM: Record<ClaimClass, Spec> = {
     label: 'Synthetic',
     icon: FlaskConical,
     className: S.gold,
-    title: 'Fabricated demonstration value — not evidence',
+    title: 'Fabricated demonstration value, not evidence',
   },
   illustrative: {
     label: 'Illustrative',
     icon: Image,
     className: S.illustrative,
-    title: 'Example content — not validated evidence',
+    title: 'Example content, not validated evidence',
   },
 };
 
@@ -157,7 +157,7 @@ export function SourceClassBadge({ value, className }: { value: SourceClass; cla
 
 const MODE: Record<DataMode, Spec> = {
   live: { label: 'Live', icon: Radio, className: S.emerald, title: 'Approved live source' },
-  snapshot: { label: 'Snapshot', icon: Globe2, className: S.cyan, title: 'Dated snapshot — not current' },
+  snapshot: { label: 'Snapshot', icon: Globe2, className: S.cyan, title: 'Dated snapshot, not current' },
   replay: { label: 'Replay', icon: Rewind, className: S.cyan, title: 'Historical replay' },
   scenario: { label: 'Scenario', icon: Split, className: S.amberDashed, title: 'Hypothetical scenario' },
   synthetic_demo: {
@@ -183,7 +183,7 @@ const VALIDATION: Record<ValidationStatus, Spec> = {
     label: 'Unverified',
     icon: ShieldQuestion,
     className: S.amber,
-    title: 'Not yet verified — use with caution',
+    title: 'Not yet verified. Use with caution',
   },
   stale: { label: 'Stale', icon: Clock, className: S.amber, title: 'Past freshness limit' },
   disputed: {
@@ -276,10 +276,7 @@ export function SignalTypeTile({ value, className }: { value: SignalType; classN
   return (
     <span
       title={label}
-      className={cn(
-        'motif flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-raised text-gold-bright',
-        className,
-      )}
+      className={cn('flex h-5 w-5 shrink-0 items-center justify-center text-ink-muted', className)}
     >
       <Icon className="h-5 w-5" aria-hidden />
       <span className="sr-only">{label}</span>

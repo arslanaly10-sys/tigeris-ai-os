@@ -46,7 +46,7 @@ test.describe('sign-in (FR-04, AC-01)', () => {
 test.describe('sovereign overview', () => {
   test('shows persistent context, demo banner and an attention queue', async ({ page }) => {
     await signInAs(page, /Intelligence Analyst/);
-    await expect(page.getByRole('note').filter({ hasText: 'DEMONSTRATION' })).toBeVisible();
+    await expect(page.getByRole('note').filter({ hasText: 'Demonstration:' })).toBeVisible();
     await expect(
       page.getByText('Gulf Sovereign Investment Authority (Demo)').filter({ visible: true }).first(),
     ).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('case workspace (AC-03, AC-04)', () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText('20.9 million b/d')).toBeVisible();
     await expect(drawer.getByText('U.S. Energy Information Administration')).toBeVisible();
-    await expect(drawer.getByText('Not captured — snapshot pending')).toBeVisible();
+    await expect(drawer.getByText('Not captured, snapshot pending')).toBeVisible();
     await expect(drawer.getByRole('link', { name: /eia\.gov/ })).toHaveAttribute(
       'href',
       /eia\.gov\/todayinenergy/,
@@ -167,7 +167,7 @@ test.describe('sector command centres', () => {
   test('renders a shell sector as an honest empty state', async ({ page }) => {
     await signInAs(page, /Executive/);
     await page.goto('/sectors/real_estate');
-    await expect(page.getByText('Configured sector — no institutional data connected yet.')).toBeVisible();
+    await expect(page.getByText('Configured sector. No institutional data connected yet.')).toBeVisible();
     await expect(
       page.getByRole('region', { name: 'Sector at a Glance' }).getByText('Source not connected'),
     ).toHaveCount(4);

@@ -4,7 +4,7 @@
  * approved series shows "Connect authorised data".
  */
 import type { SectorKpi } from '@tigeris/shared';
-import { BarChart3, ChevronRight, type LucideIcon } from 'lucide-react';
+import { BarChart3, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ClaimBadge, ValidationBadge } from '@/components/truth/badges';
@@ -12,25 +12,12 @@ import { cn } from '@/lib/cn';
 import { formatFactValue } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
 
-export function KpiCard({
-  kpi,
-  icon: Icon,
-  onLineage,
-}: {
-  kpi: SectorKpi;
-  icon: LucideIcon;
-  onLineage?: (kpi: SectorKpi) => void;
-}) {
+export function KpiCard({ kpi, onLineage }: { kpi: SectorKpi; onLineage?: (kpi: SectorKpi) => void }) {
   const { t } = useI18n();
   const v = kpi.value;
   return (
-    <div className="card-shadow flex min-h-[7.5rem] flex-col rounded-xl border border-line bg-panel p-4">
-      <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-soft text-gold-bright">
-          <Icon className="h-5 w-5" aria-hidden />
-        </span>
-        <p className="text-sm font-medium leading-snug text-ink">{kpi.label}</p>
-      </div>
+    <div className="flex min-h-[7.5rem] flex-col rounded-xl border border-line bg-panel p-4">
+      <p className="text-[13px] leading-snug text-ink-muted">{kpi.label}</p>
       {v ? (
         <div className="mt-auto pt-3">
           <p className="tabular font-serif text-2xl font-semibold text-ink">{formatFactValue(v)}</p>
@@ -75,11 +62,11 @@ export function ConnectDataChart({
   return (
     <figure className={cn('relative', className)}>
       <div className="relative h-44 border-s border-b border-line ps-2">
-        {[0, 25, 50, 75].map((p) => (
+        {[0, 20, 40, 60, 80].map((p) => (
           <div
             key={p}
             className="absolute inset-x-0 border-t border-dashed border-line"
-            style={{ bottom: `${p + 25}%` }}
+            style={{ bottom: `${p + 20}%` }}
           />
         ))}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
@@ -89,7 +76,7 @@ export function ConnectDataChart({
         </div>
       </div>
       <figcaption className="sr-only">{yLabel ?? 'Chart'}: no authorised data connected</figcaption>
-      <div className="mt-1.5 flex justify-between ps-2 text-[11px] text-ink-faint" aria-hidden>
+      <div className="mt-1.5 flex justify-between ps-2 text-[12px] text-ink-faint" aria-hidden>
         {xLabels.map((l) => (
           <span key={l}>{l}</span>
         ))}
@@ -113,21 +100,19 @@ export function StatusPill({
     ok: 'bg-emerald-soft text-emerald border-emerald/30',
   }[tone];
   return (
-    <span className={cn('whitespace-nowrap rounded-md border px-2 py-0.5 text-[11px] font-medium', cls)}>
+    <span className={cn('whitespace-nowrap rounded-md border px-2 py-0.5 text-[12px] font-medium', cls)}>
       {children}
     </span>
   );
 }
 
-/** A list row with icon tile, title, description, trailing status and chevron (concept list pattern). */
+/** A list row: title, description, trailing status and chevron. No icon tiles (taste review). */
 export function ListRow({
-  icon: Icon,
   title,
   description,
   trailing,
   to,
 }: {
-  icon: LucideIcon;
   title: ReactNode;
   description?: ReactNode;
   trailing?: ReactNode;
@@ -135,9 +120,6 @@ export function ListRow({
 }) {
   const inner = (
     <>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-gold-bright">
-        <Icon className="h-[18px] w-[18px]" aria-hidden />
-      </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-ink">{title}</span>
         {description ? <span className="block text-xs text-ink-muted">{description}</span> : null}

@@ -12,7 +12,7 @@ import { Sheet } from '@/components/ui/sheet';
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-b border-line px-5 py-4">
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{title}</h3>
+      <h3 className="mb-2 text-xs font-semibold text-ink-muted">{title}</h3>
       {children}
     </section>
   );

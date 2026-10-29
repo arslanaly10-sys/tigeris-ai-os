@@ -136,11 +136,10 @@ export function SignInPage() {
               <p className="mt-1 font-serif text-[15px] text-ink-muted">{t('brand.tagline')}</p>
             </div>
           </div>
-          <div className="mt-16 max-w-xl">
-            <p className="font-serif text-5xl leading-[1.08] font-medium text-ink xl:text-6xl">
-              {t('signin.headline1')}
-              <br />
-              {t('signin.headline2')}
+          <div className="mt-16 max-w-2xl">
+            <p className="font-serif text-[2.25rem] leading-[1.1] font-medium text-ink xl:text-5xl">
+              <span className="block whitespace-nowrap">{t('signin.headline1')}</span>
+              <span className="block whitespace-nowrap">{t('signin.headline2')}</span>
             </p>
             <p className="mt-5 font-serif text-lg text-ink-muted">{t('signin.sub')}</p>
           </div>
@@ -158,8 +157,8 @@ export function SignInPage() {
         </div>
 
         <div className="flex flex-1 items-center justify-center py-8">
-          <div className="card-shadow w-full max-w-lg rounded-2xl border border-line bg-panel/90 px-6 py-9 sm:px-12">
-            <h1 className="font-serif text-4xl text-ink">{t('signin.title')}</h1>
+          <div className="w-full max-w-lg rounded-2xl border border-line bg-panel/90 px-6 py-9 sm:px-12">
+            <h1 className="font-serif text-[1.75rem] text-ink">{t('signin.title')}</h1>
             <p className="mt-2 font-serif text-[17px] text-ink-muted">{t('signin.lead')}</p>
 
             <AnimatePresence mode="wait">
@@ -216,7 +215,7 @@ export function SignInPage() {
                   <button
                     type="submit"
                     disabled={identifier.trim().length < 2 || resolve.isPending}
-                    className="mt-5 flex h-13 w-full items-center justify-center gap-3 rounded-lg bg-brand px-5 py-3.5 font-serif text-[17px] text-white shadow-sm transition-[background-color,transform] duration-150 hover:bg-brand-hover active:scale-[0.99] motion-reduce:active:scale-100 disabled:opacity-60"
+                    className="mt-5 flex h-13 w-full items-center justify-center gap-3 rounded-lg bg-brand px-5 py-3.5 font-serif text-[17px] text-white transition-[background-color,transform] duration-150 hover:bg-brand-hover active:scale-[0.99] motion-reduce:active:scale-100 disabled:opacity-60"
                   >
                     {t('signin.continue')}
                     <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />
@@ -245,7 +244,7 @@ export function SignInPage() {
               ))}
             </ul>
             <p className="mt-6 text-sm text-ink-muted">
-              {t('signin.contactAdmin')} — your administrator manages access and roles.
+              {t('signin.contactAdmin')}. Your administrator manages access and roles.
             </p>
           </div>
         </div>

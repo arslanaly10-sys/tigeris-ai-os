@@ -24,6 +24,7 @@ test.describe('foresight & scenarios (FR-14..FR-18)', () => {
     await expect(page.getByRole('button', { name: '72 hours' })).toHaveAttribute('aria-pressed', 'true');
 
     // Four drafts, none approved, each naming the authority it would need.
+    await page.getByRole('tab', { name: /Draft options/ }).click();
     const options = page.getByRole('region', { name: 'Draft options' }).getByRole('article');
     await expect(options).toHaveCount(4);
     await expect(options.first()).toContainText('Draft · expert review required');
@@ -31,6 +32,7 @@ test.describe('foresight & scenarios (FR-14..FR-18)', () => {
     await expect(page.getByText(/^Live$/)).toHaveCount(0);
     await expectAccessible(page);
 
+    await page.getByRole('tab', { name: 'Results' }).click();
     await page
       .getByRole('button', { name: 'How calculated for Oil flow disrupted (average while disrupted)' })
       .click();

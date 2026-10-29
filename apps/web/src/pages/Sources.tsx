@@ -4,7 +4,7 @@ import { Ban, CheckCircle2, ExternalLink, PackageCheck, PackageX, TriangleAlert 
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { OutcomeBadge, SourceClassBadge } from '@/components/truth/badges';
 import { Button } from '@/components/ui/button';
-import { Panel, PanelHeader } from '@/components/ui/panel';
+import { Panel, PanelFooter, PanelHeader } from '@/components/ui/panel';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, humanize } from '@/lib/format';
@@ -44,15 +44,13 @@ function JobCard({ job }: { job: IngestionJobItem }) {
           </span>
         </summary>
         <div className="border-t border-line px-4 py-3">
-          <p className="mb-2 break-all font-mono text-[11px] text-ink-faint">
-            Package SHA-256 {job.packageSha256}
-          </p>
+          <p className="mb-2 break-all text-[12px] text-ink-faint">Package SHA-256 {job.packageSha256}</p>
           <ul className="space-y-3">
             {job.runs.map((r) => (
               <li key={r.id} className="rounded-md border border-line bg-panel px-3 py-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <OutcomeBadge value={r.outcome} />
-                  <span className="break-all font-mono text-xs text-ink-muted">{r.externalId}</span>
+                  <span className="break-all text-xs text-ink-muted">{r.externalId}</span>
                 </div>
                 <p className="mt-1 text-sm text-ink">{r.rationale}</p>
                 <ul className="mt-1.5 space-y-0.5 text-xs">
@@ -190,7 +188,7 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
       ) : null}
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]">
-        <Panel aria-labelledby="ingestion-heading">
+        <Panel aria-labelledby="ingestion-heading" className="flex flex-col">
           <PanelHeader
             id="ingestion-heading"
             title="Ingestion runs"
@@ -226,9 +224,13 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
               <LoadState isPending={jobs.isPending} error={jobs.error} />
             )}
           </div>
+          <PanelFooter>
+            <span className="tabular">{jobs.data?.length ?? 0} ingestion runs recorded</span>
+            <span>Every run is append-only</span>
+          </PanelFooter>
         </Panel>
 
-        <Panel aria-labelledby="quarantine-heading">
+        <Panel aria-labelledby="quarantine-heading" className="flex flex-col">
           <PanelHeader
             id="quarantine-heading"
             title="Quarantine"
@@ -240,18 +242,22 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
             ) : (
               quarantined.map(({ job, run }) => (
                 <li key={run.id} className="px-5 py-3">
-                  <p className="break-all font-mono text-xs text-ink">{run.externalId}</p>
+                  <p className="break-all text-xs text-ink">{run.externalId}</p>
                   <p className="mt-0.5 text-xs text-ink-muted">
                     {run.checks
                       .filter((c) => c.result === 'fail')
                       .map((c) => c.detail)
                       .join(' ')}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-ink-faint">Package {job.packageId}</p>
+                  <p className="mt-0.5 text-[12px] text-ink-faint">Package {job.packageId}</p>
                 </li>
               ))
             )}
           </ul>
+          <PanelFooter>
+            <span className="tabular">{quarantined.length} records held</span>
+            <span>Resolved by the source owner</span>
+          </PanelFooter>
         </Panel>
       </div>
     </>

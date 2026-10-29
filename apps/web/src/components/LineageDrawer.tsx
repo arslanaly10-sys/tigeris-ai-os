@@ -20,7 +20,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="border-b border-line px-5 py-4">
-      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{title}</h3>
+      <h3 className="mb-1 text-xs font-semibold text-ink-muted">{title}</h3>
       <dl className="divide-y divide-line">{children}</dl>
     </section>
   );
@@ -53,7 +53,7 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
       open={target !== null}
       onOpenChange={(open) => !open && onClose()}
       title="Lineage"
-      description={fact ? `${fact.subject} — ${fact.predicate}` : e?.title}
+      description={fact ? `${fact.subject}: ${fact.predicate}` : e?.title}
     >
       {q.isPending ? <p className="px-5 py-4 text-sm text-ink-muted">Loading lineage…</p> : null}
       {q.isError ? (
@@ -72,7 +72,7 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
                 <ClaimBadge value={fact.claimClass} />
               </Row>
               {fact.validFrom ? <Row label="Valid from">{formatDateTime(fact.validFrom)}</Row> : null}
-              <Row label="Transformation">{fact.transformation ?? 'None recorded — value as reported.'}</Row>
+              <Row label="Transformation">{fact.transformation ?? 'None recorded. Value as reported.'}</Row>
               <Row label="Extraction">{fact.extractionVersion}</Row>
             </Section>
           ) : null}
@@ -90,9 +90,9 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
             <Row label="Version">{e.version}</Row>
             <Row label="Content hash">
               {e.sha256 ? (
-                <span className="font-mono text-xs">{e.sha256}</span>
+                <span className="text-xs">{e.sha256}</span>
               ) : (
-                <span className="text-amber">Not captured — snapshot pending</span>
+                <span className="text-amber">Not captured, snapshot pending</span>
               )}
             </Row>
           </Section>

@@ -67,7 +67,7 @@ function NavList({ onNavigate, layoutGroup }: { onNavigate?: () => void; layoutG
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
               <span className="flex-1">{t(item.labelKey)}</span>
               {item.phase > 0 ? (
-                <span className="rounded border border-line-strong px-1 text-[10px] font-medium text-ink-muted">
+                <span className="rounded border border-line-strong px-1 text-[12px] font-medium text-ink-muted">
                   P{item.phase}
                 </span>
               ) : null}
@@ -83,12 +83,12 @@ function DemoBanner() {
   const { t, lang } = useI18n();
   return (
     <div role="note" className="border-b border-gold/40 bg-gold-soft">
-      <p className="pattern-synthetic flex items-center justify-center gap-2 px-4 py-1 text-center text-[11px] font-semibold tracking-wide text-gold-bright">
+      <p className="pattern-synthetic flex items-center justify-center gap-2 px-4 py-1 text-center text-[13px] font-semibold text-gold-bright">
         <FlaskConical className="h-3.5 w-3.5 shrink-0" aria-hidden />
         {t('demo.banner')}
       </p>
       {lang === 'ar' ? (
-        <p className="border-t border-gold/30 px-4 py-0.5 text-center text-[11px] text-gold-bright">
+        <p className="border-t border-gold/30 px-4 py-0.5 text-center text-[12px] text-gold-bright">
           {t('ar.draft')}
         </p>
       ) : null}
@@ -148,7 +148,7 @@ function ApprovalsPopover() {
       <Popover.Trigger
         className={cn(
           'inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors',
-          count > 0 ? 'border-gold bg-gold-soft text-gold-bright' : 'border-line-strong text-ink-muted',
+          count > 0 ? 'border-gold bg-panel text-gold-bright' : 'border-line-strong text-ink-muted',
         )}
       >
         <ShieldAlert className="h-4 w-4" aria-hidden />
@@ -182,7 +182,7 @@ function ApprovalsPopover() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: DURATION.fast, ease: EASE_OUT }}
-                className="card-shadow z-40 w-[22rem] rounded-xl border border-line bg-panel p-2"
+                className="float-shadow z-40 w-[22rem] rounded-xl border border-line bg-panel p-2"
               >
                 <p className="px-2 pt-1 pb-2 text-xs text-ink-faint">{t('top.approvalsHint')}</p>
                 {count === 0 ? (
@@ -227,7 +227,7 @@ function SectorSelect() {
     <label className="relative flex h-12 min-w-0 items-center gap-2.5 rounded-lg border border-line bg-panel ps-3 pe-8">
       <Layers className="h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
       <span className="min-w-0">
-        <span className="block text-[10.5px] text-ink-faint">{t('top.sector')}</span>
+        <span className="block text-[12px] text-ink-faint">{t('top.sector')}</span>
         <select
           value={current}
           onChange={(e) => navigate(e.target.value ? `/sectors/${e.target.value}` : '/sectors')}
@@ -255,7 +255,7 @@ function InstitutionDisplay({ ctx }: { ctx: AuthContext }) {
     >
       <Landmark className="h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
       <span className="min-w-0">
-        <span className="block text-[10.5px] text-ink-faint">{t('top.institution')}</span>
+        <span className="block text-[12px] text-ink-faint">{t('top.institution')}</span>
         <span className="block truncate text-sm font-medium text-ink">{ctx.institution.name}</span>
       </span>
     </div>
@@ -276,7 +276,7 @@ function TopBar({ ctx, onOpenNav }: { ctx: AuthContext; onOpenNav: () => void })
   const signOut = useSignOut();
   const navigate = useNavigate();
   return (
-    <header className="flex items-center gap-3 border-b border-line bg-canvas/95 px-4 py-2.5 backdrop-blur lg:px-6">
+    <header className="flex items-center gap-3 border-b border-line bg-canvas px-4 py-2.5 lg:px-6">
       <button
         type="button"
         className="rounded-md p-2 text-ink-muted hover:bg-raised hover:text-ink lg:hidden"
@@ -289,7 +289,9 @@ function TopBar({ ctx, onOpenNav }: { ctx: AuthContext; onOpenNav: () => void })
         <InstitutionDisplay ctx={ctx} />
         <SectorSelect />
       </div>
-      <p className="min-w-0 truncate text-sm font-medium text-ink xl:hidden">{ctx.institution.name}</p>
+      <p className="hidden min-w-0 truncate text-sm font-medium text-ink sm:block xl:hidden">
+        {ctx.institution.name}
+      </p>
       <SearchBox className="ms-auto hidden w-full max-w-xs md:block" />
       <div className="ms-auto flex items-center gap-2 md:ms-0">
         <LanguageSwitch />
@@ -303,7 +305,7 @@ function TopBar({ ctx, onOpenNav }: { ctx: AuthContext; onOpenNav: () => void })
           </span>
           <div className="hidden leading-tight 2xl:block">
             <p className="text-sm font-medium text-ink">{ctx.principal.displayName}</p>
-            <p className="text-[11px] text-ink-faint">
+            <p className="text-[12px] text-ink-faint">
               {ctx.principal.roles.map((r) => ROLE_LABEL[r]).join(', ')}
             </p>
           </div>
@@ -333,7 +335,7 @@ function Sidebar({
 }) {
   const { t } = useI18n();
   return (
-    <div className="motif relative flex h-full flex-col bg-raised">
+    <div className="relative flex h-full flex-col bg-raised">
       <div className="px-5 pt-5 pb-6">
         <Wordmark />
       </div>
@@ -341,7 +343,7 @@ function Sidebar({
         <NavList onNavigate={onNavigate} layoutGroup={layoutGroup} />
       </div>
       <SidebarLandscape className="pointer-events-none absolute inset-x-0 bottom-0 h-56 w-full" />
-      <div className="relative z-10 mx-3 mb-3 rounded-lg border border-line bg-panel/90 px-3 py-2 text-[11px] leading-snug text-ink-muted backdrop-blur-sm">
+      <div className="relative z-10 mx-3 mb-3 rounded-lg border border-line bg-panel px-3 py-2 text-[12px] leading-snug text-ink-muted">
         <p className="font-medium text-ink">{ctx.institution.name}</p>
         <p>{t('demo.label')}</p>
       </div>

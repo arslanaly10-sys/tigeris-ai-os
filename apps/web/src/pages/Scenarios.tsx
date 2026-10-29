@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
 } from 'lucide-react';
+import * as Tabs from '@radix-ui/react-tabs';
 import { AnimatePresence, motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
@@ -42,19 +43,19 @@ import { RangeBar, RangeLegend } from '@/components/scenario/RangeBar';
 import { ClaimBadge, DataModeBadge } from '@/components/truth/badges';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/data';
-import {
-  FadeSwap,
-  INDICATOR_SPRING,
-  StaggerBlock,
-  StaggerGroup,
-  StaggerItem,
-  StaggerList,
-} from '@/components/ui/motion';
+import { FadeSwap, INDICATOR_SPRING, StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
+
+const RUN_TABS = [
+  { value: 'results', label: 'Results' },
+  { value: 'compare', label: 'Compare horizons' },
+  { value: 'options', label: 'Draft options' },
+  { value: 'drafts', label: 'Specialist drafts' },
+];
 
 /** Sector scenarios that no engine template models yet — listed honestly rather than hidden. */
 const NOT_MODELLED = SECTORS.flatMap((s) =>
@@ -82,7 +83,7 @@ export function ScenariosPage() {
           ) : null
         }
       />
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="space-y-6">
         <Panel aria-labelledby="runs-heading">
           <PanelHeader
             id="runs-heading"
@@ -107,7 +108,7 @@ export function ScenariosPage() {
                   <StaggerItem key={r.id}>
                     <Link to={`/scenarios/${r.key}`} className="block px-5 py-3.5 hover:bg-raised/60">
                       <span className="flex flex-wrap items-center gap-2">
-                        <span className="tabular font-mono text-[11px] text-ink-faint">{r.key}</span>
+                        <span className="tabular text-[12px] text-ink-faint">{r.key}</span>
                         <DataModeBadge value="scenario" />
                         {r.severity ? (
                           <StatusPill tone={SEVERITY_TONE[r.severity]}>
@@ -116,7 +117,7 @@ export function ScenariosPage() {
                         ) : null}
                       </span>
                       <span className="mt-1 block text-sm font-medium text-ink">{r.title}</span>
-                      <span className="text-[11px] text-ink-faint">
+                      <span className="text-[12px] text-ink-faint">
                         Case {r.caseKey} · {r.caseTitle} · {r.createdBy} · {formatRelative(r.createdAt)}
                       </span>
                     </Link>
@@ -127,40 +128,46 @@ export function ScenariosPage() {
           ) : null}
         </Panel>
 
-        <div className="space-y-6">
-          <Panel aria-labelledby="templates-heading">
-            <PanelHeader
-              id="templates-heading"
-              title="Modelled scenarios"
-              description="Served by engine hormuz-disruption 1.0.0."
-            />
-            <ul className="divide-y divide-line border-t border-line">
-              {MODELLED.map((s) => (
-                <li key={s.key} className="px-5 py-3">
-                  <p className="text-sm font-medium text-ink">{s.title}</p>
-                  <p className="text-xs text-ink-muted">
-                    {s.sector} · {s.description}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-          <Panel aria-labelledby="notmodelled-heading">
-            <PanelHeader
-              id="notmodelled-heading"
-              title="Not yet modelled"
-              description="Configured in a sector pack; no engine template exists, so they cannot be run."
-            />
-            <ul className="divide-y divide-line border-t border-line">
-              {NOT_MODELLED.map((s) => (
-                <li key={`${s.sector}:${s.key}`} className="px-5 py-2.5">
-                  <p className="text-sm text-ink-muted">{s.title}</p>
-                  <p className="text-[11px] text-ink-faint">{s.sector}</p>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </div>
+        <Panel aria-labelledby="templates-heading">
+          <PanelHeader
+            id="templates-heading"
+            title="Scenario templates"
+            description="Modelled scenarios run on engine hormuz-disruption 1.0.0. The rest are configured in a sector pack and cannot run until a template exists."
+          />
+          <div className="grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:divide-x md:divide-line">
+            <section aria-labelledby="modelled-heading" className="px-5 py-4">
+              <h3 id="modelled-heading" className="text-sm font-semibold text-ink">
+                Modelled ({MODELLED.length})
+              </h3>
+              <ul className="mt-2 space-y-3">
+                {MODELLED.map((s) => (
+                  <li key={s.key}>
+                    <p className="text-sm font-medium text-ink">{s.title}</p>
+                    <p className="text-[13px] text-ink-muted">
+                      {s.sector} · {s.description}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section
+              aria-labelledby="notmodelled-heading"
+              className="border-t border-line px-5 py-4 md:border-t-0"
+            >
+              <h3 id="notmodelled-heading" className="text-sm font-semibold text-ink">
+                Not yet modelled ({NOT_MODELLED.length})
+              </h3>
+              <ul className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                {NOT_MODELLED.map((s) => (
+                  <li key={`${s.sector}:${s.key}`}>
+                    <p className="text-sm text-ink-muted">{s.title}</p>
+                    <p className="text-[13px] text-ink-faint">{s.sector}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </Panel>
       </div>
     </>
   );
@@ -306,7 +313,7 @@ export function ScenarioBuilderPage() {
               >
                 {s.cases.map((c) => (
                   <option key={c.key} value={c.key}>
-                    {c.key} — {c.title}
+                    {c.key}: {c.title}
                   </option>
                 ))}
               </select>
@@ -478,6 +485,7 @@ export function ScenarioRunPage() {
   const { key = '' } = useParams();
   const q = useQuery({ queryKey: ['scenario', key], queryFn: () => api.scenario(key) });
   const [horizon, setHorizon] = useState<HorizonKey>('d90');
+  const [tab, setTab] = useState('results');
   const [calc, setCalc] = useState<MetricDef | null>(null);
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
   const specialistRuns = useMemo(
@@ -538,7 +546,7 @@ export function ScenarioRunPage() {
             ? 'Reproducible: re-computed from stored inputs'
             : 'Re-computation does not match the stored output'}
         </span>
-        <span className="font-mono text-[10.5px] text-ink-faint" title={`Input hash ${r.inputHash}`}>
+        <span className="text-[12px] text-ink-faint" title={`Input hash ${r.inputHash}`}>
           inputs {r.inputHash.slice(0, 12)}…
         </span>
       </div>
@@ -557,12 +565,15 @@ export function ScenarioRunPage() {
         </ul>
       ) : null}
 
-      <ul className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Drivers">
+      <ul
+        className="mb-6 grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-panel xl:grid-cols-4 [&>li]:border-line [&>li:nth-child(even)]:border-s [&>li:nth-child(n+3)]:border-t xl:[&>li:nth-child(n+2)]:border-s xl:[&>li:nth-child(n+3)]:border-t-0"
+        aria-label="Drivers"
+      >
         {r.inputs
           .filter((i) => i.kind === 'driver')
           .map((i) => (
-            <li key={i.ref} className="card-shadow rounded-xl border border-line bg-panel px-4 py-3">
-              <p className="text-xs text-ink-muted">{i.label}</p>
+            <li key={i.ref} className="px-5 py-3">
+              <p className="text-[13px] text-ink-muted">{i.label}</p>
               <p className="tabular mt-0.5 font-serif text-xl font-semibold text-ink">
                 {i.kind === 'driver' ? formatScenarioValue(i.value, i.unit, 1) : null}
               </p>
@@ -571,33 +582,58 @@ export function ScenarioRunPage() {
           ))}
       </ul>
 
-      <section aria-labelledby="results-heading">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="results-heading" className="text-xl text-ink">
-              Results
-            </h2>
-            <p className="text-sm text-ink-muted">
-              Low, central and high outcomes against a no-disruption baseline.
-            </p>
-          </div>
-          <HorizonSwitch value={horizon} onChange={setHorizon} horizons={r.result.horizons} />
-        </div>
-        <div className="mb-3">
-          <RangeLegend />
-        </div>
-        <AnimatePresence mode="wait" initial={false}>
-          <FadeSwap key={horizon}>
-            <StaggerGroup className="grid gap-5 2xl:grid-cols-2">
-              {GROUPS.map((g) => (
-                <StaggerBlock key={g.key}>
-                  <Panel aria-labelledby={`grp-${g.key}`} className="h-full">
-                    <PanelHeader
-                      id={`grp-${g.key}`}
-                      title={g.label}
-                      description={`${g.description} ${horizonLabel}.`}
-                    />
-                    <ul className="divide-y divide-line border-t border-line">
+      <Tabs.Root value={tab} onValueChange={setTab}>
+        <Tabs.List aria-label="Scenario run" className="mb-5 flex flex-wrap gap-1 border-b border-line">
+          {RUN_TABS.map((x) => (
+            <Tabs.Trigger
+              key={x.value}
+              value={x.value}
+              className="relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink"
+            >
+              {x.value === 'options'
+                ? `${x.label} (${r.options.length})`
+                : x.value === 'drafts'
+                  ? `${x.label} (${specialistRuns.length})`
+                  : x.label}
+              {tab === x.value ? (
+                <motion.span
+                  layoutId="run-tab-indicator"
+                  className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+
+        <Tabs.Content value="results" className="outline-none">
+          <Panel aria-labelledby="results-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3 px-5 pt-4 pb-3">
+              <div>
+                <h2 id="results-heading" className="text-lg text-ink">
+                  Results
+                </h2>
+                <p className="text-sm text-ink-muted">
+                  Low, central and high outcomes against a no-disruption baseline. {horizonLabel}.
+                </p>
+              </div>
+              <HorizonSwitch value={horizon} onChange={setHorizon} horizons={r.result.horizons} />
+            </div>
+            <div className="px-5 pb-3">
+              <RangeLegend />
+            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <FadeSwap key={horizon}>
+                {GROUPS.map((g) => (
+                  <section key={g.key} aria-labelledby={`grp-${g.key}`} className="border-t border-line">
+                    <div className="px-5 pt-3">
+                      <h3 id={`grp-${g.key}`} className="text-base text-ink">
+                        {g.label}
+                      </h3>
+                      <p className="text-[13px] text-ink-muted">{g.description}</p>
+                    </div>
+                    <ul className="divide-y divide-line">
                       {r.metricDefs
                         .filter((m) => m.group === g.key)
                         .map((m) => (
@@ -610,127 +646,140 @@ export function ScenarioRunPage() {
                           />
                         ))}
                     </ul>
-                  </Panel>
-                </StaggerBlock>
-              ))}
-            </StaggerGroup>
-          </FadeSwap>
-        </AnimatePresence>
-
-        <Panel aria-labelledby="compare-heading" className="mt-5 overflow-x-auto">
-          <PanelHeader
-            id="compare-heading"
-            title="Compare horizons"
-            description="Central value, with the low-to-high range beneath."
-          />
-          <table className="w-full min-w-[48rem] text-sm">
-            <caption className="sr-only">Central values and ranges for every metric at every horizon</caption>
-            <thead>
-              <tr className="border-y border-line bg-raised/50 text-xs text-ink-muted">
-                <th scope="col" className="px-5 py-2 text-start font-medium">
-                  Metric
-                </th>
-                {r.result.horizons.map((h) => (
-                  <th key={h.key} scope="col" className="px-3 py-2 text-end font-medium">
-                    {h.label}
-                  </th>
+                  </section>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="tabular divide-y divide-line">
-              {r.metricDefs.map((m) => {
-                const values = r.result.metrics.find((x) => x.key === m.key)!.values;
-                return (
-                  <tr key={m.key}>
-                    <th scope="row" className="px-5 py-2 text-start font-normal text-ink">
-                      {m.label}
-                      <span className="block text-xs text-ink-faint">{m.unit}</span>
-                    </th>
-                    {r.result.horizons.map((h) => {
-                      const v = values[h.key];
-                      return (
-                        <td key={h.key} className="px-3 py-2 text-end align-top">
-                          <span className="font-semibold text-ink">
-                            {formatScenarioValue(v.central, null, m.decimals)}
-                          </span>
-                          <span className="block text-xs text-ink-muted">
-                            {formatScenarioValue(v.low, null, m.decimals)}–
-                            {formatScenarioValue(v.high, null, m.decimals)}
-                          </span>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Panel>
-      </section>
-
-      <section aria-labelledby="options-heading" className="mt-8">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="options-heading" className="text-xl text-ink">
-              Draft options
-            </h2>
-            <p className="text-sm text-ink-muted">
-              Ranked by a published rule for expert review. None is approved; recording a decision arrives in
-              Phase 4.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
-            <Gavel className="h-3.5 w-3.5 text-gold-bright" aria-hidden />
-            Created by {r.createdBy}, who can never approve them
-          </span>
-        </div>
-        <StaggerList className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-          {r.options.map((o) => (
-            <StaggerItem key={o.id}>
-              <OptionCard option={o} />
-            </StaggerItem>
-          ))}
-        </StaggerList>
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <Panel aria-labelledby="mandate-heading">
-            <PanelHeader
-              id="mandate-heading"
-              icon={<ShieldCheck className="h-4 w-4" aria-hidden />}
-              title="Mandate checks"
-              description="Apply to every option in this run."
-            />
-            <div className="border-t border-line px-5 py-1">
-              <MandateChecks checks={r.options[0]?.mandateChecks ?? []} />
-            </div>
+              </FadeSwap>
+            </AnimatePresence>
           </Panel>
-          {r.confidence ? (
-            <Panel aria-labelledby="confidence-heading">
+        </Tabs.Content>
+
+        <Tabs.Content value="compare" className="outline-none">
+          <FadeSwap>
+            <Panel aria-labelledby="compare-heading" className="overflow-x-auto">
               <PanelHeader
-                id="confidence-heading"
-                title="Confidence"
-                description="A band with its basis — never a single score."
+                id="compare-heading"
+                title="Compare horizons"
+                description="Central value, with the low-to-high range beneath."
               />
-              <div className="border-t border-line px-5 py-4">
-                <ConfidenceBasisList confidence={r.confidence} />
+              <table className="w-full min-w-[48rem] text-sm">
+                <caption className="sr-only">
+                  Central values and ranges for every metric at every horizon
+                </caption>
+                <thead>
+                  <tr className="border-y border-line bg-raised/50 text-xs text-ink-muted">
+                    <th scope="col" className="px-5 py-2 text-start font-medium">
+                      Metric
+                    </th>
+                    {r.result.horizons.map((h) => (
+                      <th key={h.key} scope="col" className="px-3 py-2 text-end font-medium">
+                        {h.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="tabular divide-y divide-line">
+                  {r.metricDefs.map((m) => {
+                    const values = r.result.metrics.find((x) => x.key === m.key)!.values;
+                    return (
+                      <tr key={m.key}>
+                        <th scope="row" className="px-5 py-2 text-start font-normal text-ink">
+                          {m.label}
+                          <span className="block text-xs text-ink-faint">{m.unit}</span>
+                        </th>
+                        {r.result.horizons.map((h) => {
+                          const v = values[h.key];
+                          return (
+                            <td key={h.key} className="px-3 py-2 text-end align-top">
+                              <span className="font-semibold text-ink">
+                                {formatScenarioValue(v.central, null, m.decimals)}
+                              </span>
+                              <span className="block text-xs text-ink-muted">
+                                {formatScenarioValue(v.low, null, m.decimals)}–
+                                {formatScenarioValue(v.high, null, m.decimals)}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </Panel>
+          </FadeSwap>
+        </Tabs.Content>
+
+        <Tabs.Content value="options" className="outline-none">
+          <FadeSwap>
+            <Panel aria-labelledby="options-heading" role="region">
+              <div className="flex flex-wrap items-end justify-between gap-3 px-5 pt-4 pb-3">
+                <div>
+                  <h2 id="options-heading" className="text-lg text-ink">
+                    Draft options
+                  </h2>
+                  <p className="text-sm text-ink-muted">
+                    Ranked by a published rule for expert review. None is approved; recording a decision
+                    arrives in Phase 4.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-muted">
+                  <Gavel className="h-3.5 w-3.5 text-gold-bright" aria-hidden />
+                  Created by {r.createdBy}, who can never approve them
+                </span>
+              </div>
+              <StaggerList className="grid gap-4 px-5 pb-5 md:grid-cols-2 2xl:grid-cols-4">
+                {r.options.map((o) => (
+                  <StaggerItem key={o.id}>
+                    <OptionCard option={o} />
+                  </StaggerItem>
+                ))}
+              </StaggerList>
+              <div className="grid border-t border-line lg:grid-cols-2 lg:divide-x lg:divide-line">
+                <section aria-labelledby="mandate-heading" className="px-5 py-4">
+                  <h3 id="mandate-heading" className="flex items-center gap-2 text-base text-ink">
+                    <ShieldCheck className="h-4 w-4 text-gold-bright" aria-hidden />
+                    Mandate checks
+                  </h3>
+                  <p className="text-[13px] text-ink-muted">Apply to every option in this run.</p>
+                  <MandateChecks checks={r.options[0]?.mandateChecks ?? []} />
+                </section>
+                {r.confidence ? (
+                  <section
+                    aria-labelledby="confidence-heading"
+                    className="border-t border-line px-5 py-4 lg:border-t-0"
+                  >
+                    <h3 id="confidence-heading" className="text-base text-ink">
+                      Confidence
+                    </h3>
+                    <p className="mb-2 text-[13px] text-ink-muted">
+                      A band with its basis, never a single score.
+                    </p>
+                    <ConfidenceBasisList confidence={r.confidence} />
+                  </section>
+                ) : null}
               </div>
             </Panel>
-          ) : null}
-        </div>
-      </section>
+          </FadeSwap>
+        </Tabs.Content>
 
-      <Panel aria-labelledby="drafts-heading" className="mt-8">
-        <PanelHeader
-          id="drafts-heading"
-          icon={<Bot className="h-4 w-4" aria-hidden />}
-          title="Specialist drafts"
-          description="Prose drafted by the internal deterministic stub from cited values only. Every number is checked against its citations."
-        />
-        <div className="divide-y divide-line border-t border-line px-5">
-          {specialistRuns.map((a) => (
-            <AgentDraft key={a.id} run={a} />
-          ))}
-        </div>
-      </Panel>
+        <Tabs.Content value="drafts" className="outline-none">
+          <FadeSwap>
+            <Panel aria-labelledby="drafts-heading">
+              <PanelHeader
+                id="drafts-heading"
+                icon={<Bot className="h-4 w-4" aria-hidden />}
+                title="Specialist drafts"
+                description="Prose drafted by the internal deterministic stub from cited values only. Every number is checked against its citations."
+              />
+              <div className="divide-y divide-line border-t border-line px-5">
+                {specialistRuns.map((a) => (
+                  <AgentDraft key={a.id} run={a} />
+                ))}
+              </div>
+            </Panel>
+          </FadeSwap>
+        </Tabs.Content>
+      </Tabs.Root>
 
       <CalcSheet
         run={r}

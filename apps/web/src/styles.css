@@ -2,7 +2,7 @@
 
 /*
  * TIGERIS design tokens — "Sovereign Light" (decision D-05, revised 29 Oct 2026 to the approved light
- * concepts): warm ivory canvas, white panels, deep emerald for authority and primary actions, restrained
+ * concepts; ground moved to a low-chroma bone after the taste review): warm bone canvas, white panels, deep emerald for authority and primary actions, restrained
  * gold for emphasis and provenance, teal for routes and links, amber/red only for caution and blocked states.
  *
  * Token names are semantic and stable across themes. Every token used as text meets WCAG 2.2 AA
@@ -13,16 +13,16 @@
   --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', 'IBM Plex Sans Arabic', Georgia, serif;
   --font-arabic: 'IBM Plex Sans Arabic', 'Inter Variable', Arial, sans-serif;
 
-  --color-canvas: #f7f4ec;
+  --color-canvas: #f3f2ef;
   --color-panel: #ffffff;
-  --color-raised: #f3efe5;
+  --color-raised: #ecebe6;
   --color-sand: #ebe0c8;
-  --color-line: #e5ddcc;
-  --color-line-strong: #cdc2a9;
+  --color-line: #e2e0d9;
+  --color-line-strong: #c9c5ba;
 
   --color-ink: #17261f;
   --color-ink-muted: #4c5a53;
-  --color-ink-faint: #63716a;
+  --color-ink-faint: #5b6862;
 
   /* Brand: deep emerald for authority, primary actions and the active navigation state. */
   --color-brand: #0f4a36;
@@ -46,6 +46,10 @@
   --color-amber-soft: #fbedd8;
   --color-red: #a2392e;
   --color-red-soft: #f8e3df;
+
+  /* App type floor: labels and sublines read at 13px (taste review: under-13px text over 45%). */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.125rem;
 }
 
 @layer base {
@@ -92,27 +96,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Patterned fill so SYNTHETIC / ILLUSTRATIVE never rely on colour alone. */
+/* Hatched texture so SYNTHETIC / ILLUSTRATIVE never rely on colour alone. Drawn as SVG tiles, not gradients. */
 @utility pattern-synthetic {
-  background-image: repeating-linear-gradient(135deg, rgb(184 146 79 / 0.18) 0 4px, transparent 4px 8px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M-2 2l4-4M0 8l8-8M6 10l4-4' stroke='%23b8924f' stroke-opacity='.28' stroke-width='2.4'/%3E%3C/svg%3E");
 }
 
 @utility pattern-illustrative {
-  background-image: repeating-linear-gradient(45deg, rgb(76 90 83 / 0.1) 0 3px, transparent 3px 7px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7'%3E%3Cpath d='M-1 6l7-7M-1 8l9-9' stroke='%234c5a53' stroke-opacity='.14' stroke-width='2'/%3E%3C/svg%3E");
 }
 
-/* Fine geometric lattice motif (inspired by mashrabiya screens; not a seal or emblem). */
-@utility motif {
-  background-image:
-    linear-gradient(45deg, rgb(184 146 79 / 0.07) 25%, transparent 25%),
-    linear-gradient(-45deg, rgb(184 146 79 / 0.07) 25%, transparent 25%);
-  background-size: 22px 22px;
-}
-
-@utility card-shadow {
-  box-shadow:
-    0 1px 2px rgb(23 38 31 / 0.04),
-    0 4px 16px -8px rgb(23 38 31 / 0.08);
+/* Only surfaces that truly float (popovers, menus) carry a shadow. */
+@utility float-shadow {
+  box-shadow: 0 8px 24px -8px rgb(23 38 31 / 0.18); /* taste-skill-ignore: only popovers, sheets, dialogs and map overlays */
 }
 
 .maplibregl-canvas:focus-visible {

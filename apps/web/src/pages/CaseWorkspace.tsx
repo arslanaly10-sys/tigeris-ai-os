@@ -78,20 +78,12 @@ function Lifecycle({ state }: { state: CaseDetail['state'] }) {
           key={s}
           aria-current={i === current ? 'step' : undefined}
           className={cn(
-            'relative isolate rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
+            'rounded-md px-2 py-1 text-[12px] font-semibold',
             i < current && 'bg-raised text-ink-muted',
-            i === current && 'text-white',
+            i === current && 'bg-brand text-white',
             i > current && 'border border-line text-ink-faint',
           )}
         >
-          {i === current ? (
-            <motion.span
-              layoutId="lifecycle-current"
-              className="absolute inset-0 -z-10 rounded-md bg-brand"
-              transition={INDICATOR_SPRING}
-              aria-hidden
-            />
-          ) : null}
           {i < current ? <span className="sr-only">Completed: </span> : null}
           {STATE_LABEL[s]}
         </li>
@@ -110,7 +102,7 @@ function CaseHeader({ c }: { c: CaseDetail }) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="font-serif text-lg text-ink-muted">Intelligence Case</span>
         <StateBadge value={c.state} />
-        <span className="tabular font-mono text-sm text-ink-faint">{c.key}</span>
+        <span className="tabular text-sm text-ink-faint">{c.key}</span>
         <UrgencyBadge value={c.urgency} />
         <DataModeBadge value={c.dataMode} />
       </div>
@@ -277,107 +269,108 @@ function OverviewTab({
   );
   const map = caseMapLayers(mapLayers, graph);
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-      <div className="space-y-6">
-        <Panel>
-          <PanelHeader title="Situation" />
-          <div className="space-y-4 border-t border-line px-5 py-4 text-sm leading-relaxed">
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">What changed</h3>
-              <p className="mt-1 text-ink">{c.summary}</p>
-            </div>
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Why it matters</h3>
-              <p className="mt-1 text-ink">{c.whyItMatters}</p>
-            </div>
-          </div>
-        </Panel>
-
-        {map ? (
-          <Panel aria-labelledby="case-map-heading">
-            <PanelHeader
-              id="case-map-heading"
-              title="Regional activity map"
-              description="Case entities with their modelled links. Movement is an illustrative replay, not real vessel identities or positions."
-            />
-            <div className="px-4 pb-4">
-              <GulfMap
-                layers={map.layers}
-                focusKeys={map.focusKeys}
-                className="h-[24rem]"
-                label={`Map of entities in case ${c.key} and their dependency links, with illustrative movement.`}
-              />
-              <MapItemList layers={map.layers} focusKeys={map.focusKeys} />
+    <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="space-y-6">
+          <Panel>
+            <PanelHeader title="Situation" />
+            <div className="space-y-4 border-t border-line px-5 py-4 text-sm leading-relaxed">
+              <div>
+                <h3 className="text-xs font-semibold text-ink-faint">What changed</h3>
+                <p className="mt-1 text-ink">{c.summary}</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-ink-faint">Why it matters</h3>
+                <p className="mt-1 text-ink">{c.whyItMatters}</p>
+              </div>
             </div>
           </Panel>
-        ) : null}
 
-        <Panel aria-labelledby="cited-heading">
-          <PanelHeader
-            id="cited-heading"
-            title="Figures cited in this case"
-            description="Every figure resolves to a source record or a labelled synthetic or assumed value."
-          />
-          <StaggerList className="divide-y divide-line border-t border-line">
-            {keyFacts.map(({ e, f }) => (
-              <StaggerItem key={f.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
-                <span className="tabular min-w-[7.5rem] font-serif text-lg font-semibold text-ink">
-                  {formatFactValue(f)}
-                </span>
-                <span className="min-w-0 flex-1 text-sm text-ink">
-                  {f.predicate}
-                  <span className="block text-xs text-ink-faint">{e.source.publisher}</span>
-                </span>
-                <ClaimBadge value={f.claimClass} />
-                {e.validationStatus !== 'validated' ? <ValidationBadge value={e.validationStatus} /> : null}
-                <LineageButton label={f.predicate} onClick={() => onOpen({ evidenceId: e.id, fact: f })} />
-              </StaggerItem>
-            ))}
-          </StaggerList>
-        </Panel>
+          {map ? (
+            <Panel aria-labelledby="case-map-heading">
+              <PanelHeader
+                id="case-map-heading"
+                title="Regional activity map"
+                description="Case entities with their modelled links. Movement is an illustrative replay, not real vessel identities or positions."
+              />
+              <div className="px-4 pb-4">
+                <GulfMap
+                  layers={map.layers}
+                  focusKeys={map.focusKeys}
+                  className="h-[24rem]"
+                  label={`Map of entities in case ${c.key} and their dependency links, with illustrative movement.`}
+                />
+                <MapItemList layers={map.layers} focusKeys={map.focusKeys} />
+              </div>
+            </Panel>
+          ) : null}
+        </div>
+
+        <div className="space-y-6">
+          <Panel aria-labelledby="confidence-heading">
+            <PanelHeader
+              id="confidence-heading"
+              title="Confidence"
+              description="A band with its basis, never a single unexplained score."
+            />
+            <div className="border-t border-line px-5 py-4">
+              <ConfidenceBandMeter band={c.confidence.band} />
+              <table className="mt-4 w-full text-sm">
+                <caption className="sr-only">Confidence factors</caption>
+                <tbody className="divide-y divide-line">
+                  {CONFIDENCE_FACTORS.map((factor) => {
+                    const entry = c.confidence.factors.find((x) => x.factor === factor);
+                    if (!entry) return null;
+                    return (
+                      <tr key={factor}>
+                        <th scope="row" className="py-2 pe-3 text-start align-top font-medium text-ink">
+                          {FACTOR_LABEL[factor]}
+                          <span className="block text-xs font-normal text-ink-faint">{entry.note}</span>
+                        </th>
+                        <td className="py-2 text-end align-top text-xs font-semibold text-ink">
+                          {CONFIDENCE_LABEL[entry.band]}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+
+          <Panel aria-labelledby="questions-heading">
+            <PanelHeader id="questions-heading" title="Unresolved questions" />
+            <ul className="list-disc space-y-2 border-t border-line px-5 py-4 ps-9 text-sm text-ink marker:text-gold">
+              {c.unresolvedQuestions.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+            </ul>
+          </Panel>
+        </div>
       </div>
-
-      <div className="space-y-6">
-        <Panel aria-labelledby="confidence-heading">
-          <PanelHeader
-            id="confidence-heading"
-            title="Confidence"
-            description="A band with its basis — never a single unexplained score."
-          />
-          <div className="border-t border-line px-5 py-4">
-            <ConfidenceBandMeter band={c.confidence.band} />
-            <table className="mt-4 w-full text-sm">
-              <caption className="sr-only">Confidence factors</caption>
-              <tbody className="divide-y divide-line">
-                {CONFIDENCE_FACTORS.map((factor) => {
-                  const entry = c.confidence.factors.find((x) => x.factor === factor);
-                  if (!entry) return null;
-                  return (
-                    <tr key={factor}>
-                      <th scope="row" className="py-2 pe-3 text-start align-top font-medium text-ink">
-                        {FACTOR_LABEL[factor]}
-                        <span className="block text-xs font-normal text-ink-faint">{entry.note}</span>
-                      </th>
-                      <td className="py-2 text-end align-top text-xs font-semibold text-ink">
-                        {CONFIDENCE_LABEL[entry.band]}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-
-        <Panel aria-labelledby="questions-heading">
-          <PanelHeader id="questions-heading" title="Unresolved questions" />
-          <ul className="list-disc space-y-2 border-t border-line px-5 py-4 ps-9 text-sm text-ink marker:text-gold">
-            {c.unresolvedQuestions.map((q) => (
-              <li key={q}>{q}</li>
-            ))}
-          </ul>
-        </Panel>
-      </div>
+      <Panel aria-labelledby="cited-heading">
+        <PanelHeader
+          id="cited-heading"
+          title="Figures cited in this case"
+          description="Every figure resolves to a source record or a labelled synthetic or assumed value."
+        />
+        <StaggerList className="divide-y divide-line border-t border-line">
+          {keyFacts.map(({ e, f }) => (
+            <StaggerItem key={f.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
+              <span className="tabular min-w-[7.5rem] font-serif text-lg font-semibold text-ink">
+                {formatFactValue(f)}
+              </span>
+              <span className="min-w-0 flex-1 text-sm text-ink">
+                {f.predicate}
+                <span className="block text-xs text-ink-faint">{e.source.publisher}</span>
+              </span>
+              <ClaimBadge value={f.claimClass} />
+              {e.validationStatus !== 'validated' ? <ValidationBadge value={e.validationStatus} /> : null}
+              <LineageButton label={f.predicate} onClick={() => onOpen({ evidenceId: e.id, fact: f })} />
+            </StaggerItem>
+          ))}
+        </StaggerList>
+      </Panel>
     </div>
   );
 }
@@ -423,7 +416,7 @@ function TimelineTab({ c }: { c: CaseDetail }) {
         title: ev.toState
           ? `${ev.fromState ? `${STATE_LABEL[ev.fromState]} → ` : 'Created as '}${STATE_LABEL[ev.toState]}`
           : humanize(ev.eventType),
-        detail: `${ev.actor}${ev.rationale ? ` — ${ev.rationale}` : ''}`,
+        detail: `${ev.actor}${ev.rationale ? `: ${ev.rationale}` : ''}`,
       }),
     );
     c.evidence.forEach((e) => {
@@ -450,7 +443,7 @@ function TimelineTab({ c }: { c: CaseDetail }) {
     <Panel>
       <PanelHeader
         title="Case timeline"
-        description="Event times, evidence retrieval and state transitions — newest first. Event time and retrieval time are kept separate."
+        description="Event times, evidence retrieval and state transitions, newest first. Event time and retrieval time are kept separate."
       />
       <motion.ol
         variants={listVariants}
@@ -547,7 +540,7 @@ export function CaseWorkspacePage() {
               className="px-4 py-2.5 text-sm text-ink-faint"
               title={`Arrives in Phase ${t.phase}`}
             >
-              {t.label} <span className="text-[11px]">· P{t.phase}</span>
+              {t.label} <span className="text-[12px]">· P{t.phase}</span>
             </Tabs.Trigger>
           ))}
         </Tabs.List>

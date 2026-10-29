@@ -40,7 +40,7 @@ export function MandateChecks({ checks }: { checks: MandateCheck[] }) {
                 {c.title} <span className={`text-xs font-semibold ${s.className}`}>· {s.label}</span>
               </span>
               <span className="block text-xs text-ink-muted">
-                <span className="tabular font-mono">{c.mandateKey}</span> · {c.detail}
+                <span className="tabular">{c.mandateKey}</span> · {c.detail}
               </span>
             </span>
           </li>
@@ -74,7 +74,7 @@ export function OptionCard({ option }: { option: DraftOptionItem }) {
   return (
     <article
       aria-labelledby={`opt-${option.key}`}
-      className="card-shadow flex h-full flex-col rounded-xl border border-line bg-panel p-4"
+      className="flex h-full flex-col rounded-xl border border-line bg-panel p-4"
     >
       <div className="flex items-start gap-3">
         <span
@@ -84,9 +84,7 @@ export function OptionCard({ option }: { option: DraftOptionItem }) {
           {option.rank}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gold-bright">
-            {option.actionClass}
-          </p>
+          <p className="text-xs font-semibold text-gold-bright">{option.actionClass}</p>
           <h3 id={`opt-${option.key}`} className="text-base leading-snug text-ink">
             {option.title}
           </h3>
@@ -144,9 +142,7 @@ export function AgentDraft({ run }: { run: AgentRunItem }) {
   return (
     <article className="py-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-raised text-gold-bright">
-          <Bot className="h-4 w-4" aria-hidden />
-        </span>
+        <Bot className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold text-ink">{run.agentName}</span>
           <span className="block text-xs text-ink-muted">{run.task}</span>
@@ -159,7 +155,7 @@ export function AgentDraft({ run }: { run: AgentRunItem }) {
         </span>
       </div>
       <p className="mt-2 text-sm text-ink">{run.outputText}</p>
-      <p className="mt-1.5 text-[11px] text-ink-faint">
+      <p className="mt-1.5 text-[12px] text-ink-faint">
         Drafted by {run.modelId} {run.modelVersion} (internal deterministic stub, template {run.templateKey}{' '}
         {run.templateVersion}) · triggered by {run.triggeredBy}
       </p>

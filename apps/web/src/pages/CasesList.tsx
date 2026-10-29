@@ -56,8 +56,7 @@ export function CasesListPage() {
                       {c.title}
                     </Link>
                     <span className="block text-xs text-ink-muted">
-                      <span className="tabular font-mono">{c.key}</span> · {c.domain} ·{' '}
-                      {humanize(c.sensitivity)}
+                      <span className="tabular">{c.key}</span> · {c.domain} · {humanize(c.sensitivity)}
                     </span>
                   </td>
                   <td className="px-3 py-3">

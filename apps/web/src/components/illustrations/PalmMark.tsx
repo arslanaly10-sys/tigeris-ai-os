@@ -45,7 +45,7 @@ export function Wordmark({ className, compact = false }: { className?: string; c
           TIGERIS AI OS
         </span>
         {compact ? null : (
-          <span className="block max-w-[13rem] text-[9.5px] font-medium uppercase tracking-[0.14em] text-gold-bright">
+          <span className="block max-w-[13rem] text-[12px] font-medium text-gold-bright">
             Sovereign Intelligence OS
           </span>
         )}

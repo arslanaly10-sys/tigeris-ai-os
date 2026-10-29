@@ -54,14 +54,14 @@ export function CaseScenariosTab({ caseKey }: { caseKey: string }) {
               <StaggerItem key={r.id}>
                 <Link to={`/scenarios/${r.key}`} className="block px-5 py-3 hover:bg-raised/60">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="tabular font-mono text-[11px] text-ink-faint">{r.key}</span>
+                    <span className="tabular text-[12px] text-ink-faint">{r.key}</span>
                     <DataModeBadge value="scenario" />
                     {r.severity ? (
                       <StatusPill tone={SEVERITY_TONE[r.severity]}>{severityLabel(r.severity)}</StatusPill>
                     ) : null}
                   </span>
                   <span className="mt-1 block text-sm font-medium text-ink">{r.title}</span>
-                  <span className="text-[11px] text-ink-faint">
+                  <span className="text-[12px] text-ink-faint">
                     {r.createdBy} · {formatRelative(r.createdAt)}
                   </span>
                 </Link>

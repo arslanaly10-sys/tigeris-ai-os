@@ -22,6 +22,8 @@ export interface NavItem {
   match?: string[];
   purpose: string;
   willDo: string[];
+  /** How the module fills once built: the named human steps that feed it. */
+  flow?: { name: string; detail: string }[];
 }
 
 /** The nine-item navigation from the approved light concepts (decision D-07, revised). */
@@ -57,6 +59,12 @@ export const NAV: NavItem[] = [
     willDo: [
       'Only approved decisions and recorded outcomes become memory',
       'Institution-scoped search; no cross-client retrieval or silent model training',
+    ],
+    flow: [
+      { name: 'Decision approved', detail: 'A named approver records it after expert review.' },
+      { name: 'Handoff completed', detail: 'The operations owner carries it out and closes the handoff.' },
+      { name: 'Outcome recorded', detail: 'What actually happened, against what the scenario expected.' },
+      { name: 'Lesson kept', detail: 'Approved precedent, searchable within this institution only.' },
     ],
   },
   { path: '/sources', labelKey: 'nav.data', icon: Database, phase: 0, purpose: '', willDo: [] },

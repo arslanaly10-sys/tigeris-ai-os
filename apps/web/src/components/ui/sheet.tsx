@@ -53,7 +53,7 @@ export function Sheet({
                 exit={{ x: offscreen, transition: { duration: DURATION.base, ease: [0.4, 0, 1, 1] } }}
                 transition={{ duration: DURATION.slow, ease: EASE_OUT }}
                 className={cn(
-                  'fixed inset-y-0 z-50 flex w-full max-w-lg flex-col bg-panel shadow-2xl outline-none',
+                  'fixed inset-y-0 z-50 flex w-full max-w-lg flex-col bg-panel float-shadow outline-none',
                   side === 'end'
                     ? 'end-0 border-s border-line-strong'
                     : 'start-0 border-e border-line-strong',
@@ -113,7 +113,7 @@ export function Modal({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98, transition: { duration: DURATION.fast } }}
                 transition={{ duration: DURATION.base, ease: EASE_OUT }}
-                className="fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line-strong bg-panel p-5 shadow-2xl outline-none"
+                className="fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line-strong bg-panel p-5 float-shadow outline-none"
               >
                 <Dialog.Title className="font-serif text-lg font-semibold text-ink">{title}</Dialog.Title>
                 {description ? (

@@ -50,6 +50,23 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
     });
   });
 
+  /**
+   * Institution identification step of sign-in. Production resolves the code or email domain to the
+   * institution's identity provider; the demonstration build only knows its one demo institution.
+   */
+  app.post('/api/auth/resolve-institution', async (request, reply) => {
+    const body = z.object({ identifier: z.string().trim().min(2).max(200) }).safeParse(request.body);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_request' });
+    const id = body.data.identifier.toLowerCase();
+    const code = deps.demoInstitutionCode.toLowerCase();
+    const matches = id === code || id.endsWith(`@${code}.example`);
+    if (!matches) return reply.code(404).send({ error: 'institution_not_connected' });
+    const institutionId = await resolveInstitutionId(db, deps.demoInstitutionKey);
+    if (!institutionId) return reply.code(503).send({ error: 'demo_institution_missing' });
+    const [inst] = await withInstitution(db, institutionId, (tx) => tx.select().from(institutions));
+    return { institution: { key: inst!.key, name: inst!.name }, identityProvider: 'demo' as const };
+  });
+
   app.post('/api/auth/demo-session', async (request, reply) => {
     const body = z.object({ principalId: z.string().uuid() }).safeParse(request.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_request' });

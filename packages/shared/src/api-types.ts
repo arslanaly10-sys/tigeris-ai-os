@@ -1,3 +1,4 @@
+import type { SectorKey } from './sectors';
 import type {
   CaseState,
   ClaimClass,
@@ -248,4 +249,69 @@ export interface SearchResult {
   title: string;
   detail: string;
   href: string;
+}
+
+export interface SectorKpi {
+  key: string;
+  label: string;
+  /** Null when no approved source is connected. */
+  value: {
+    valueNum: number | null;
+    valueText: string | null;
+    unit: string | null;
+    claimClass: ClaimClass;
+    evidenceId: string;
+    validationStatus: ValidationStatus;
+    publisher: string;
+    retrievedAt: string | null;
+  } | null;
+}
+
+export interface SectorSummary {
+  key: SectorKey;
+  label: string;
+  depth: 'demo' | 'shell';
+  openCases: number;
+  newSignals: number;
+  kpisConnected: number;
+  kpisTotal: number;
+}
+
+export interface SectorDetail extends SectorSummary {
+  title: string;
+  tagline: string;
+  kpis: SectorKpi[];
+  cases: CaseSummary[];
+  signals: SignalSummary[];
+  reviewQueue: CaseSummary[];
+  entityKeys: string[];
+  lastUpdated: string | null;
+}
+
+export interface MandateItem {
+  id: string;
+  key: string;
+  title: string;
+  description: string;
+  category: string;
+  limitText: string;
+  ownerRole: Role;
+  claimClass: ClaimClass;
+}
+
+export interface AuthorityRuleItem {
+  id: string;
+  actionClass: string;
+  description: string;
+  requiredRole: Role;
+  thresholdText: string;
+  requiresExpertReview: boolean;
+  twoPerson: boolean;
+  selfApprovalBlocked: boolean;
+  claimClass: ClaimClass;
+}
+
+export interface PendingApprovals {
+  count: number;
+  items: AttentionItem[];
 }

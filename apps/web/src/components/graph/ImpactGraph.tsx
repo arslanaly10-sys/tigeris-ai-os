@@ -55,11 +55,11 @@ const TYPE_ICON: Record<GraphNode['type'], LucideIcon> = {
 };
 
 const EDGE_STYLE: Record<RelationshipClass, { stroke: string; dash?: string; label: string }> = {
-  observed: { stroke: '#62d2a8', label: 'Observed' },
-  sourced: { stroke: '#63cbe8', label: 'Sourced' },
-  inferred: { stroke: '#63cbe8', dash: '6 4', label: 'Inferred' },
-  assumed: { stroke: '#f1b56c', dash: '2 4', label: 'Assumption' },
-  synthetic: { stroke: '#e3c98f', dash: '8 4', label: 'Synthetic' },
+  observed: { stroke: '#18674b', label: 'Observed' },
+  sourced: { stroke: '#16656a', label: 'Sourced' },
+  inferred: { stroke: '#16656a', dash: '6 4', label: 'Inferred' },
+  assumed: { stroke: '#8c540e', dash: '2 4', label: 'Assumption' },
+  synthetic: { stroke: '#b8924f', dash: '8 4', label: 'Synthetic' },
 };
 
 const HOP_LABEL = ['Origin', 'Direct', '2nd order', '3rd order', '4th order'];
@@ -73,7 +73,7 @@ function EntityNode({ data }: NodeProps<Node<EntityNodeData>>) {
   return (
     <div
       className={cn(
-        'w-52 rounded-xl border bg-panel px-3 py-2.5 shadow-lg',
+        'card-shadow w-52 rounded-xl border bg-panel px-3 py-2.5',
         n.hop === 0 ? 'border-red/70' : 'border-line-strong',
         data.dimmed && 'opacity-40',
       )}
@@ -146,7 +146,7 @@ function ImpactEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             borderColor: style.stroke,
           }}
-          className="nodrag nopan pointer-events-auto absolute rounded-md border bg-navy-950/95 px-1.5 py-0.5 text-[10.5px] font-medium text-ink hover:bg-raised"
+          className="nodrag nopan pointer-events-auto absolute rounded-md border bg-panel px-1.5 py-0.5 text-[10.5px] font-medium text-ink shadow-sm hover:bg-raised"
         >
           {e.predicate}
           <span className="sr-only"> — {style.label} link. Open details.</span>
@@ -298,7 +298,7 @@ export function ImpactGraph({
 
       {view === 'graph' ? (
         <div
-          className="min-h-[26rem] flex-1 rounded-lg border border-line bg-navy-950/60"
+          className="min-h-[26rem] flex-1 rounded-lg border border-line bg-canvas"
           role="group"
           aria-label="Impact graph canvas. Use the Table view for a keyboard-friendly list of every link."
         >
@@ -312,11 +312,11 @@ export function ImpactGraph({
             minZoom={0.3}
             maxZoom={1.6}
             proOptions={{ hideAttribution: true }}
-            colorMode="dark"
+            colorMode="light"
             style={{ background: 'transparent' }}
             nodesConnectable={false}
           >
-            <Background color="#1e2f4a" gap={22} size={1} />
+            <Background color="#ddd3bf" gap={22} size={1} />
           </ReactFlow>
         </div>
       ) : (

@@ -5,7 +5,13 @@ import type {
   CommandCentre,
   DemoPrincipal,
   EvidenceItem,
+  AuthorityRuleItem,
   GraphPayload,
+  MandateItem,
+  PendingApprovals,
+  SectorDetail,
+  SectorKey,
+  SectorSummary,
   IngestionJobItem,
   MapLayers,
   SearchResult,
@@ -67,4 +73,15 @@ export const api = {
   ingestion: () => request<IngestionJobItem[]>('GET', '/api/ingestion'),
   runSampleIngestion: () => request<{ jobId: string }>('POST', '/api/ingestion/sample'),
   search: (q: string) => request<SearchResult[]>('GET', `/api/search?q=${encodeURIComponent(q)}`),
+  resolveInstitution: (identifier: string) =>
+    request<{ institution: { key: string; name: string }; identityProvider: 'demo' }>(
+      'POST',
+      '/api/auth/resolve-institution',
+      { identifier },
+    ),
+  sectors: () => request<SectorSummary[]>('GET', '/api/sectors'),
+  sector: (key: SectorKey) => request<SectorDetail>('GET', `/api/sectors/${key}`),
+  mandates: () =>
+    request<{ mandates: MandateItem[]; authority: AuthorityRuleItem[] }>('GET', '/api/mandates'),
+  pendingApprovals: () => request<PendingApprovals>('GET', '/api/approvals/pending'),
 };

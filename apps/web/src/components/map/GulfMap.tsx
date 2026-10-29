@@ -19,12 +19,12 @@ import { formatRelative } from '@/lib/format';
 type RGBA = [number, number, number, number];
 
 const C = {
-  cyan: [99, 203, 232, 255] as RGBA,
-  gold: [227, 201, 143, 255] as RGBA,
-  emerald: [98, 210, 168, 255] as RGBA,
-  red: [242, 141, 129, 255] as RGBA,
-  muted: [131, 146, 169, 255] as RGBA,
-  ink: [232, 237, 245, 255] as RGBA,
+  cyan: [22, 101, 106, 255] as RGBA,
+  gold: [184, 146, 79, 255] as RGBA,
+  emerald: [24, 103, 75, 255] as RGBA,
+  red: [162, 57, 46, 255] as RGBA,
+  muted: [99, 113, 106, 255] as RGBA,
+  ink: [23, 38, 31, 255] as RGBA,
 };
 
 const TYPE_COLOR: Partial<Record<GraphNode['type'], RGBA>> = {
@@ -176,7 +176,7 @@ export function GulfMap({
             }),
             getPosition: (d) => d.p,
             getFillColor: (d) => (d.kind === 'vessel' ? C.cyan : C.gold),
-            getLineColor: [5, 11, 22, 255],
+            getLineColor: [255, 255, 255, 255],
             stroked: true,
             lineWidthMinPixels: 1.5,
             radiusMinPixels: 4.5,
@@ -194,7 +194,7 @@ export function GulfMap({
           radiusUnits: 'pixels',
           stroked: true,
           filled: false,
-          getLineColor: [242, 141, 129, 150],
+          getLineColor: [162, 57, 46, 140],
           lineWidthMinPixels: 1.2,
         }),
         new ScatterplotLayer<GraphNode>({
@@ -206,10 +206,10 @@ export function GulfMap({
             const c = TYPE_COLOR[d.type] ?? C.muted;
             return dim(d.key) ? [c[0], c[1], c[2], 90] : c;
           },
-          getLineColor: [5, 11, 22, 255],
+          getLineColor: [255, 255, 255, 255],
           stroked: true,
-          lineWidthMinPixels: 1.5,
-          radiusMinPixels: 5.5,
+          lineWidthMinPixels: 2,
+          radiusMinPixels: 6,
           radiusMaxPixels: 9,
           getRadius: 5000,
           onClick: (info) => {
@@ -222,7 +222,7 @@ export function GulfMap({
           data: GEO_LABELS,
           getPosition: (d) => d.at,
           getText: (d) => d.text,
-          getColor: (d) => (d.sea ? [99, 203, 232, 150] : [167, 180, 200, 170]),
+          getColor: (d) => (d.sea ? [22, 90, 96, 190] : [96, 84, 58, 200]),
           getSize: (d) => (d.sea ? 12 : 11),
           fontFamily: 'Inter Variable, Inter, Arial, sans-serif',
           fontWeight: 500,
@@ -244,7 +244,7 @@ export function GulfMap({
           fontWeight: 600,
           characterSet: 'auto',
           outlineWidth: 3,
-          outlineColor: [5, 11, 22, 230],
+          outlineColor: [255, 255, 255, 235],
           fontSettings: { sdf: true },
         }),
       );
@@ -264,7 +264,7 @@ export function GulfMap({
         style: {
           version: 8,
           sources: {},
-          layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#061020' } }],
+          layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#9fcccb' } }],
         },
         bounds: GULF_BOUNDS,
         fitBoundsOptions: { padding: 12 },
@@ -284,18 +284,18 @@ export function GulfMap({
       const countries = await loadCountries();
       if (disposed) return;
       map.addSource('countries', { type: 'geojson', data: countries });
-      map.addLayer({ id: 'land', type: 'fill', source: 'countries', paint: { 'fill-color': '#11203a' } });
+      map.addLayer({ id: 'land', type: 'fill', source: 'countries', paint: { 'fill-color': '#f0e4c9' } });
       map.addLayer({
         id: 'coast-glow',
         type: 'line',
         source: 'countries',
-        paint: { 'line-color': '#c9ad72', 'line-opacity': 0.12, 'line-width': 4, 'line-blur': 3 },
+        paint: { 'line-color': '#f7f1e2', 'line-opacity': 0.9, 'line-width': 5, 'line-blur': 3 },
       });
       map.addLayer({
         id: 'borders',
         type: 'line',
         source: 'countries',
-        paint: { 'line-color': '#3a5276', 'line-width': 0.7 },
+        paint: { 'line-color': '#b89b66', 'line-width': 0.8, 'line-dasharray': [3, 2] },
       });
       map.addSource('edges', { type: 'geojson', data: edgeGeoJson(layers) });
       const edgeLayer = (id: string, cls: RelationshipClass[], color: string, dash?: number[]) =>
@@ -306,15 +306,15 @@ export function GulfMap({
           filter: ['in', ['get', 'cls'], ['literal', cls]],
           paint: {
             'line-color': color,
-            'line-width': 1.4,
-            'line-opacity': 0.75,
+            'line-width': 1.8,
+            'line-opacity': 0.85,
             ...(dash ? { 'line-dasharray': dash } : {}),
           },
         });
-      edgeLayer('edges-solid', ['sourced', 'observed'], '#63cbe8');
-      edgeLayer('edges-inferred', ['inferred'], '#63cbe8', [3, 2]);
-      edgeLayer('edges-assumed', ['assumed'], '#f1b56c', [1, 2]);
-      edgeLayer('edges-synthetic', ['synthetic'], '#e3c98f', [4, 3]);
+      edgeLayer('edges-solid', ['sourced', 'observed'], '#16656a');
+      edgeLayer('edges-inferred', ['inferred'], '#16656a', [3, 2]);
+      edgeLayer('edges-assumed', ['assumed'], '#8c540e', [1, 2]);
+      edgeLayer('edges-synthetic', ['synthetic'], '#b8924f', [4, 3]);
       const overlay = new MapboxOverlay({ interleaved: true, layers: buildLayers(timeRef.current) as never });
       map.addControl(overlay as unknown as maplibregl.IControl);
       overlayRef.current = overlay;
@@ -372,7 +372,7 @@ export function GulfMap({
   const source = layers.movementSource;
 
   return (
-    <div className={cn('relative overflow-hidden rounded-lg border border-line bg-[#061020]', className)}>
+    <div className={cn('relative overflow-hidden rounded-lg border border-line bg-[#9fcccb]', className)}>
       {failed ? (
         <div className="flex h-full min-h-64 items-center justify-center p-6 text-center text-sm text-ink-muted">
           The map needs WebGL, which is unavailable in this browser. Use the list below.
@@ -383,12 +383,12 @@ export function GulfMap({
 
       {showTracks ? (
         <div className="pointer-events-none absolute end-3 top-3 flex flex-col items-end gap-1">
-          <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold/70 bg-gold-soft/90 px-2.5 py-1 text-xs font-semibold text-gold-bright">
+          <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-bright shadow-sm">
             <FlaskConical className="h-3.5 w-3.5" aria-hidden />
             Illustrative simulation
           </span>
           {source ? (
-            <span className="rounded bg-navy-950/80 px-2 py-0.5 text-[11px] text-ink-muted">
+            <span className="rounded bg-panel/90 px-2 py-0.5 text-[11px] text-ink-muted shadow-sm">
               {source.publisher} ·{' '}
               {source.freshness === 'stale' ? (
                 <span className="font-semibold text-amber">stale</span>
@@ -402,7 +402,7 @@ export function GulfMap({
       ) : null}
 
       {interactive && !failed ? (
-        <div className="absolute end-3 bottom-16 flex flex-col overflow-hidden rounded-md border border-line-strong bg-navy-950/85">
+        <div className="absolute end-3 bottom-16 flex flex-col overflow-hidden rounded-md border border-line bg-panel shadow-sm">
           <button
             type="button"
             aria-label="Zoom in"
@@ -423,12 +423,12 @@ export function GulfMap({
       ) : null}
 
       {showTracks && showControls && !failed ? (
-        <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-md border border-line-strong bg-navy-950/90 px-3 py-2">
+        <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-lg border border-line bg-panel/95 px-3 py-2 shadow-sm">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}
             aria-label={playing ? 'Pause replay' : 'Play replay'}
-            className="rounded p-1 text-ink hover:text-gold-bright"
+            className="rounded p-1 text-brand hover:text-brand-hover"
           >
             {playing ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
           </button>
@@ -449,7 +449,7 @@ export function GulfMap({
             onChange={(e) => scrub(Number(e.target.value))}
             aria-label="Replay position"
             aria-valuetext={`Replay minute ${mm(time)} of ${mm(duration)}`}
-            className="h-1 min-w-0 flex-1 accent-[#c9ad72]"
+            className="h-1 min-w-0 flex-1 accent-[#0f4a36]"
           />
           <span className="tabular w-24 shrink-0 text-end text-[11px] text-ink-muted">
             T+{mm(time)} replay

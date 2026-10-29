@@ -5,8 +5,10 @@ import { useAuthContext } from '@/lib/session';
 import { NAV } from '@/nav';
 import { CaseWorkspacePage } from '@/pages/CaseWorkspace';
 import { CasesListPage } from '@/pages/CasesList';
-import { CommandCentrePage } from '@/pages/CommandCentre';
+import { AiCommandPage, DecisionsPage, ExecutionPage, MandatesPage } from '@/pages/Governance';
+import { OverviewPage } from '@/pages/Overview';
 import { PlannedModulePage } from '@/pages/PlannedModule';
+import { SectorCentrePage, SectorsIndexPage } from '@/pages/Sectors';
 import { SignInPage } from '@/pages/SignIn';
 import { GraphPage } from '@/pages/Graph';
 import { SignalReviewPage } from '@/pages/SignalReview';
@@ -29,7 +31,13 @@ function Protected() {
   return (
     <AppShell ctx={ctx}>
       <Routes>
-        <Route index element={<CommandCentrePage ctx={ctx} />} />
+        <Route index element={<OverviewPage ctx={ctx} />} />
+        <Route path="sectors" element={<SectorsIndexPage />} />
+        <Route path="sectors/:key" element={<SectorCentrePage />} />
+        <Route path="ai" element={<AiCommandPage />} />
+        <Route path="mandates" element={<MandatesPage />} />
+        <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
+        <Route path="execution" element={<ExecutionPage />} />
         <Route path="cases" element={<CasesListPage />} />
         <Route path="cases/:key" element={<CaseWorkspacePage />} />
         <Route path="sources" element={<SourcesPage ctx={ctx} />} />

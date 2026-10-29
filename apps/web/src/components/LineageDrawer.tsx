@@ -28,6 +28,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export interface LineageTarget {
   evidenceId: string;
   fact: EvidenceFact | null;
+  /** Resolve the fact from the loaded evidence by predicate (used by sector KPIs). */
+  predicate?: string;
 }
 
 /**
@@ -41,7 +43,9 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
     enabled: target !== null,
   });
   const e: EvidenceItem | undefined = q.data;
-  const fact = target?.fact ?? null;
+  const fact =
+    target?.fact ??
+    (target?.predicate ? (e?.facts.find((f) => f.predicate === target.predicate) ?? null) : null);
 
   return (
     <Sheet

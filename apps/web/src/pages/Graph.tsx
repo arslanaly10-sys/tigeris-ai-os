@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { ImpactGraph } from '@/components/graph/ImpactGraph';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
+import { SectorSubnav } from '@/components/layout/SectorSubnav';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { Panel } from '@/components/ui/panel';
 import { api } from '@/lib/api';
@@ -19,6 +20,7 @@ export function GraphPage() {
     : {};
   return (
     <>
+      <SectorSubnav />
       <PageHeader
         title="Intelligence Graph"
         description="The institution's shared entities and causal links. Columns show distance from events; every link is labelled observed, sourced, inferred, assumed or synthetic and opens its rationale and evidence."

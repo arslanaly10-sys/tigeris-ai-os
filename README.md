@@ -34,13 +34,13 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
 
 ## Layout
 
-| Path                | Purpose                                                     |
-| ------------------- | ----------------------------------------------------------- |
-| `apps/web`          | React + Vite client (Command Centre, case workspace)        |
-| `apps/api`          | Fastify API, SQL migrations, seed fixtures, isolation tests |
-| `packages/shared`   | Truth vocabulary, case lifecycle, API types                 |
-| `docs/decisions.md` | Product and technical decisions                             |
-| `CLAUDE.md`         | Rules for AI-assisted development                           |
+| Path                | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `apps/web`          | React + Vite client (Overview, sector centres, case workspace) |
+| `apps/api`          | Fastify API, SQL migrations, seed fixtures, isolation tests    |
+| `packages/shared`   | Truth vocabulary, case lifecycle, API types                    |
+| `docs/decisions.md` | Product and technical decisions                                |
+| `CLAUDE.md`         | Rules for AI-assisted development                              |
 
 ## Phase status
 
@@ -50,5 +50,9 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
   Earth) with illustrative replay; Signal Review with triage (corroborate / challenge / monitor / dismiss /
   open case); temporal intelligence graph with labelled links and bounded traversal; case Impact Graph and
   Timeline; snapshot ingestion with validation rules v1 and quarantine; institution-scoped search.
+- **Redesign — Sovereign Light**: ivory/emerald/gold theme with illustrated SVG scenes and palm mark;
+  institution-code sign-in; nine-item navigation; Sovereign Overview; eight sector Command Centres with
+  evidence-bound KPIs; AI Command registry; read-only Mandates & Authority; Decisions & Approvals queue with
+  live approvals badge; Governed Execution (manual handoffs); drafted Arabic interface with RTL.
 - Phase 3 — Reasoning and scenarios · Phase 4 — Governance and decisions · Phase 5 — Complete cases and UX ·
   Phase 6 — Release candidate.

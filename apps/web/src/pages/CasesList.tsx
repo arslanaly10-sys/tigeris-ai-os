@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
+import { SectorSubnav } from '@/components/layout/SectorSubnav';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { DataModeBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
 import { Panel } from '@/components/ui/panel';
@@ -11,6 +12,7 @@ export function CasesListPage() {
   const q = useQuery({ queryKey: ['cases'], queryFn: api.cases });
   return (
     <>
+      <SectorSubnav />
       <PageHeader
         title="Intelligence Cases"
         description="Every signal, piece of evidence, scenario and decision attaches to a case."

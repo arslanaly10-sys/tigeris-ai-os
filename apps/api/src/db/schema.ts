@@ -297,3 +297,31 @@ export const movementTracks = pgTable('movement_tracks', {
   claimClass: text('claim_class').notNull(),
   points: jsonb('points').$type<[number, number, number][]>().notNull(),
 });
+
+// ───────────────────────────── Mandates and authority (read-only) ─────────────────────────────
+
+export const mandates = pgTable('mandates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  category: text('category').notNull(),
+  limitText: text('limit_text').notNull(),
+  ownerRole: text('owner_role').notNull(),
+  claimClass: text('claim_class').notNull(),
+});
+
+export const authorityRules = pgTable('authority_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  actionClass: text('action_class').notNull(),
+  description: text('description').notNull(),
+  requiredRole: text('required_role').notNull(),
+  thresholdText: text('threshold_text').notNull(),
+  requiresExpertReview: boolean('requires_expert_review').notNull(),
+  twoPerson: boolean('two_person').notNull(),
+  selfApprovalBlocked: boolean('self_approval_blocked').notNull(),
+  claimClass: text('claim_class').notNull(),
+  sortOrder: integer('sort_order').notNull(),
+});

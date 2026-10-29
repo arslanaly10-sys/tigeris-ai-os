@@ -25,7 +25,7 @@ a portfolio system or a SaaS service. Full decisions: `docs/decisions.md`.
    `tigeris_app` role with row-level security; scope is set per transaction (`app.institution_id`).
 9. **Never present target organisations (PIF, Mubadala, ADIA, Aramco) as customers.** The demo institution is
    fictional: "Gulf Sovereign Investment Authority (Demo)".
-10. **Naming:** product "TIGERIS AI OS"; home screen "Command Centre"; waterway "Arabian Gulf".
+10. **Naming:** product "TIGERIS AI OS"; home screen "Sovereign Overview"; sector screens "<Sector> Command Centre"; waterway "Arabian Gulf".
 
 ## Architecture
 

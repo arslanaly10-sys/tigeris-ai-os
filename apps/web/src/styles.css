@@ -1,41 +1,51 @@
 @import 'tailwindcss';
 
 /*
- * TIGERIS design tokens — sovereign dark (decision D-05, revised 29 Oct 2026 to match the approved concept
- * screens). Midnight navy canvas, layered navy panels, restrained gold for focus and decision emphasis,
- * cyan for routes and links, emerald for verified, amber/red only for caution and blocked states.
- * Text tokens meet WCAG 2.2 AA (≥ 4.5:1) on canvas, panel and raised surfaces.
+ * TIGERIS design tokens — "Sovereign Light" (decision D-05, revised 29 Oct 2026 to the approved light
+ * concepts): warm ivory canvas, white panels, deep emerald for authority and primary actions, restrained
+ * gold for emphasis and provenance, teal for routes and links, amber/red only for caution and blocked states.
+ *
+ * Token names are semantic and stable across themes. Every token used as text meets WCAG 2.2 AA
+ * (≥ 4.5:1) on canvas, panel and raised surfaces.
  */
 @theme {
-  --font-sans: 'Inter Variable', 'Inter', Arial, system-ui, sans-serif;
-  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, serif;
+  --font-sans: 'Inter Variable', 'Inter', 'IBM Plex Sans Arabic', Arial, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4 Variable', 'Source Serif 4', 'IBM Plex Sans Arabic', Georgia, serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Inter Variable', Arial, sans-serif;
 
-  --color-canvas: #08111f;
-  --color-panel: #0d1829;
-  --color-raised: #132239;
-  --color-line: #1e2f4a;
-  --color-line-strong: #2d4364;
+  --color-canvas: #f7f4ec;
+  --color-panel: #ffffff;
+  --color-raised: #f3efe5;
+  --color-sand: #ebe0c8;
+  --color-line: #e5ddcc;
+  --color-line-strong: #cdc2a9;
 
-  --color-ink: #e8edf5;
-  --color-ink-muted: #a7b4c8;
-  --color-ink-faint: #8392a9;
+  --color-ink: #17261f;
+  --color-ink-muted: #4c5a53;
+  --color-ink-faint: #63716a;
 
-  --color-navy-950: #050b16;
-  --color-navy-900: #0a1424;
-  --color-navy-800: #12213a;
+  /* Brand: deep emerald for authority, primary actions and the active navigation state. */
+  --color-brand: #0f4a36;
+  --color-brand-hover: #155f46;
+  --color-brand-soft: #e4efe8;
 
-  --color-gold: #c9ad72;
-  --color-gold-bright: #e3c98f;
-  --color-gold-soft: #2a2415;
+  /* Legacy dark-structure names, remapped to the emerald family for overlays and deep surfaces. */
+  --color-navy-950: #0d2219;
+  --color-navy-900: #143327;
+  --color-navy-800: #1d4636;
 
-  --color-cyan: #63cbe8;
-  --color-cyan-soft: #0f2a38;
-  --color-emerald: #62d2a8;
-  --color-emerald-soft: #0f2e27;
-  --color-amber: #f1b56c;
-  --color-amber-soft: #33250f;
-  --color-red: #f28d81;
-  --color-red-soft: #3a1b1b;
+  --color-gold: #b8924f;
+  --color-gold-bright: #7a5a22;
+  --color-gold-soft: #f6eedc;
+
+  --color-cyan: #1a6a6e;
+  --color-cyan-soft: #e1efee;
+  --color-emerald: #18674b;
+  --color-emerald-soft: #e3f0e8;
+  --color-amber: #8c540e;
+  --color-amber-soft: #fbedd8;
+  --color-red: #a2392e;
+  --color-red-soft: #f8e3df;
 }
 
 @layer base {
@@ -44,8 +54,11 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-feature-settings: 'cv11', 'ss01';
-    color-scheme: dark;
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
+  }
+  html:lang(ar) {
+    font-family: var(--font-arabic);
   }
   h1,
   h2,
@@ -54,12 +67,24 @@
     font-weight: 600;
     letter-spacing: -0.01em;
   }
+  html:lang(ar) h1,
+  html:lang(ar) h2,
+  html:lang(ar) h3 {
+    font-family: var(--font-arabic);
+    letter-spacing: 0;
+  }
   :focus-visible {
-    outline: 2px solid var(--color-gold-bright);
+    outline: 2px solid var(--color-gold);
     outline-offset: 2px;
   }
   ::selection {
-    background: rgb(201 173 114 / 0.35);
+    background: rgb(184 146 79 / 0.3);
+  }
+  button:not(:disabled),
+  [role='button'],
+  summary,
+  a[href] {
+    cursor: pointer;
   }
 }
 
@@ -69,30 +94,36 @@
 
 /* Patterned fill so SYNTHETIC / ILLUSTRATIVE never rely on colour alone. */
 @utility pattern-synthetic {
-  background-image: repeating-linear-gradient(135deg, rgb(201 173 114 / 0.16) 0 4px, transparent 4px 8px);
+  background-image: repeating-linear-gradient(135deg, rgb(184 146 79 / 0.18) 0 4px, transparent 4px 8px);
 }
 
 @utility pattern-illustrative {
-  background-image: repeating-linear-gradient(45deg, rgb(167 180 200 / 0.12) 0 3px, transparent 3px 7px);
+  background-image: repeating-linear-gradient(45deg, rgb(76 90 83 / 0.1) 0 3px, transparent 3px 7px);
 }
 
-/* Subtle geometric motif (not a seal or emblem) used on the sign-in and empty states. */
+/* Fine geometric lattice motif (inspired by mashrabiya screens; not a seal or emblem). */
 @utility motif {
   background-image:
-    linear-gradient(45deg, rgb(201 173 114 / 0.05) 25%, transparent 25%),
-    linear-gradient(-45deg, rgb(201 173 114 / 0.05) 25%, transparent 25%);
-  background-size: 28px 28px;
+    linear-gradient(45deg, rgb(184 146 79 / 0.07) 25%, transparent 25%),
+    linear-gradient(-45deg, rgb(184 146 79 / 0.07) 25%, transparent 25%);
+  background-size: 22px 22px;
+}
+
+@utility card-shadow {
+  box-shadow:
+    0 1px 2px rgb(23 38 31 / 0.04),
+    0 4px 16px -8px rgb(23 38 31 / 0.08);
 }
 
 .maplibregl-canvas:focus-visible {
-  outline: 2px solid var(--color-gold-bright);
+  outline: 2px solid var(--color-gold);
 }
 
 .react-flow__attribution {
   display: none;
 }
 
-.react-flow.dark {
+.react-flow {
   --xy-background-color: transparent;
   --xy-background-color-default: transparent;
   --xy-edge-label-background-color-default: transparent;

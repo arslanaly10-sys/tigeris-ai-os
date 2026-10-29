@@ -10,6 +10,7 @@ import { ChevronRight, ExternalLink, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
+import { SectorSubnav } from '@/components/layout/SectorSubnav';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import {
   ConfidenceBandMeter,
@@ -167,7 +168,7 @@ function TriageDialog({
           rows={4}
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-line-strong bg-navy-950/60 px-3 py-2 text-sm text-ink focus:border-gold/70 focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
         />
         {m.isError ? (
           <p role="alert" className="mt-2 text-sm text-red">
@@ -329,6 +330,7 @@ export function SignalReviewPage() {
 
   return (
     <>
+      <SectorSubnav />
       <PageHeader
         title="Signal Review"
         description="Signals for analyst triage. Inspect source and freshness, then corroborate, challenge, monitor, dismiss or open a case — every action needs a rationale."

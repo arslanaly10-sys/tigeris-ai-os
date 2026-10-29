@@ -9,6 +9,7 @@ import type { AppDeps } from './modules/context';
 import { graphRoutes } from './modules/graph';
 import { ingestionRoutes } from './modules/ingestion';
 import { searchRoutes } from './modules/search';
+import { sectorRoutes } from './modules/sectors';
 import { signalRoutes } from './modules/signals';
 import { sourceRoutes } from './modules/sources';
 
@@ -16,6 +17,7 @@ export interface BuildOptions {
   db: Db;
   sessionSecret: string;
   demoInstitutionKey: string;
+  demoInstitutionCode?: string;
   secureCookies?: boolean;
   logger?: boolean;
 }
@@ -29,6 +31,7 @@ export async function buildApp(opts: BuildOptions) {
     db: opts.db,
     identity: new DemoIdentityProvider(opts.secureCookies ?? false),
     demoInstitutionKey: opts.demoInstitutionKey,
+    demoInstitutionCode: opts.demoInstitutionCode ?? 'GSIA-DEMO',
   };
 
   // Never expose stack traces, SQL or sensitive text to clients (TRD §11.2).
@@ -47,5 +50,6 @@ export async function buildApp(opts: BuildOptions) {
   await graphRoutes(app, deps);
   await ingestionRoutes(app, deps);
   await searchRoutes(app, deps);
+  await sectorRoutes(app, deps);
   return app;
 }

@@ -62,7 +62,7 @@ function Lifecycle({ state }: { state: CaseDetail['state'] }) {
           className={cn(
             'rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
             i < current && 'bg-raised text-ink-muted',
-            i === current && 'bg-gold text-navy-950',
+            i === current && 'bg-brand text-white',
             i > current && 'border border-line text-ink-faint',
           )}
         >
@@ -102,7 +102,7 @@ function CaseHeader({ c }: { c: CaseDetail }) {
         <div>
           <dt className="text-xs text-ink-faint">Sensitivity</dt>
           <dd className="inline-flex items-center gap-1 font-medium text-ink">
-            <Lock className="h-3.5 w-3.5 text-gold" aria-hidden />
+            <Lock className="h-3.5 w-3.5 text-gold-bright" aria-hidden />
             {humanize(c.sensitivity)}
           </dd>
         </div>

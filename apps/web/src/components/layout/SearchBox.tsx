@@ -4,6 +4,7 @@ import { Brain, Radar, Search, Share2 } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/cn';
 
 const KIND_ICON = { case: Brain, signal: Radar, entity: Share2 } as const;
@@ -25,6 +26,7 @@ export function SearchBox({ className }: { className?: string }) {
   const [active, setActive] = useState(0);
   const navigate = useNavigate();
   const listId = useId();
+  const { t } = useI18n();
   const term = useDebounced(q.trim(), 200);
   const results = useQuery({
     queryKey: ['search', term],
@@ -52,8 +54,8 @@ export function SearchBox({ className }: { className?: string }) {
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={open && items[active] ? `${listId}-${active}` : undefined}
-        aria-label="Search signals, cases and entities"
-        placeholder="Search signals, cases, entities…"
+        aria-label={t('top.searchLabel')}
+        placeholder={t('top.search')}
         value={q}
         onChange={(e) => {
           setQ(e.target.value);
@@ -76,13 +78,13 @@ export function SearchBox({ className }: { className?: string }) {
             setOpen(false);
           }
         }}
-        className="h-10 w-full rounded-lg border border-line-strong bg-navy-950/60 ps-9 pe-3 text-sm text-ink placeholder:text-ink-faint focus:border-gold/70 focus:outline-none"
+        className="h-10 w-full rounded-lg border border-line-strong bg-panel ps-9 pe-3 text-sm text-ink placeholder:text-ink-faint focus:border-brand/60 focus:outline-none"
       />
       {open && term.length >= 2 ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line-strong bg-panel py-1 shadow-2xl"
+          className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line bg-panel py-1 card-shadow"
         >
           {items.length === 0 ? (
             <li
@@ -112,7 +114,7 @@ export function SearchBox({ className }: { className?: string }) {
                     i === active ? 'bg-raised' : '',
                   )}
                 >
-                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden />
+                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
                   <span className="min-w-0">
                     <span className="block truncate text-ink">{r.title}</span>
                     <span className="block text-xs text-ink-faint">

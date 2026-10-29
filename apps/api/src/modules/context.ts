@@ -17,6 +17,8 @@ export interface AppDeps {
   db: Db;
   identity: IdentityProvider;
   demoInstitutionKey: string;
+  /** Code a user types at sign-in to reach the demonstration institution. */
+  demoInstitutionCode: string;
 }
 
 declare module 'fastify' {

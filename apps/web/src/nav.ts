@@ -1,146 +1,72 @@
 import {
-  Brain,
+  Bot,
   Building2,
   Database,
   Gavel,
   GitFork,
-  LayoutDashboard,
+  Landmark,
   Library,
-  Radar,
-  Scale,
-  Settings2,
-  Share2,
+  ShieldCheck,
+  Workflow,
   type LucideIcon,
 } from 'lucide-react';
+import type { MessageKey } from '@/lib/i18n';
 
 export interface NavItem {
   path: string;
-  label: string;
+  labelKey: MessageKey;
   icon: LucideIcon;
-  /** Delivery phase in which the module becomes functional (Implementation Plan §4); 0 = built. */
+  /** Delivery phase in which the module becomes functional; 0 = built. */
   phase: number;
+  /** Additional route prefixes that highlight this item. */
+  match?: string[];
   purpose: string;
   willDo: string[];
 }
 
-/** The PRD's 11 navigation items (D-07), in PRD order. */
+/** The nine-item navigation from the approved light concepts (decision D-07, revised). */
 export const NAV: NavItem[] = [
+  { path: '/', labelKey: 'nav.overview', icon: Landmark, phase: 0, purpose: '', willDo: [] },
   {
-    path: '/',
-    label: 'Command Centre',
-    icon: LayoutDashboard,
+    path: '/sectors',
+    labelKey: 'nav.sectors',
+    icon: Building2,
     phase: 0,
-    purpose: 'Attention queue: what needs attention, why, and who acts next.',
+    match: ['/sectors', '/signals', '/cases', '/graph'],
+    purpose: '',
     willDo: [],
   },
-  {
-    path: '/signals',
-    label: 'Signals & Early Warning',
-    icon: Radar,
-    phase: 0,
-    purpose: 'Validated, unvalidated, conflicting and dismissed signals with source health and disposition.',
-    willDo: [
-      'Signal detail with publisher, event and retrieval times, rights and corroboration',
-      'Corroborate, challenge, monitor, dismiss or open a case — with recorded rationale',
-      'Replayable early-warning detection against dated snapshots',
-    ],
-  },
-  {
-    path: '/cases',
-    label: 'Intelligence Cases',
-    icon: Brain,
-    phase: 0,
-    purpose: 'Case list and case workspaces — the primary work object of the OS.',
-    willDo: [],
-  },
-  {
-    path: '/graph',
-    label: 'Intelligence Graph',
-    icon: Share2,
-    phase: 0,
-    purpose: 'Shared entities, dependencies and temporal causal links across the institution.',
-    willDo: [
-      'Entities, routes, assets, suppliers and exposures with stable identifiers',
-      'Each link labelled observed, sourced, inferred or assumed, with evidence',
-      'First-, second- and third-order paths from an event to affected domains',
-    ],
-  },
+  { path: '/ai', labelKey: 'nav.ai', icon: Bot, phase: 0, purpose: '', willDo: [] },
   {
     path: '/scenarios',
-    label: 'Scenarios & Foresight',
+    labelKey: 'nav.scenarios',
     icon: GitFork,
     phase: 3,
-    purpose: 'Baseline and what-if scenarios across 72 hours, 90 days, one year and five years.',
+    purpose: 'Baseline and what-if scenarios compared across 72 hours, 90 days, one year and five years.',
     willDo: [
-      'Deterministic calculators with units, formulas and input lineage',
-      'Bounded what-if assumptions that never overwrite the baseline',
-      'Reproducible saved runs and sensitivity ranges',
+      'Drivers: disruption duration, transit capacity lost, bypass capacity, oil-price shock',
+      'Outputs as low / central / high ranges with formulas, units and input lineage',
+      'Reproducible saved runs; draft ranked options with evidence and confidence basis',
     ],
   },
-  {
-    path: '/decisions',
-    label: 'Decision Authority',
-    icon: Gavel,
-    phase: 4,
-    purpose: 'Recommendations awaiting named human review and decision.',
-    willDo: [
-      'Evidence-backed options with confidence basis, constraints, owner and authority required',
-      'Approve, reject, defer or request evidence — self-approval always blocked',
-      'Operations handoff and outcome capture',
-    ],
-  },
-  {
-    path: '/domains',
-    label: 'Domains',
-    icon: Building2,
-    phase: 5,
-    purpose: 'Domain packs (energy, resilience, capital) extending the shared graph and workflows.',
-    willDo: [
-      'Energy & maritime, resilience and sovereign capital configurations',
-      'Domain ontology extensions, calculators and case templates — not separate dashboards',
-    ],
-  },
-  {
-    path: '/sources',
-    label: 'Data & Sources',
-    icon: Database,
-    phase: 0,
-    purpose: 'Source registry: class, terms, approval, cadence and freshness.',
-    willDo: [],
-  },
+  { path: '/mandates', labelKey: 'nav.mandates', icon: ShieldCheck, phase: 0, purpose: '', willDo: [] },
+  { path: '/decisions', labelKey: 'nav.decisions', icon: Gavel, phase: 0, purpose: '', willDo: [] },
+  { path: '/execution', labelKey: 'nav.execution', icon: Workflow, phase: 0, purpose: '', willDo: [] },
   {
     path: '/memory',
-    label: 'Institutional Memory',
+    labelKey: 'nav.memory',
     icon: Library,
     phase: 4,
     purpose: 'Approved decisions, outcomes, precedents and lessons with provenance.',
     willDo: [
-      'Only approved decisions and outcomes become memory',
-      'Institution-scoped search; no cross-client retrieval or silent training',
+      'Only approved decisions and recorded outcomes become memory',
+      'Institution-scoped search; no cross-client retrieval or silent model training',
     ],
   },
-  {
-    path: '/governance',
-    label: 'Governance & Audit',
-    icon: Scale,
-    phase: 4,
-    purpose: 'Policies as code, PASS / HOLD / BLOCK results and the append-only audit trail.',
-    willDo: [
-      'Versioned policy rules with test results and activation history',
-      'Hash-chained audit trail with independent verification',
-      'Export controls and retention settings',
-    ],
-  },
-  {
-    path: '/admin',
-    label: 'Administration',
-    icon: Settings2,
-    phase: 4,
-    purpose: 'Institution, divisions, roles, retention and deployment configuration.',
-    willDo: [
-      'Role and division management',
-      'Identity provider configuration (OIDC seam)',
-      'Retention and localisation',
-    ],
-  },
+  { path: '/sources', labelKey: 'nav.data', icon: Database, phase: 0, purpose: '', willDo: [] },
 ];
+
+export function isActive(item: NavItem, pathname: string) {
+  if (item.path === '/') return pathname === '/';
+  return [item.path, ...(item.match ?? [])].some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}

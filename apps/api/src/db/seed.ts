@@ -3,6 +3,7 @@
 import { appendAudit } from '../audit/audit';
 import { config } from '../config';
 import { ALL_INSTITUTIONS, type InstitutionFixture } from '../fixtures/demo';
+import { seedMandates } from './seed-mandates';
 import { seedPhase2 } from './seed-phase2';
 import { createDb, withInstitution, type Db } from './client';
 import {
@@ -187,7 +188,10 @@ export async function seedAll(url = config.DATABASE_OWNER_URL) {
   try {
     for (const f of ALL_INSTITUTIONS) {
       const ids = await seedInstitution(db, f);
-      if (f.key === 'gsia-demo') await seedPhase2(db, ids);
+      if (f.key === 'gsia-demo') {
+        await seedPhase2(db, ids);
+        await seedMandates(db, ids.institutionId);
+      }
     }
   } finally {
     await close();

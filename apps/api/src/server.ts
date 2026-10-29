@@ -7,6 +7,7 @@ const app = await buildApp({
   db,
   sessionSecret: config.SESSION_SECRET,
   demoInstitutionKey: config.DEMO_INSTITUTION_KEY,
+  demoInstitutionCode: config.DEMO_INSTITUTION_CODE,
   secureCookies: config.NODE_ENV === 'production',
   logger: true,
 });

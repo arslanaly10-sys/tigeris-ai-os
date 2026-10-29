@@ -1,13 +1,17 @@
 import '@fontsource-variable/inter';
 import '@fontsource-variable/source-serif-4';
+import '@fontsource/ibm-plex-sans-arabic/400.css';
+import '@fontsource/ibm-plex-sans-arabic/500.css';
+import '@fontsource/ibm-plex-sans-arabic/600.css';
 import './styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MotionConfig } from 'motion/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { App } from './App';
 import { ApiError } from './lib/api';
-import { DirectionProvider } from './lib/direction';
+import { I18nProvider } from './lib/i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,11 +27,13 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <DirectionProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </DirectionProvider>
+      <I18nProvider>
+        <MotionConfig reducedMotion="user">
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </MotionConfig>
+      </I18nProvider>
     </QueryClientProvider>
   </StrictMode>,
 );

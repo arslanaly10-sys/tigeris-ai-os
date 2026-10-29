@@ -175,7 +175,7 @@ function TriageDialog({
           rows={4}
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink focus:border-brand"
         />
         {m.isError ? (
           <p role="alert" className="mt-2 text-sm text-red">

@@ -259,6 +259,8 @@ Spacing follows a 4px base: 8px inside tight groups, 12px row padding, 16px gutt
 
 **The Side-By-Side Collapses Rule.** Any row that sets a value, a label and actions side by side on desktop stacks them on phones; nothing is squeezed into a column narrower than its longest word.
 
+**The Pinned-Action Rule.** When a control panel sits beside a longer reference column, the control panel sticks below the banner, its height is capped to the viewport and its action bar is pinned to its foot, so the primary action never scrolls out of reach.
+
 ## Elevation & Depth
 
 Flat by default. Depth comes from tonal layering (bone canvas, white panel, raised-bone footer and sidebar) and 1px hairlines. A single shadow exists, and only for things that genuinely float: popovers, menus, sheets, dialogs and the map's overlay controls.
@@ -306,7 +308,7 @@ Quiet and exact: thin borders, flat white surfaces, one emerald action per area,
 ### Inputs / Fields
 
 - **Style:** Panel White, 1px Hairline Strong border, 8px corners, 40px tall (48px on sign-in), placeholder in Ink Faint.
-- **Focus:** the global gold focus outline; the search box also shifts its border to Sovereign Emerald. Selects that sit inside a labelled box (the Sector picker) draw the outline on that box.
+- **Focus:** every field keeps the global gold focus outline and shifts its border to Sovereign Emerald; no field removes the outline. Selects that sit inside a labelled box (the Sector picker) draw the outline on that box.
 - **Error / Disabled:** errors are stated in words below the field, with `aria-invalid`; disabled follows the button rule.
 
 ### Navigation
@@ -320,7 +322,7 @@ A full-width Provenance Gold Soft strip with a gold hatch, a flask icon and 13px
 
 ### Gulf Map (signature)
 
-The Arabian Gulf drawn in the cartography palette, with chokepoints, ports and terminals as dots, and modelled routes in the truth hues (solid for sourced, dashed for inferred and assumed). Any movement is a replay framed by an "Illustrative simulation" gold badge, with play, restart, a scrubber and speed controls (32px targets; the bar wraps to two rows on phones).
+The Arabian Gulf drawn in the cartography palette, with chokepoints, ports and terminals as dots, and modelled routes in the truth hues (solid for sourced, dashed for inferred and assumed). Any movement is a replay framed by an "Illustrative simulation" gold badge, with play, restart, a scrubber and speed controls (32px targets). The bar floats over the map from 640px up and sits below the map on phones, so it never covers the Gulf.
 
 ## Do's and Don'ts
 
@@ -339,6 +341,7 @@ The Arabian Gulf drawn in the cartography palette, with chokepoints, ports and t
 
 - **Don't** label anything LIVE or animate data as if it were streaming; movement is "Illustrative simulation".
 - **Don't** show a confidence as a bare percentage; use the band (high, moderate, low, insufficient) with its basis.
+- **Don't** remove the focus outline from a field or control; change its border as well, never instead.
 - **Don't** put a shadow on anything that sits in the page flow.
 - **Don't** use teal, green, amber or red for categories, chart series or decoration; they belong to truth and status.
 - **Don't** use Provenance Gold (#b8924f) as text, or put gold on primary actions.

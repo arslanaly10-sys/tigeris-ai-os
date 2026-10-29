@@ -124,11 +124,11 @@ function SectorList({ sectors }: { sectors: SectorSummary[] }) {
   return (
     <>
       <p
-        className="flex justify-end gap-0 border-t border-line px-5 pt-2 pb-1 text-[12px] text-ink-faint"
+        className="flex justify-end gap-3 border-t border-line px-5 pt-2 pb-1 text-[12px] text-ink-faint"
         aria-hidden
       >
-        <span className="w-10 text-end">Cases</span>
-        <span className="w-10 text-end">Signals</span>
+        <span className="w-14 text-end">Cases</span>
+        <span className="w-14 text-end">Signals</span>
       </p>
       <ul className="divide-y divide-line" aria-label="Sectors with open cases and new signals">
         {sectors.map((s) => (
@@ -140,8 +140,8 @@ function SectorList({ sectors }: { sectors: SectorSummary[] }) {
                   <span className="font-normal text-ink-faint"> · not connected</span>
                 ) : null}
               </span>
-              <span className="tabular w-10 text-end text-sm text-ink">{s.openCases}</span>
-              <span className="tabular w-10 text-end text-sm text-ink">{s.newSignals}</span>
+              <span className="tabular w-14 text-end text-sm text-ink">{s.openCases}</span>
+              <span className="tabular w-14 text-end text-sm text-ink">{s.newSignals}</span>
             </Link>
           </li>
         ))}

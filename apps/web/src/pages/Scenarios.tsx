@@ -239,7 +239,7 @@ function DriverControl({
               const v = Number(e.target.value);
               if (Number.isFinite(v)) onChange(Math.min(def.max, Math.max(def.min, v)));
             }}
-            className="tabular h-9 w-24 rounded-md border border-line-strong bg-panel px-2 text-end text-sm text-ink focus:border-brand focus:outline-none"
+            className="tabular h-9 w-24 rounded-md border border-line-strong bg-panel px-2 text-end text-sm text-ink focus:border-brand"
           />
           <span className="w-20 text-xs text-ink-muted">{def.unit}</span>
         </span>
@@ -293,7 +293,11 @@ export function ScenarioBuilderPage() {
         </p>
       ) : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Panel aria-labelledby="drivers-heading">
+        {/* Sticky beside the longer assumption register, with its own scroll cap so Run stays reachable. */}
+        <Panel
+          aria-labelledby="drivers-heading"
+          className="xl:sticky xl:top-[calc(var(--banner-h,0px)+1.5rem)] xl:max-h-[calc(100dvh-var(--banner-h,0px)-3rem)] xl:self-start xl:overflow-y-auto"
+        >
           <PanelHeader
             id="drivers-heading"
             icon={<SlidersHorizontal className="h-4 w-4" aria-hidden />}
@@ -309,7 +313,7 @@ export function ScenarioBuilderPage() {
                 id="scenario-case"
                 value={selectedCase ?? ''}
                 onChange={(e) => setCaseKey(e.target.value)}
-                className="mt-1.5 h-10 w-full rounded-md border border-line-strong bg-panel px-3 text-sm text-ink focus:border-brand focus:outline-none"
+                className="mt-1.5 h-10 w-full rounded-md border border-line-strong bg-panel px-3 text-sm text-ink focus:border-brand"
               >
                 {s.cases.map((c) => (
                   <option key={c.key} value={c.key}>
@@ -330,7 +334,7 @@ export function ScenarioBuilderPage() {
               ))}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 border-t border-line px-5 py-4">
+          <div className="flex flex-wrap items-center gap-3 border-t border-line bg-panel px-5 py-4 xl:sticky xl:bottom-0">
             <Button
               variant="primary"
               disabled={!s.canRun || !selectedCase || run.isPending}

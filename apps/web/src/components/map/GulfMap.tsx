@@ -378,64 +378,67 @@ export function GulfMap({
   const source = layers.movementSource;
 
   return (
-    <div className={cn('relative overflow-hidden rounded-lg border border-line bg-sea', className)}>
-      {failed ? (
-        <div className="flex h-full min-h-64 items-center justify-center p-6 text-center text-sm text-ink-muted">
-          The map needs WebGL, which is unavailable in this browser. Use the list below.
-        </div>
-      ) : (
-        <div ref={container} className="h-full w-full" role="img" aria-label={label} />
-      )}
+    <div className={cn('relative flex flex-col gap-2 sm:gap-0', className)}>
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-line bg-sea">
+        {failed ? (
+          <div className="flex h-full min-h-64 items-center justify-center p-6 text-center text-sm text-ink-muted">
+            The map needs WebGL, which is unavailable in this browser. Use the list below.
+          </div>
+        ) : (
+          <div ref={container} className="h-full w-full" role="img" aria-label={label} />
+        )}
 
-      {showTracks ? (
-        <div className="pointer-events-none absolute end-3 top-3 flex flex-col items-end gap-1">
-          <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-bright float-shadow">
-            <FlaskConical className="h-3.5 w-3.5" aria-hidden />
-            Illustrative simulation
-          </span>
-          {source ? (
-            <span className="rounded bg-panel/90 px-2 py-0.5 text-[12px] text-ink-muted float-shadow">
-              {source.publisher} ·{' '}
-              {source.freshness === 'stale' ? (
-                <span className="font-semibold text-amber">stale</span>
-              ) : (
-                'fresh'
-              )}
-              {source.lastRetrievedAt ? ` · generated ${formatRelative(source.lastRetrievedAt)}` : ''}
+        {showTracks ? (
+          <div className="pointer-events-none absolute end-3 top-3 flex flex-col items-end gap-1">
+            <span className="pattern-synthetic inline-flex items-center gap-1.5 rounded-md border border-gold bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-bright float-shadow">
+              <FlaskConical className="h-3.5 w-3.5" aria-hidden />
+              Illustrative simulation
             </span>
-          ) : null}
-        </div>
-      ) : null}
+            {source ? (
+              <span className="rounded bg-panel/90 px-2 py-0.5 text-[12px] text-ink-muted float-shadow">
+                {source.publisher} ·{' '}
+                {source.freshness === 'stale' ? (
+                  <span className="font-semibold text-amber">stale</span>
+                ) : (
+                  'fresh'
+                )}
+                {source.lastRetrievedAt ? ` · generated ${formatRelative(source.lastRetrievedAt)}` : ''}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
-      {interactive && !failed ? (
-        <div
-          className={cn(
-            'absolute end-3 flex flex-col overflow-hidden rounded-md border border-line bg-panel float-shadow',
-            // The replay bar wraps to two rows on phones; keep the zoom pair clear of it.
-            showTracks && showControls ? 'bottom-[6.5rem] sm:bottom-16' : 'bottom-16',
-          )}
-        >
-          <button
-            type="button"
-            aria-label="Zoom in"
-            onClick={() => mapRef.current?.zoomIn()}
-            className="p-2 text-ink-muted hover:text-ink"
+        {interactive && !failed ? (
+          <div
+            className={cn(
+              'absolute end-3 flex flex-col overflow-hidden rounded-md border border-line bg-panel float-shadow',
+              // On phones the replay bar sits below the map, so the zoom pair can use the corner.
+              showTracks && showControls ? 'bottom-3 sm:bottom-16' : 'bottom-16',
+            )}
           >
-            <Plus className="h-4 w-4" aria-hidden />
-          </button>
-          <button
-            type="button"
-            aria-label="Zoom out"
-            onClick={() => mapRef.current?.zoomOut()}
-            className="border-t border-line p-2 text-ink-muted hover:text-ink"
-          >
-            <Minus className="h-4 w-4" aria-hidden />
-          </button>
-        </div>
-      ) : null}
+            <button
+              type="button"
+              aria-label="Zoom in"
+              onClick={() => mapRef.current?.zoomIn()}
+              className="p-2 text-ink-muted hover:text-ink"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label="Zoom out"
+              onClick={() => mapRef.current?.zoomOut()}
+              className="border-t border-line p-2 text-ink-muted hover:text-ink"
+            >
+              <Minus className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        ) : null}
+      </div>
 
+      {/* Replay bar: below the map on phones so it never covers the Gulf; floats over the map from sm up. */}
       {showTracks && showControls && !failed ? (
-        <div className="absolute inset-x-3 bottom-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel/95 px-3 py-2 float-shadow sm:flex-nowrap sm:gap-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel px-3 py-2 sm:absolute sm:inset-x-3 sm:bottom-3 sm:flex-nowrap sm:gap-3 sm:bg-panel/95 sm:float-shadow">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}

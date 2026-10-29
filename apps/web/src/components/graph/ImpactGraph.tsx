@@ -364,7 +364,7 @@ export function ImpactGraph({
           <FadeSwap
             key="graph"
             ref={canvasRef}
-            className="min-h-[26rem] flex-1 rounded-lg border border-line bg-canvas"
+            className="min-h-[26rem] flex-1 rounded-lg bg-canvas"
             role="group"
             aria-label="Impact graph canvas. Use the Table view for a keyboard-friendly list of every link."
           >

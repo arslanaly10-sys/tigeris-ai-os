@@ -219,7 +219,7 @@ export function SignInPage() {
                     placeholder={t('signin.idPlaceholder')}
                     aria-describedby="institution-hint"
                     aria-invalid={notConnected || undefined}
-                    className="mt-2 h-12 w-full rounded-lg border border-line-strong bg-panel px-4 text-[15px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                    className="mt-2 h-12 w-full rounded-lg border border-line-strong bg-panel px-4 text-[15px] text-ink placeholder:text-ink-faint focus:border-brand"
                   />
                   <p id="institution-hint" className="mt-1.5 text-xs text-ink-faint">
                     {t('signin.demoHint')}

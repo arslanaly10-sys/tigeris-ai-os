@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T22:07:59+00:00",
+  "generatedAt": "2026-10-29T22:23:14+00:00",
   "title": "Design System: TIGERIS AI OS",
   "extensions": {
     "colorMeta": {
@@ -379,6 +379,11 @@
         "name": "The Dash-Means-Uncertain Rule",
         "body": "A dashed line (on a badge, an edge or a map route) always encodes an inferred, assumed or illustrative claim.",
         "section": "shapes"
+      },
+      {
+        "name": "The Pinned-Action Rule",
+        "body": "When a control panel sits beside a longer reference column, the control panel sticks below the banner, its height is capped to the viewport and its action bar is pinned to its foot, so the primary action never scrolls out of reach.",
+        "section": "layout"
       }
     ],
     "dos": [
@@ -394,6 +399,7 @@
     "donts": [
       "**Don't** label anything LIVE or animate data as if it were streaming; movement is \"Illustrative simulation\".",
       "**Don't** show a confidence as a bare percentage; use the band (high, moderate, low, insufficient) with its basis.",
+      "**Don't** remove the focus outline from a field or control; change its border as well, never instead.",
       "**Don't** put a shadow on anything that sits in the page flow.",
       "**Don't** use teal, green, amber or red for categories, chart series or decoration; they belong to truth and status.",
       "**Don't** use Provenance Gold (#b8924f) as text, or put gold on primary actions.",

@@ -19,14 +19,17 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { LoadState, PageHeader } from '@/components/PageHeader';
+import { AgentDraft } from '@/components/scenario/Drafts';
+import { Sheet } from '@/components/ui/sheet';
 import { ClaimBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
 import { ListRow, StatusPill } from '@/components/ui/data';
 import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { Reveal } from '@/components/ui/reveal';
+import { useAgentRunStats, runsLabel, type AgentRunItem } from '@/lib/agents';
 import { api } from '@/lib/api';
 import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
@@ -57,16 +60,20 @@ function YesNo({ value, yes, no }: { value: boolean; yes: string; no: string }) 
   );
 }
 
-/** Agent operations console: the per-sector specialist registry. Runs arrive with the Phase 3 gateway. */
+/** Agent operations console: the per-sector specialist registry, the model policy and every recorded run. */
 export function AiCommandPage() {
   const { t, lang } = useI18n();
+  const { query, stats } = useAgentRunStats();
+  const [open, setOpen] = useState<AgentRunItem | null>(null);
+  const runs = query.data ?? [];
   const total = SECTORS.reduce((n, s) => n + s.agents.length, 0);
+  const grounded = runs.filter((r) => r.grounding.passed).length;
   return (
     <>
       <PageHeader
         title={t('nav.ai')}
         description="Registered AI specialists per sector, the model policy they run under, and their recorded runs."
-        lastUpdated={null}
+        lastUpdated={runs[0]?.startedAt ?? null}
       />
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
         <Panel className="p-5">
@@ -74,7 +81,9 @@ export function AiCommandPage() {
             Registered specialists
           </p>
           <p className="tabular mt-1 font-serif text-3xl font-semibold text-ink">{total}</p>
-          <p className="text-xs text-ink-muted">Across {SECTORS.length} sector configurations</p>
+          <p className="text-xs text-ink-muted">
+            Across {SECTORS.length} sector configurations · {stats.size} have recorded runs
+          </p>
         </Panel>
         <Panel className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">Model gateway</p>
@@ -83,19 +92,116 @@ export function AiCommandPage() {
             Deterministic stub only
           </p>
           <p className="text-xs text-ink-muted">
-            External model calls are disabled by policy. Models draft prose from cited inputs; code computes
-            every quantity.
+            External model calls are disabled by policy and refused by the database. Models draft prose from
+            cited inputs; code computes every quantity.
           </p>
         </Panel>
         <Panel className="p-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">Recorded runs</p>
-          <p className="mt-1 text-base font-semibold text-ink">{t('common.noRunsYet')}</p>
+          <p className="tabular mt-1 font-serif text-3xl font-semibold text-ink">{runs.length}</p>
           <p className="text-xs text-ink-muted">
-            {t('common.phase').replace('{n}', '3')} — runs are recorded with inputs, model version and
-            outputs.
+            {runs.length === 0
+              ? 'Runs are recorded when an analyst runs a scenario.'
+              : `${grounded} of ${runs.length} passed the grounding check: every number quoted was cited.`}
           </p>
         </Panel>
       </div>
+
+      <Panel aria-labelledby="recent-runs-heading" className="mb-6">
+        <PanelHeader
+          id="recent-runs-heading"
+          icon={<Bot className="h-4 w-4" aria-hidden />}
+          title="Recent runs"
+          description="Every specialist draft, with the inputs it cited and the model and template versions used."
+        />
+        <LoadState isPending={query.isPending} error={query.error} />
+        {query.data ? (
+          runs.length === 0 ? (
+            <p className="border-t border-line px-5 py-6 text-sm text-ink-muted">{t('common.noRunsYet')}</p>
+          ) : (
+            <div className="overflow-x-auto border-t border-line">
+              <table className="w-full min-w-[46rem] text-sm">
+                <caption className="sr-only">Recorded specialist runs</caption>
+                <thead>
+                  <tr className="bg-raised/50 text-xs text-ink-muted">
+                    <th scope="col" className="px-5 py-2 text-start font-medium">
+                      Specialist
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-start font-medium">
+                      Task
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-start font-medium">
+                      Case · scenario
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-start font-medium">
+                      Model
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-start font-medium">
+                      Grounding
+                    </th>
+                    <th scope="col" className="px-5 py-2 text-start font-medium">
+                      When
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {runs.slice(0, 25).map((r) => (
+                    <tr key={r.id} className="hover:bg-raised/50">
+                      <td className="px-5 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setOpen(r)}
+                          className="text-start font-medium text-ink hover:underline"
+                        >
+                          {r.agentName}
+                        </button>
+                      </td>
+                      <td className="px-3 py-2.5 text-ink-muted">{r.task}</td>
+                      <td className="px-3 py-2.5 text-xs">
+                        {r.caseKey ? (
+                          <span className="tabular font-mono text-ink-muted">{r.caseKey}</span>
+                        ) : (
+                          '—'
+                        )}
+                        {r.scenarioKey ? (
+                          <Link
+                            to={`/scenarios/${r.scenarioKey}`}
+                            className="tabular ms-1 font-mono text-cyan hover:underline"
+                          >
+                            {r.scenarioKey}
+                          </Link>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-2.5 text-xs text-ink-muted">
+                        {r.modelId} {r.modelVersion}
+                      </td>
+                      <td className="px-3 py-2.5 text-xs">
+                        <span
+                          className={
+                            r.grounding.passed
+                              ? 'inline-flex items-center gap-1 text-emerald'
+                              : 'inline-flex items-center gap-1 text-red'
+                          }
+                        >
+                          {r.grounding.passed ? (
+                            <Check className="h-3.5 w-3.5" aria-hidden />
+                          ) : (
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          )}
+                          {r.grounding.passed ? 'Passed' : 'Failed'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-2.5 text-xs text-ink-muted">{formatRelative(r.startedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : null}
+      </Panel>
+
+      <h2 className="mb-3 text-xl text-ink">Specialist registry</h2>
       <div className="grid gap-5 lg:grid-cols-2">
         {SECTORS.map((s, i) => {
           const Icon = SECTOR_ICON[s.key];
@@ -113,21 +219,43 @@ export function AiCommandPage() {
                   }
                 />
                 <div className="divide-y divide-line border-t border-line">
-                  {s.agents.map((a) => (
-                    <ListRow
-                      key={a.key}
-                      icon={Bot}
-                      title={a.name}
-                      description={a.description}
-                      trailing={<StatusPill tone="awaiting">{t('common.noRunsYet')}</StatusPill>}
-                    />
-                  ))}
+                  {s.agents.map((a) => {
+                    const label = runsLabel(stats.get(a.key));
+                    return (
+                      <ListRow
+                        key={a.key}
+                        icon={Bot}
+                        title={a.name}
+                        description={a.description}
+                        trailing={
+                          label ? (
+                            <StatusPill tone="ok">{label}</StatusPill>
+                          ) : (
+                            <StatusPill tone="awaiting">{t('common.noRunsYet')}</StatusPill>
+                          )
+                        }
+                      />
+                    );
+                  })}
                 </div>
               </Panel>
             </Reveal>
           );
         })}
       </div>
+      <Sheet
+        open={open !== null}
+        onOpenChange={(o) => !o && setOpen(null)}
+        title="Specialist run"
+        description={open ? `${open.agentName} · ${open.task}` : undefined}
+      >
+        {open ? (
+          <div className="px-5">
+            <AgentDraft run={open} />
+            <p className="pb-4 text-xs text-ink-muted">Policy: {open.policyDecision}</p>
+          </div>
+        ) : null}
+      </Sheet>
     </>
   );
 }

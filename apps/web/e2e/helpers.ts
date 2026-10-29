@@ -3,11 +3,19 @@ import { expect, type Page } from '@playwright/test';
 
 /** WCAG 2.2 AA scan (D-27). Fails the test on any violation and prints what failed. */
 export async function expectAccessible(page: Page, include?: string) {
-  // Let entrance transitions settle so contrast is measured on the final state, not a mid-fade frame.
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
+  // Let transitions settle so contrast is measured on the final state, not a mid-fade frame. Chained
+  // transitions (exit then enter) can leave a brief gap with nothing running, so require a quiet streak.
+  await page.waitForFunction(
+    () => {
+      const w = window as unknown as { __quiet?: number };
+      const busy = document
+        .getAnimations()
+        .some((a) => a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity);
+      w.__quiet = busy ? 0 : (w.__quiet ?? 0) + 1;
+      return w.__quiet >= 4;
+    },
+    undefined,
+    { polling: 100 },
   );
   let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']);
   if (include) builder = builder.include(include);

@@ -54,5 +54,9 @@ pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e
   institution-code sign-in; nine-item navigation; Sovereign Overview; eight sector Command Centres with
   evidence-bound KPIs; AI Command registry; read-only Mandates & Authority; Decisions & Approvals queue with
   live approvals badge; Governed Execution (manual handoffs); drafted Arabic interface with RTL.
-- Phase 3 — Reasoning and scenarios · Phase 4 — Governance and decisions · Phase 5 — Complete cases and UX ·
+- **Phase 3 — Reasoning and scenarios**: deterministic `hormuz-disruption` engine with low/central/high
+  ranges across 72h / 90d / 1y / 5y against a baseline; versioned assumption register; reproducible,
+  append-only runs with calculation lineage; ranked draft options with mandate checks, authority and
+  confidence basis; internal deterministic model gateway with grounding checks; AI Command run console.
+- Phase 4 — Governance and decisions · Phase 5 — Complete cases and UX ·
   Phase 6 — Release candidate.

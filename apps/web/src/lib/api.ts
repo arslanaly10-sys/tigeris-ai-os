@@ -1,4 +1,9 @@
 import type {
+  AgentRunItem,
+  ScenarioRunDetail,
+  ScenarioRunSummary,
+  ScenarioSetup,
+  Drivers,
   AuthContext,
   CaseDetail,
   CaseSummary,
@@ -84,4 +89,14 @@ export const api = {
   mandates: () =>
     request<{ mandates: MandateItem[]; authority: AuthorityRuleItem[] }>('GET', '/api/mandates'),
   pendingApprovals: () => request<PendingApprovals>('GET', '/api/approvals/pending'),
+  scenarioSetup: () => request<ScenarioSetup>('GET', '/api/scenarios/setup'),
+  scenarios: (caseKey?: string) =>
+    request<ScenarioRunSummary[]>(
+      'GET',
+      `/api/scenarios${caseKey ? `?case=${encodeURIComponent(caseKey)}` : ''}`,
+    ),
+  scenario: (key: string) => request<ScenarioRunDetail>('GET', `/api/scenarios/${encodeURIComponent(key)}`),
+  runScenario: (caseKey: string, drivers: Drivers) =>
+    request<{ key: string }>('POST', '/api/scenarios', { caseKey, drivers }),
+  agentRuns: () => request<AgentRunItem[]>('GET', '/api/agent-runs'),
 };

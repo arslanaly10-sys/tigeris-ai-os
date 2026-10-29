@@ -126,8 +126,8 @@ test.describe('shell', () => {
     await openNav(page);
     const nav = page.getByRole('navigation', { name: 'Primary navigation' }).filter({ visible: true });
     await expect(nav.getByRole('link')).toHaveCount(9);
-    await nav.getByRole('link', { name: /Foresight & Scenarios/ }).click();
-    await expect(page.getByText('Arrives in Phase 3')).toBeVisible();
+    await nav.getByRole('link', { name: /Institutional Memory/ }).click();
+    await expect(page.getByText('Arrives in Phase 4')).toBeVisible();
     await expectAccessible(page);
   });
 

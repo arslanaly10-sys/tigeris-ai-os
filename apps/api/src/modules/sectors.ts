@@ -22,7 +22,8 @@ import { listCases } from './cases';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { listSignals } from './signals';
 
-const inSector = (def: SectorDef, domain: string) => def.domains.some((d) => d.toLowerCase() === domain.toLowerCase());
+const inSector = (def: SectorDef, domain: string) =>
+  def.domains.some((d) => d.toLowerCase() === domain.toLowerCase());
 
 /**
  * Resolves sector KPIs through their evidence-fact bindings. Unbound KPIs, or bindings whose evidence is
@@ -126,31 +127,27 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
         tx.select().from(authorityRules).orderBy(asc(authorityRules.sortOrder)),
       ]);
       return {
-        mandates: m.map(
-          (x): MandateItem => ({
-            id: x.id,
-            key: x.key,
-            title: x.title,
-            description: x.description,
-            category: x.category,
-            limitText: x.limitText,
-            ownerRole: x.ownerRole as Role,
-            claimClass: x.claimClass as ClaimClass,
-          }),
-        ),
-        authority: r.map(
-          (x): AuthorityRuleItem => ({
-            id: x.id,
-            actionClass: x.actionClass,
-            description: x.description,
-            requiredRole: x.requiredRole as Role,
-            thresholdText: x.thresholdText,
-            requiresExpertReview: x.requiresExpertReview,
-            twoPerson: x.twoPerson,
-            selfApprovalBlocked: x.selfApprovalBlocked,
-            claimClass: x.claimClass as ClaimClass,
-          }),
-        ),
+        mandates: m.map((x): MandateItem => ({
+          id: x.id,
+          key: x.key,
+          title: x.title,
+          description: x.description,
+          category: x.category,
+          limitText: x.limitText,
+          ownerRole: x.ownerRole as Role,
+          claimClass: x.claimClass as ClaimClass,
+        })),
+        authority: r.map((x): AuthorityRuleItem => ({
+          id: x.id,
+          actionClass: x.actionClass,
+          description: x.description,
+          requiredRole: x.requiredRole as Role,
+          thresholdText: x.thresholdText,
+          requiresExpertReview: x.requiresExpertReview,
+          twoPerson: x.twoPerson,
+          selfApprovalBlocked: x.selfApprovalBlocked,
+          claimClass: x.claimClass as ClaimClass,
+        })),
       };
     });
   });

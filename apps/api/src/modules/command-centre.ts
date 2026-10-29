@@ -73,8 +73,7 @@ export async function buildCommandCentre(tx: Tx, ctx: RequestContext): Promise<C
         urgency: 'routine',
         dataMode: s.sourceClass === 'synthetic' ? 'synthetic_demo' : 'snapshot',
         updatedAt: s.lastRetrievedAt,
-        nextStep:
-          s.freshness === 'stale' ? 'Refresh or acknowledge staleness' : 'Approve terms and owner',
+        nextStep: s.freshness === 'stale' ? 'Refresh or acknowledge staleness' : 'Approve terms and owner',
         nextStepRole: 'administrator',
         forYou: mine('administrator'),
       })),
@@ -98,16 +97,24 @@ export async function buildCommandCentre(tx: Tx, ctx: RequestContext): Promise<C
 }
 
 export async function commandCentreRoutes(app: FastifyInstance, deps: AppDeps) {
-  app.get('/api/command-centre', { preHandler: requireSession(deps) }, async (request): Promise<CommandCentre> => {
-    const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, (tx) => buildCommandCentre(tx, ctx));
-  });
+  app.get(
+    '/api/command-centre',
+    { preHandler: requireSession(deps) },
+    async (request): Promise<CommandCentre> => {
+      const ctx = ctxOf(request);
+      return withInstitution(deps.db, ctx.institutionId, (tx) => buildCommandCentre(tx, ctx));
+    },
+  );
 
   /** Items awaiting the signed-in role (header 'Approval required' badge). */
-  app.get('/api/approvals/pending', { preHandler: requireSession(deps) }, async (request): Promise<PendingApprovals> => {
-    const ctx = ctxOf(request);
-    const cc = await withInstitution(deps.db, ctx.institutionId, (tx) => buildCommandCentre(tx, ctx));
-    const items = cc.attention.filter((a) => a.forYou);
-    return { count: items.length, items };
-  });
+  app.get(
+    '/api/approvals/pending',
+    { preHandler: requireSession(deps) },
+    async (request): Promise<PendingApprovals> => {
+      const ctx = ctxOf(request);
+      const cc = await withInstitution(deps.db, ctx.institutionId, (tx) => buildCommandCentre(tx, ctx));
+      const items = cc.attention.filter((a) => a.forYou);
+      return { count: items.length, items };
+    },
+  );
 }

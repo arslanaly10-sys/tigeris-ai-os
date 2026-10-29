@@ -8,6 +8,7 @@ import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
 import { graphRoutes } from './modules/graph';
 import { ingestionRoutes } from './modules/ingestion';
+import { scenarioRoutes } from './modules/scenarios';
 import { searchRoutes } from './modules/search';
 import { sectorRoutes } from './modules/sectors';
 import { signalRoutes } from './modules/signals';
@@ -51,5 +52,6 @@ export async function buildApp(opts: BuildOptions) {
   await ingestionRoutes(app, deps);
   await searchRoutes(app, deps);
   await sectorRoutes(app, deps);
+  await scenarioRoutes(app, deps);
   return app;
 }

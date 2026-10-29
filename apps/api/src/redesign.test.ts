@@ -12,7 +12,11 @@ let principals: DemoPrincipal[];
 
 async function signIn(role: string) {
   const p = principals.find((x) => x.roles.includes(role as never))!;
-  const res = await app.inject({ method: 'POST', url: '/api/auth/demo-session', payload: { principalId: p.id } });
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/demo-session',
+    payload: { principalId: p.id },
+  });
   const cookie = res.cookies.find((c) => c.name === 'tigeris_session')!;
   return { cookie: `tigeris_session=${cookie.value}` };
 }
@@ -28,7 +32,11 @@ afterAll(async () => {
 describe('institution identification at sign-in', () => {
   it('resolves the demonstration code or email domain, case-insensitively', async () => {
     for (const identifier of ['GSIA-DEMO', 'gsia-demo', 'analyst@gsia-demo.example']) {
-      const res = await app.inject({ method: 'POST', url: '/api/auth/resolve-institution', payload: { identifier } });
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/resolve-institution',
+        payload: { identifier },
+      });
       expect(res.statusCode).toBe(200);
       expect(res.json().institution.name).toBe('Gulf Sovereign Investment Authority (Demo)');
     }
@@ -60,7 +68,9 @@ describe('sectors', () => {
 
   it('binds KPIs to evidence with lineage, and leaves unbound KPIs unconnected', async () => {
     const headers = await signIn('analyst');
-    const energy: SectorDetail = (await app.inject({ method: 'GET', url: '/api/sectors/energy', headers })).json();
+    const energy: SectorDetail = (
+      await app.inject({ method: 'GET', url: '/api/sectors/energy', headers })
+    ).json();
     const flow = energy.kpis.find((k) => k.key === 'hormuz-oil-flow')!;
     expect(flow.value).toMatchObject({ valueNum: 20.9, unit: 'million b/d', claimClass: 'sourced' });
     expect(flow.value!.evidenceId).toMatch(/[0-9a-f-]{36}/);
@@ -70,7 +80,9 @@ describe('sectors', () => {
 
   it('shows a shell sector with no invented values', async () => {
     const headers = await signIn('analyst');
-    const re: SectorDetail = (await app.inject({ method: 'GET', url: '/api/sectors/real_estate', headers })).json();
+    const re: SectorDetail = (
+      await app.inject({ method: 'GET', url: '/api/sectors/real_estate', headers })
+    ).json();
     expect(re.depth).toBe('shell');
     expect(re.kpis.every((k) => k.value === null)).toBe(true);
     expect(re.cases).toEqual([]);
@@ -107,7 +119,11 @@ describe('mandates and authority', () => {
 describe('pending approvals badge', () => {
   it('counts only items whose next step belongs to the caller', async () => {
     const expert: PendingApprovals = (
-      await app.inject({ method: 'GET', url: '/api/approvals/pending', headers: await signIn('domain_expert') })
+      await app.inject({
+        method: 'GET',
+        url: '/api/approvals/pending',
+        headers: await signIn('domain_expert'),
+      })
     ).json();
     expect(expert.count).toBe(expert.items.length);
     expect(expert.items.every((i) => i.forYou)).toBe(true);

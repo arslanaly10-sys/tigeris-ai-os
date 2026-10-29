@@ -1,6 +1,7 @@
-import { AUTHORITY_RULES, MANDATES } from '../fixtures/mandates';
+import { inArray } from 'drizzle-orm';
+import { ASSUMPTIONS, AUTHORITY_RULES, MANDATES } from '../fixtures/mandates';
 import { withInstitution, type Db } from './client';
-import { authorityRules, mandates } from './schema';
+import { assumptions, authorityRules, evidenceObjects, mandates } from './schema';
 
 export async function seedMandates(db: Db, institutionId: string) {
   await withInstitution(db, institutionId, async (tx) => {
@@ -13,6 +14,20 @@ export async function seedMandates(db: Db, institutionId: string) {
         selfApprovalBlocked: true,
         claimClass: 'synthetic',
         sortOrder: i,
+      })),
+    );
+    const basisIds = ASSUMPTIONS.flatMap((a) => (a.basisExternalId ? [a.basisExternalId] : []));
+    const basis = basisIds.length
+      ? await tx
+          .select({ id: evidenceObjects.id, externalId: evidenceObjects.externalId })
+          .from(evidenceObjects)
+          .where(inArray(evidenceObjects.externalId, basisIds))
+      : [];
+    await tx.insert(assumptions).values(
+      ASSUMPTIONS.map(({ basisExternalId, ...a }) => ({
+        ...a,
+        institutionId,
+        basisEvidenceId: basis.find((b) => b.externalId === basisExternalId)?.id ?? null,
       })),
     );
   });

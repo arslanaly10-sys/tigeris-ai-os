@@ -35,6 +35,8 @@ export interface SectorScenarioDef {
   key: string;
   title: string;
   description: string;
+  /** Engine template that models this scenario. Absent = not yet modelled; the launch stays disabled. */
+  modelTemplate?: 'hormuz-disruption';
 }
 
 export interface SectorDef {
@@ -71,30 +73,61 @@ export const SECTORS: SectorDef[] = [
       'port-sohar',
     ],
     intelligenceAreas: [
-      { title: 'Chokepoint disruption', description: 'Transit restrictions and incidents at Hormuz and adjacent corridors.' },
+      {
+        title: 'Chokepoint disruption',
+        description: 'Transit restrictions and incidents at Hormuz and adjacent corridors.',
+      },
       { title: 'Export terminals', description: 'Crude and LNG terminal dependencies on the strait.' },
       { title: 'Vessel & cargo signals', description: 'Reported seizures, boardings and diversions.' },
       { title: 'Bypass routes', description: 'Pipeline and Gulf of Oman port alternatives.' },
       { title: 'Price transmission', description: 'How flow disruption reaches oil and freight prices.' },
     ],
     kpis: [
-      { key: 'hormuz-oil-flow', label: 'Hormuz oil flow (2023 avg.)', binding: { externalId: 'eia:todayinenergy:61002', predicate: 'Average oil flow, 2023' } },
+      {
+        key: 'hormuz-oil-flow',
+        label: 'Hormuz oil flow (2023 avg.)',
+        binding: { externalId: 'eia:todayinenergy:61002', predicate: 'Average oil flow, 2023' },
+      },
       {
         key: 'hormuz-share',
         label: 'Share of global liquids consumption',
-        binding: { externalId: 'eia:todayinenergy:61002', predicate: 'Share of global petroleum liquids consumption, 2023' },
+        binding: {
+          externalId: 'eia:todayinenergy:61002',
+          predicate: 'Share of global petroleum liquids consumption, 2023',
+        },
       },
       { key: 'tanker-transits', label: 'Tanker transits (live)' },
       { key: 'terminal-throughput', label: 'Terminal throughput' },
     ],
     agents: [
-      { key: 'maritime-signal-triage', name: 'Maritime Signal Analyst', description: 'Triages vessel, incident and corridor signals against source rules.' },
-      { key: 'energy-impact', name: 'Energy Impact Analyst', description: 'Traces disruption from chokepoints to terminals, commodities and exposure.' },
-      { key: 'route-alternatives', name: 'Route Alternatives Analyst', description: 'Compares bypass routes and port alternatives under assumptions.' },
+      {
+        key: 'maritime-signal-triage',
+        name: 'Maritime Signal Analyst',
+        description: 'Triages vessel, incident and corridor signals against source rules.',
+      },
+      {
+        key: 'energy-impact',
+        name: 'Energy Impact Analyst',
+        description: 'Traces disruption from chokepoints to terminals, commodities and exposure.',
+      },
+      {
+        key: 'route-alternatives',
+        name: 'Route Alternatives Analyst',
+        description: 'Compares bypass routes and port alternatives under assumptions.',
+      },
     ],
     scenarios: [
-      { key: 'hormuz-disruption', title: 'Hormuz disruption', description: 'Duration, transit capacity lost, bypass capacity and oil-price shock.' },
-      { key: 'terminal-outage', title: 'Export terminal outage', description: 'Loss of a Gulf export terminal for a defined period.' },
+      {
+        modelTemplate: 'hormuz-disruption',
+        key: 'hormuz-disruption',
+        title: 'Hormuz disruption',
+        description: 'Duration, transit capacity lost, bypass capacity and oil-price shock.',
+      },
+      {
+        key: 'terminal-outage',
+        title: 'Export terminal outage',
+        description: 'Loss of a Gulf export terminal for a defined period.',
+      },
     ],
     depth: 'demo',
   },
@@ -115,24 +148,51 @@ export const SECTORS: SectorDef[] = [
       {
         key: 'desal-gas-dependent',
         label: 'Desalination plants on gas-fired power',
-        binding: { externalId: 'gsia-demo:dependency:energy-water:v1', predicate: 'Desalination plants dependent on gas-fired power' },
+        binding: {
+          externalId: 'gsia-demo:dependency:energy-water:v1',
+          predicate: 'Desalination plants dependent on gas-fired power',
+        },
       },
       {
         key: 'fuel-buffer',
         label: 'Fuel buffer before output reduction',
-        binding: { externalId: 'gsia-demo:dependency:energy-water:v1', predicate: 'Fuel buffer before output reduction' },
+        binding: {
+          externalId: 'gsia-demo:dependency:energy-water:v1',
+          predicate: 'Fuel buffer before output reduction',
+        },
       },
       { key: 'grid-margin', label: 'Grid reserve margin' },
       { key: 'water-storage', label: 'Water storage days' },
     ],
     agents: [
-      { key: 'network-modelling', name: 'Network Modelling Specialist', description: 'Maps interdependencies across power, water and fuel.' },
-      { key: 'outage-risk', name: 'Outage Risk Analyst', description: 'Detects emerging service-disruption risk from upstream signals.' },
-      { key: 'capacity-planning', name: 'Capacity Planning Specialist', description: 'Assesses buffers and capacity pathways.' },
+      {
+        key: 'network-modelling',
+        name: 'Network Modelling Specialist',
+        description: 'Maps interdependencies across power, water and fuel.',
+      },
+      {
+        key: 'outage-risk',
+        name: 'Outage Risk Analyst',
+        description: 'Detects emerging service-disruption risk from upstream signals.',
+      },
+      {
+        key: 'capacity-planning',
+        name: 'Capacity Planning Specialist',
+        description: 'Assesses buffers and capacity pathways.',
+      },
     ],
     scenarios: [
-      { key: 'fuel-supply-shortfall', title: 'Fuel supply shortfall', description: 'Reduced LNG deliveries to gas-fired generation.' },
-      { key: 'demand-surge', title: 'Demand surge', description: 'Summer peak demand against reduced supply.' },
+      {
+        modelTemplate: 'hormuz-disruption',
+        key: 'fuel-supply-shortfall',
+        title: 'Fuel supply shortfall',
+        description: 'Reduced LNG deliveries to gas-fired generation.',
+      },
+      {
+        key: 'demand-surge',
+        title: 'Demand surge',
+        description: 'Summer peak demand against reduced supply.',
+      },
     ],
     depth: 'demo',
   },
@@ -153,24 +213,51 @@ export const SECTORS: SectorDef[] = [
       {
         key: 'route-dependent-holdings',
         label: 'Holdings with Hormuz route dependency',
-        binding: { externalId: 'gsia-demo:exposure-register:v1', predicate: 'Holdings with Hormuz route dependency' },
+        binding: {
+          externalId: 'gsia-demo:exposure-register:v1',
+          predicate: 'Holdings with Hormuz route dependency',
+        },
       },
       {
         key: 'energy-shipping-nav',
         label: 'Energy & shipping share of NAV',
-        binding: { externalId: 'gsia-demo:exposure-register:v1', predicate: 'Energy and shipping share of net asset value' },
+        binding: {
+          externalId: 'gsia-demo:exposure-register:v1',
+          predicate: 'Energy and shipping share of net asset value',
+        },
       },
       { key: 'liquidity-buffer', label: 'Liquidity buffer' },
       { key: 'hedge-coverage', label: 'Hedge coverage' },
     ],
     agents: [
-      { key: 'exposure-analyst', name: 'Exposure Analyst', description: 'Links events to holdings through the institutional graph.' },
-      { key: 'allocation-options', name: 'Allocation Options Analyst', description: 'Drafts hold / defer / hedge / reallocate options with evidence.' },
-      { key: 'mandate-check', name: 'Mandate Alignment Checker', description: 'Checks options against mandates and authority rules.' },
+      {
+        key: 'exposure-analyst',
+        name: 'Exposure Analyst',
+        description: 'Links events to holdings through the institutional graph.',
+      },
+      {
+        key: 'allocation-options',
+        name: 'Allocation Options Analyst',
+        description: 'Drafts hold / defer / hedge / reallocate options with evidence.',
+      },
+      {
+        key: 'mandate-check',
+        name: 'Mandate Alignment Checker',
+        description: 'Checks options against mandates and authority rules.',
+      },
     ],
     scenarios: [
-      { key: 'route-shock-portfolio', title: 'Route shock on portfolio', description: 'Portfolio exposure under a Hormuz disruption.' },
-      { key: 'oil-price-shock', title: 'Oil price shock', description: 'Energy holdings under an assumed Brent move.' },
+      {
+        modelTemplate: 'hormuz-disruption',
+        key: 'route-shock-portfolio',
+        title: 'Route shock on portfolio',
+        description: 'Portfolio exposure under a Hormuz disruption.',
+      },
+      {
+        key: 'oil-price-shock',
+        title: 'Oil price shock',
+        description: 'Energy holdings under an assumed Brent move.',
+      },
     ],
     depth: 'demo',
   },
@@ -194,13 +281,33 @@ export const SECTORS: SectorDef[] = [
       { key: 'warehouse-capacity', label: 'Warehouse capacity usage' },
     ],
     agents: [
-      { key: 'supply-chain-analyst', name: 'Supply Chain Analyst', description: 'Monitors supply chain developments and emerging risks.' },
-      { key: 'logistics-optimiser', name: 'Logistics Optimiser', description: 'Analyses routing and distribution options.' },
-      { key: 'port-operations', name: 'Port Operations Analyst', description: 'Assesses port operations, congestion and turnaround.' },
+      {
+        key: 'supply-chain-analyst',
+        name: 'Supply Chain Analyst',
+        description: 'Monitors supply chain developments and emerging risks.',
+      },
+      {
+        key: 'logistics-optimiser',
+        name: 'Logistics Optimiser',
+        description: 'Analyses routing and distribution options.',
+      },
+      {
+        key: 'port-operations',
+        name: 'Port Operations Analyst',
+        description: 'Assesses port operations, congestion and turnaround.',
+      },
     ],
     scenarios: [
-      { key: 'port-disruption', title: 'Port disruption', description: 'Test impact of port disruption and alternative routes.' },
-      { key: 'route-diversion', title: 'Route diversion', description: 'Land and sea alternatives under disruption.' },
+      {
+        key: 'port-disruption',
+        title: 'Port disruption',
+        description: 'Test impact of port disruption and alternative routes.',
+      },
+      {
+        key: 'route-diversion',
+        title: 'Route diversion',
+        description: 'Land and sea alternatives under disruption.',
+      },
     ],
     depth: 'demo',
   },
@@ -222,10 +329,24 @@ export const SECTORS: SectorDef[] = [
       { key: 'credit-quality', label: 'Credit quality' },
     ],
     agents: [
-      { key: 'counterparty-analyst', name: 'Counterparty Risk Analyst', description: 'Tracks counterparty concentrations and contagion paths.' },
-      { key: 'liquidity-analyst', name: 'Liquidity Analyst', description: 'Assesses funding conditions under stress.' },
+      {
+        key: 'counterparty-analyst',
+        name: 'Counterparty Risk Analyst',
+        description: 'Tracks counterparty concentrations and contagion paths.',
+      },
+      {
+        key: 'liquidity-analyst',
+        name: 'Liquidity Analyst',
+        description: 'Assesses funding conditions under stress.',
+      },
     ],
-    scenarios: [{ key: 'funding-stress', title: 'Funding stress', description: 'Liquidity under a regional funding shock.' }],
+    scenarios: [
+      {
+        key: 'funding-stress',
+        title: 'Funding stress',
+        description: 'Liquidity under a regional funding shock.',
+      },
+    ],
     depth: 'shell',
   },
   {
@@ -249,11 +370,23 @@ export const SECTORS: SectorDef[] = [
       { key: 'inventory-buffers', label: 'Inventory buffers' },
     ],
     agents: [
-      { key: 'industrial-operations', name: 'Industrial Operations Analyst', description: 'Monitors production, capacity and equipment performance.' },
-      { key: 'materials-intelligence', name: 'Materials Intelligence Analyst', description: 'Tracks critical materials and alternative supply.' },
+      {
+        key: 'industrial-operations',
+        name: 'Industrial Operations Analyst',
+        description: 'Monitors production, capacity and equipment performance.',
+      },
+      {
+        key: 'materials-intelligence',
+        name: 'Materials Intelligence Analyst',
+        description: 'Tracks critical materials and alternative supply.',
+      },
     ],
     scenarios: [
-      { key: 'supply-disruption', title: 'Supply disruption', description: 'Impact of material supply shocks.' },
+      {
+        key: 'supply-disruption',
+        title: 'Supply disruption',
+        description: 'Impact of material supply shocks.',
+      },
       { key: 'energy-price-shock', title: 'Energy price shock', description: 'Cost and operating impact.' },
     ],
     depth: 'shell',
@@ -277,12 +410,28 @@ export const SECTORS: SectorDef[] = [
       { key: 'delivery-risk', label: 'Delivery risk (weighted)' },
     ],
     agents: [
-      { key: 'construction-monitor', name: 'Construction Monitor', description: 'Tracks project delivery, contractors and site progress.' },
-      { key: 'cost-intelligence', name: 'Cost Intelligence Specialist', description: 'Monitors construction costs and supply risks.' },
+      {
+        key: 'construction-monitor',
+        name: 'Construction Monitor',
+        description: 'Tracks project delivery, contractors and site progress.',
+      },
+      {
+        key: 'cost-intelligence',
+        name: 'Cost Intelligence Specialist',
+        description: 'Monitors construction costs and supply risks.',
+      },
     ],
     scenarios: [
-      { key: 'urban-growth', title: 'Urban growth', description: 'Demand, infrastructure and delivery phasing.' },
-      { key: 'construction-cost', title: 'Construction cost', description: 'Cost change impacts on delivery timelines.' },
+      {
+        key: 'urban-growth',
+        title: 'Urban growth',
+        description: 'Demand, infrastructure and delivery phasing.',
+      },
+      {
+        key: 'construction-cost',
+        title: 'Construction cost',
+        description: 'Cost change impacts on delivery timelines.',
+      },
     ],
     depth: 'shell',
   },
@@ -303,14 +452,27 @@ export const SECTORS: SectorDef[] = [
       { key: 'war-risk-premium', label: 'Marine war-risk premium' },
     ],
     agents: [
-      { key: 'exposure-accumulation', name: 'Accumulation Analyst', description: 'Assesses concentration by geography and peril.' },
+      {
+        key: 'exposure-accumulation',
+        name: 'Accumulation Analyst',
+        description: 'Assesses concentration by geography and peril.',
+      },
     ],
-    scenarios: [{ key: 'marine-war-risk', title: 'Marine war-risk event', description: 'Premium and claims under a corridor incident.' }],
+    scenarios: [
+      {
+        key: 'marine-war-risk',
+        title: 'Marine war-risk event',
+        description: 'Premium and claims under a corridor incident.',
+      },
+    ],
     depth: 'shell',
   },
 ];
 
-export const SECTOR_BY_KEY = Object.fromEntries(SECTORS.map((s) => [s.key, s])) as Record<SectorKey, SectorDef>;
+export const SECTOR_BY_KEY = Object.fromEntries(SECTORS.map((s) => [s.key, s])) as Record<
+  SectorKey,
+  SectorDef
+>;
 
 export function sectorForDomain(domain: string): SectorKey | null {
   return SECTORS.find((s) => s.domains.some((d) => d.toLowerCase() === domain.toLowerCase()))?.key ?? null;

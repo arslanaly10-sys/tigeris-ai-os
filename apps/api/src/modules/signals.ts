@@ -212,24 +212,20 @@ export async function signalRoutes(app: FastifyInstance, deps: AppDeps) {
           .returning({ id: cases.id });
         const links = await tx.select().from(signalEvidence).where(eq(signalEvidence.signalId, row.id));
         for (const [i, l] of links.entries()) {
-          await tx
-            .insert(caseEvidence)
-            .values({
-              institutionId: ctx.institutionId,
-              caseId: created!.id,
-              evidenceId: l.evidenceId,
-              sortOrder: i,
-            });
+          await tx.insert(caseEvidence).values({
+            institutionId: ctx.institutionId,
+            caseId: created!.id,
+            evidenceId: l.evidenceId,
+            sortOrder: i,
+          });
         }
         if (row.entityId) {
-          await tx
-            .insert(caseEntities)
-            .values({
-              institutionId: ctx.institutionId,
-              caseId: created!.id,
-              entityId: row.entityId,
-              role: 'origin',
-            });
+          await tx.insert(caseEntities).values({
+            institutionId: ctx.institutionId,
+            caseId: created!.id,
+            entityId: row.entityId,
+            role: 'origin',
+          });
         }
         await tx.insert(caseEvents).values([
           {

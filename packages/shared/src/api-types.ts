@@ -1,3 +1,5 @@
+import type { DriverDef, Drivers, EngineResult, MetricDef } from './scenario-engine';
+import type { MandateCheck } from './scenario-options';
 import type { SectorKey } from './sectors';
 import type {
   CaseState,
@@ -314,4 +316,133 @@ export interface AuthorityRuleItem {
 export interface PendingApprovals {
   count: number;
   items: AttentionItem[];
+}
+
+// ───────────────────────────── Phase 3: scenarios, options, agent runs ─────────────────────────────
+
+export interface AssumptionItem {
+  id: string;
+  key: string;
+  label: string;
+  unit: string;
+  low: number;
+  central: number;
+  high: number;
+  rationale: string;
+  basisEvidenceId: string | null;
+  ownerRole: Role;
+  version: number;
+  claimClass: 'assumed';
+}
+
+/** One input a scenario run used, with enough lineage to trace it. */
+export type ScenarioInputRef =
+  | {
+      ref: string;
+      kind: 'evidence_fact';
+      label: string;
+      value: number;
+      unit: string | null;
+      claimClass: ClaimClass;
+      validationStatus: ValidationStatus;
+      evidenceId: string;
+      factId: string;
+      publisher: string;
+    }
+  | {
+      ref: string;
+      kind: 'assumption';
+      label: string;
+      unit: string;
+      low: number;
+      central: number;
+      high: number;
+      claimClass: 'assumed';
+      assumptionId: string;
+      version: number;
+      rationale: string;
+    }
+  | { ref: string; kind: 'driver'; label: string; unit: string; value: number; claimClass: 'assumed' };
+
+export interface ScenarioSetup {
+  template: { key: string; title: string; engineVersion: string; description: string };
+  drivers: DriverDef[];
+  assumptions: AssumptionItem[];
+  cases: { key: string; title: string; state: CaseState; domain: string }[];
+  canRun: boolean;
+}
+
+export interface ScenarioRunSummary {
+  id: string;
+  key: string;
+  title: string;
+  templateKey: string;
+  engineVersion: string;
+  caseKey: string;
+  caseTitle: string;
+  drivers: Drivers;
+  createdBy: string;
+  createdAt: string;
+  warnings: string[];
+  severity: 'low' | 'moderate' | 'high' | null;
+}
+
+export interface DraftOptionItem {
+  id: string;
+  key: string;
+  rank: number;
+  actionClass: string;
+  title: string;
+  summary: string;
+  rankBasis: string;
+  mandateChecks: MandateCheck[];
+  authority: {
+    requiredRole: Role;
+    thresholdText: string;
+    twoPerson: boolean;
+    requiresExpertReview: boolean;
+    selfApprovalBlocked: boolean;
+  } | null;
+  confidence: ConfidenceBasis;
+  citedRefs: string[];
+  rankerVersion: string;
+  status: 'draft';
+  draftedByRunId: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface AgentRunItem {
+  id: string;
+  agentKey: string;
+  agentName: string;
+  sectorKey: string;
+  task: string;
+  caseKey: string | null;
+  scenarioKey: string | null;
+  modelId: string;
+  modelVersion: string;
+  external: false;
+  templateKey: string;
+  templateVersion: string;
+  inputs: { ref: string; label: string; display: string }[];
+  outputText: string;
+  grounding: { passed: boolean; numbers: { value: string; cited: boolean }[] };
+  policyDecision: string;
+  status: 'completed' | 'refused';
+  triggeredBy: string;
+  startedAt: string;
+}
+
+export interface ScenarioRunDetail extends ScenarioRunSummary {
+  dataMode: 'scenario';
+  inputs: ScenarioInputRef[];
+  result: EngineResult;
+  metricDefs: MetricDef[];
+  inputHash: string;
+  outputHash: string;
+  reproducible: boolean;
+  options: DraftOptionItem[];
+  confidence: ConfidenceBasis | null;
+  agentRuns: AgentRunItem[];
 }

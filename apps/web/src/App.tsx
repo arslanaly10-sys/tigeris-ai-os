@@ -10,6 +10,7 @@ import { CasesListPage } from '@/pages/CasesList';
 import { AiCommandPage, DecisionsPage, ExecutionPage, MandatesPage } from '@/pages/Governance';
 import { OverviewPage } from '@/pages/Overview';
 import { PlannedModulePage } from '@/pages/PlannedModule';
+import { ScenarioBuilderPage, ScenarioRunPage, ScenariosPage } from '@/pages/Scenarios';
 import { SectorCentrePage, SectorsIndexPage } from '@/pages/Sectors';
 import { SignInPage } from '@/pages/SignIn';
 import { GraphPage } from '@/pages/Graph';
@@ -47,6 +48,9 @@ function Protected() {
             <Route path="mandates" element={<MandatesPage />} />
             <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
             <Route path="execution" element={<ExecutionPage />} />
+            <Route path="scenarios" element={<ScenariosPage />} />
+            <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
+            <Route path="scenarios/:key" element={<ScenarioRunPage />} />
             <Route path="cases" element={<CasesListPage />} />
             <Route path="cases/:key" element={<CaseWorkspacePage />} />
             <Route path="sources" element={<SourcesPage ctx={ctx} />} />

@@ -24,6 +24,7 @@ import { SignalTypeTile, StateBadge, UrgencyBadge, ValidationBadge } from '@/com
 import { ConnectDataChart, KpiCard, ListRow, StatusPill } from '@/components/ui/data';
 import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
+import { runsLabel, useAgentRunStats } from '@/lib/agents';
 import { api } from '@/lib/api';
 import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
@@ -80,6 +81,7 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
   const map = useQuery({ queryKey: ['map-layers'], queryFn: api.mapLayers });
   const mandates = useQuery({ queryKey: ['mandates'], queryFn: api.mandates });
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
+  const { stats: agentStats } = useAgentRunStats();
 
   const openLineage = (kpi: SectorKpi) => {
     if (!kpi.value) return;
@@ -295,15 +297,24 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 }
               />
               <div className="divide-y divide-line border-t border-line">
-                {def.agents.map((a) => (
-                  <ListRow
-                    key={a.key}
-                    icon={Bot}
-                    title={a.name}
-                    description={a.description}
-                    trailing={<StatusPill tone="awaiting">{t('common.noRunsYet')}</StatusPill>}
-                  />
-                ))}
+                {def.agents.map((a) => {
+                  const label = runsLabel(agentStats.get(a.key));
+                  return (
+                    <ListRow
+                      key={a.key}
+                      icon={Bot}
+                      title={a.name}
+                      description={a.description}
+                      trailing={
+                        label ? (
+                          <StatusPill tone="ok">{label}</StatusPill>
+                        ) : (
+                          <StatusPill tone="awaiting">{t('common.noRunsYet')}</StatusPill>
+                        )
+                      }
+                    />
+                  );
+                })}
               </div>
             </Panel>
 
@@ -312,7 +323,7 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 id="sc-scen-heading"
                 icon={<GitFork className="h-4 w-4" aria-hidden />}
                 title={t('sector.scenarios')}
-                description={t('common.phase').replace('{n}', '3')}
+                description="Modelled scenarios open the builder on this sector's priority case."
               />
               <StaggerList className="divide-y divide-line border-t border-line">
                 {def.scenarios.map((s) => (
@@ -321,15 +332,18 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                       <span className="block text-sm font-medium text-ink">{s.title}</span>
                       <span className="block text-xs text-ink-muted">{s.description}</span>
                     </span>
-                    <button
-                      type="button"
-                      disabled
-                      className="rounded-md border border-line-strong px-2.5 py-1 text-xs text-ink-faint"
-                      aria-describedby="sc-scen-heading"
-                    >
-                      Launch
-                      <span className="sr-only"> {s.title} (available in Phase 3)</span>
-                    </button>
+                    {s.modelTemplate ? (
+                      <Link
+                        to={`/scenarios/new${d.cases[0] ? `?case=${encodeURIComponent(d.cases[0].key)}` : ''}`}
+                        className="rounded-md border border-brand/50 bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand hover:border-brand"
+                      >
+                        Launch<span className="sr-only"> {s.title}</span>
+                      </Link>
+                    ) : (
+                      <span className="rounded-md border border-line-strong px-2.5 py-1 text-xs text-ink-faint">
+                        Not yet modelled
+                      </span>
+                    )}
                   </StaggerItem>
                 ))}
               </StaggerList>

@@ -17,6 +17,7 @@ import { ImpactGraph } from '@/components/graph/ImpactGraph';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
 import { GulfMap, MapItemList } from '@/components/map/GulfMap';
 import { LoadState } from '@/components/PageHeader';
+import { CaseOptionsTab, CaseScenariosTab } from '@/components/scenario/CaseScenarioTabs';
 import {
   FadeSwap,
   INDICATOR_SPRING,
@@ -51,11 +52,7 @@ const FACTOR_LABEL: Record<ConfidenceFactor, string> = {
   scenario_stability: 'Scenario stability',
 };
 
-const LATER_TABS = [
-  { value: 'scenarios', label: 'Scenarios', phase: 3 },
-  { value: 'options', label: 'Options', phase: 4 },
-  { value: 'decision', label: 'Decision & memory', phase: 4 },
-];
+const LATER_TABS = [{ value: 'decision', label: 'Decision & memory', phase: 4 }];
 
 const tabClass =
   'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
@@ -534,6 +531,14 @@ export function CaseWorkspacePage() {
             Timeline
             <TabIndicator active={tab === 'timeline'} />
           </Tabs.Trigger>
+          <Tabs.Trigger value="scenarios" className={tabClass}>
+            Scenarios
+            <TabIndicator active={tab === 'scenarios'} />
+          </Tabs.Trigger>
+          <Tabs.Trigger value="options" className={tabClass}>
+            Draft options
+            <TabIndicator active={tab === 'options'} />
+          </Tabs.Trigger>
           {LATER_TABS.map((t) => (
             <Tabs.Trigger
               key={t.value}
@@ -582,6 +587,16 @@ export function CaseWorkspacePage() {
         <Tabs.Content value="timeline" className="outline-none">
           <FadeSwap>
             <TimelineTab c={c} />
+          </FadeSwap>
+        </Tabs.Content>
+        <Tabs.Content value="scenarios" className="outline-none">
+          <FadeSwap>
+            <CaseScenariosTab caseKey={c.key} />
+          </FadeSwap>
+        </Tabs.Content>
+        <Tabs.Content value="options" className="outline-none">
+          <FadeSwap>
+            <CaseOptionsTab caseKey={c.key} />
           </FadeSwap>
         </Tabs.Content>
       </Tabs.Root>

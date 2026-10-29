@@ -144,7 +144,7 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 ) : map.isPending ? (
                   <LoadState isPending error={null} />
                 ) : (
-                  <div className="flex min-h-56 flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-line-strong bg-raised/50 text-center">
+                  <div className="flex min-h-56 flex-1 flex-col items-center justify-center rounded-lg bg-raised/50 text-center">
                     <MapIcon className="h-6 w-6 text-brand/70" aria-hidden />
                     <p className="mt-1.5 text-sm font-medium text-ink">{t('sector.noAssets')}</p>
                     <p className="max-w-xs text-xs text-ink-faint">{t('common.connectDataHint')}</p>

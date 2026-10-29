@@ -492,7 +492,7 @@ export function ExecutionPage() {
         {cases.data ? (
           handoffs.length === 0 ? (
             <div className="border-t border-line">
-              <p className="mx-5 mt-4 rounded-lg border border-dashed border-line-strong px-4 py-3 text-sm text-ink-muted">
+              <p className="mx-5 mt-4 text-sm text-ink-muted">
                 <span className="font-medium text-ink">No approved handoffs yet.</span> Handoffs appear once a
                 decision is approved; decision recording arrives in Phase 4.
               </p>

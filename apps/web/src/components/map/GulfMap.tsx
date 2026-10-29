@@ -438,7 +438,7 @@ export function GulfMap({
 
       {/* Replay bar: below the map on phones so it never covers the Gulf; floats over the map from sm up. */}
       {showTracks && showControls && !failed ? (
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-line bg-panel px-3 py-2 sm:absolute sm:inset-x-3 sm:bottom-3 sm:flex-nowrap sm:gap-3 sm:bg-panel/95 sm:float-shadow">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:absolute sm:inset-x-3 sm:bottom-3 sm:flex-nowrap sm:gap-3 sm:rounded-lg sm:border sm:border-line sm:bg-panel/95 sm:px-3 sm:py-2 sm:float-shadow">
           <button
             type="button"
             onClick={() => setPlaying((p) => !p)}

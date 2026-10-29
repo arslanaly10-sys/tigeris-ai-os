@@ -311,6 +311,11 @@ Quiet and exact: thin borders, flat white surfaces, one emerald action per area,
 - **Focus:** every field keeps the global gold focus outline and shifts its border to Sovereign Emerald; no field removes the outline. Selects that sit inside a labelled box (the Sector picker) draw the outline on that box.
 - **Error / Disabled:** errors are stated in words below the field, with `aria-invalid`; disabled follows the button rule.
 
+### Empty & Error States
+
+- **Empty:** plain text in Ink Muted, or a Raised Bone tinted area with the icon and one line saying what will appear and when. Never a dashed frame (dashes mean uncertainty) and never a placeholder number.
+- **Error:** a white panel with a serif title stating what failed, one sentence saying nothing was recorded, and one action (Reload). The shell, navigation and demonstration banner stay usable around it.
+
 ### Navigation
 
 - Sidebar items are 14.5px Inter with an 18px icon, 10px by 12px padding and 8px corners. Inactive items are Ink Muted and darken to Ink on hover. The active item is Sovereign Emerald, semibold, on a Sovereign Emerald Soft fill with a 3px emerald inline-start rule; the fill slides between items with a critically damped spring. Planned modules carry a small phase tag ("P4"). On phones the same list opens as a sheet.

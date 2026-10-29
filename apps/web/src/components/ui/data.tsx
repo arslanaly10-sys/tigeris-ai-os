@@ -63,11 +63,7 @@ export function ConnectDataChart({
     <figure className={cn('relative', className)}>
       <div className="relative h-44 border-s border-b border-line ps-2">
         {[0, 20, 40, 60, 80].map((p) => (
-          <div
-            key={p}
-            className="absolute inset-x-0 border-t border-dashed border-line"
-            style={{ bottom: `${p + 20}%` }}
-          />
+          <div key={p} className="absolute inset-x-0 border-t border-line" style={{ bottom: `${p + 20}%` }} />
         ))}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <BarChart3 className="h-6 w-6 text-brand/70" aria-hidden />

@@ -207,3 +207,20 @@ test.describe('governance', () => {
     await expectAccessible(page);
   });
 });
+
+test.describe('resilience', () => {
+  test('keeps the shell usable when a screen fails to load', async ({ page }) => {
+    await signInAs(page, /Intelligence Analyst/);
+    // Simulate a screen chunk that cannot be fetched (dropped connection, or a deploy while the tab was open).
+    await page.route(/\/pages\/CaseWorkspace\.tsx|\/assets\/CaseWorkspace-[^/]+\.js/, (route) =>
+      route.fulfill({ status: 404, body: 'gone' }),
+    );
+    await page.goto('/cases/HMZ-2024-0413');
+    await expect(page.getByRole('alert')).toContainText('This screen could not be loaded');
+    await expect(page.getByRole('button', { name: 'Reload' })).toBeVisible();
+    await expect(page.getByRole('note')).toContainText('Demonstration:');
+    await page.unroute(/\/pages\/CaseWorkspace\.tsx|\/assets\/CaseWorkspace-[^/]+\.js/);
+    await page.goto('/sources');
+    await expect(page.getByRole('heading', { level: 1, name: 'Data & Sources' })).toBeVisible();
+  });
+});

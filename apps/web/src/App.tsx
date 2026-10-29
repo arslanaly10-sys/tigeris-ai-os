@@ -5,6 +5,7 @@ import { DURATION, EASE_OUT } from '@/components/ui/motion';
 import { ApiError } from '@/lib/api';
 import { useAuthContext } from '@/lib/session';
 import { NAV } from '@/nav';
+import { ScreenErrorBoundary } from '@/components/ScreenErrorBoundary';
 import { lazy, Suspense } from 'react';
 
 /**
@@ -62,29 +63,31 @@ function Protected() {
           animate={{ opacity: 1, y: 0, transition: { duration: DURATION.base, ease: EASE_OUT } }}
           exit={{ opacity: 0, transition: { duration: 0.1 } }}
         >
-          <Suspense fallback={pageFallback}>
-            <Routes location={location}>
-              <Route index element={<OverviewPage ctx={ctx} />} />
-              <Route path="sectors" element={<SectorsIndexPage />} />
-              <Route path="sectors/:key" element={<SectorCentrePage />} />
-              <Route path="ai" element={<AiCommandPage />} />
-              <Route path="mandates" element={<MandatesPage />} />
-              <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
-              <Route path="execution" element={<ExecutionPage />} />
-              <Route path="scenarios" element={<ScenariosPage />} />
-              <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
-              <Route path="scenarios/:key" element={<ScenarioRunPage />} />
-              <Route path="cases" element={<CasesListPage />} />
-              <Route path="cases/:key" element={<CaseWorkspacePage />} />
-              <Route path="sources" element={<SourcesPage ctx={ctx} />} />
-              <Route path="signals" element={<SignalReviewPage />} />
-              <Route path="graph" element={<GraphPage />} />
-              {NAV.filter((n) => n.phase > 0).map((n) => (
-                <Route key={n.path} path={n.path.slice(1)} element={<PlannedModulePage item={n} />} />
-              ))}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+          <ScreenErrorBoundary resetKey={location.pathname}>
+            <Suspense fallback={pageFallback}>
+              <Routes location={location}>
+                <Route index element={<OverviewPage ctx={ctx} />} />
+                <Route path="sectors" element={<SectorsIndexPage />} />
+                <Route path="sectors/:key" element={<SectorCentrePage />} />
+                <Route path="ai" element={<AiCommandPage />} />
+                <Route path="mandates" element={<MandatesPage />} />
+                <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
+                <Route path="execution" element={<ExecutionPage />} />
+                <Route path="scenarios" element={<ScenariosPage />} />
+                <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
+                <Route path="scenarios/:key" element={<ScenarioRunPage />} />
+                <Route path="cases" element={<CasesListPage />} />
+                <Route path="cases/:key" element={<CaseWorkspacePage />} />
+                <Route path="sources" element={<SourcesPage ctx={ctx} />} />
+                <Route path="signals" element={<SignalReviewPage />} />
+                <Route path="graph" element={<GraphPage />} />
+                {NAV.filter((n) => n.phase > 0).map((n) => (
+                  <Route key={n.path} path={n.path.slice(1)} element={<PlannedModulePage item={n} />} />
+                ))}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </ScreenErrorBoundary>
         </motion.div>
       </AnimatePresence>
     </AppShell>
@@ -93,11 +96,13 @@ function Protected() {
 
 export function App() {
   return (
-    <Suspense fallback={pageFallback}>
-      <Routes>
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/*" element={<Protected />} />
-      </Routes>
-    </Suspense>
+    <ScreenErrorBoundary resetKey="app">
+      <Suspense fallback={pageFallback}>
+        <Routes>
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/*" element={<Protected />} />
+        </Routes>
+      </Suspense>
+    </ScreenErrorBoundary>
   );
 }

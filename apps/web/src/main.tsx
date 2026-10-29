@@ -13,6 +13,24 @@ import { App } from './App';
 import { ApiError } from './lib/api';
 import { I18nProvider } from './lib/i18n';
 
+/*
+ * Screens are lazy chunks with content hashes. A tab left open across a deploy asks for chunks that no longer
+ * exist; reload once to pick up the new build instead of showing a broken screen. At most one reload per
+ * minute, so a chunk that is genuinely unavailable surfaces its error instead of looping.
+ */
+const RELOAD_AT = 'tigeris:chunk-reload-at';
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const last = Number(sessionStorage.getItem(RELOAD_AT) ?? 0);
+    if (Date.now() - last < 60_000) return;
+    sessionStorage.setItem(RELOAD_AT, String(Date.now()));
+  } catch {
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -1,5 +1,13 @@
 import type { DriverDef, Drivers, EngineResult, MetricDef } from './scenario-engine';
 import type { MandateCheck } from './scenario-options';
+import type {
+  DecisionOutcome,
+  HandoffStatus,
+  PolicyEvaluation,
+  PolicyReason,
+  RecommendationStatus,
+  ReviewVerdict,
+} from './governance';
 import type { SectorKey } from './sectors';
 import type {
   CaseState,
@@ -445,4 +453,125 @@ export interface ScenarioRunDetail extends ScenarioRunSummary {
   options: DraftOptionItem[];
   confidence: ConfidenceBasis | null;
   agentRuns: AgentRunItem[];
+}
+
+// ───────────────────────────── Phase 4: governance and memory ─────────────────────────────
+
+export interface PersonRef {
+  id: string;
+  name: string;
+  title: string;
+}
+
+export interface ExpertReviewItem {
+  id: string;
+  reviewer: PersonRef;
+  verdict: ReviewVerdict;
+  rationale: string;
+  createdAt: string;
+}
+
+export interface DecisionItem {
+  id: string;
+  key: string;
+  approver: PersonRef;
+  outcome: DecisionOutcome;
+  rationale: string;
+  policyResult: 'pass' | 'hold';
+  policyVersion: string;
+  reasons: PolicyReason[];
+  completes: boolean;
+  createdAt: string;
+}
+
+export interface RecommendationItem {
+  id: string;
+  key: string;
+  caseKey: string;
+  caseTitle: string;
+  status: RecommendationStatus;
+  rationale: string;
+  createdBy: PersonRef;
+  createdAt: string;
+  updatedAt: string;
+  scenarioRunKey: string;
+  option: DraftOptionItem;
+  reviews: ExpertReviewItem[];
+  decisions: DecisionItem[];
+}
+
+export interface HandoffItem {
+  id: string;
+  key: string;
+  caseKey: string;
+  caseTitle: string;
+  decisionKey: string;
+  recommendationKey: string;
+  actionClass: string;
+  scope: string;
+  status: HandoffStatus;
+  acknowledgedBy: PersonRef | null;
+  acknowledgedAt: string | null;
+  startedBy: PersonRef | null;
+  startedAt: string | null;
+  statusNote: string | null;
+  outcomeText: string | null;
+  completedBy: PersonRef | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+/** A figure the scenario expected, quoted with its lineage (run key and metric) into memory. */
+export interface ExpectedFigure {
+  ref: string;
+  label: string;
+  display: string;
+  scenarioRunKey: string;
+}
+
+export interface MemoryItem {
+  id: string;
+  key: string;
+  caseKey: string;
+  caseTitle: string;
+  recommendationKey: string;
+  title: string;
+  actionClass: string;
+  decisionRationale: string;
+  expected: ExpectedFigure[];
+  outcome: string;
+  lesson: string;
+  approvedBy: { name: string; title: string; at: string }[];
+  recordedBy: PersonRef;
+  createdAt: string;
+}
+
+export interface GovernanceCheck {
+  allowed: boolean;
+  reason: string;
+}
+
+/** Everything the case's "Decision & memory" tab needs, evaluated for the signed-in person. */
+export interface CaseGovernance {
+  caseKey: string;
+  caseState: CaseState;
+  latestRunKey: string | null;
+  /** Options from the latest scenario run, any of which the analyst may recommend. */
+  candidateOptions: DraftOptionItem[];
+  canRecommend: GovernanceCheck;
+  recommendations: RecommendationItem[];
+  open: RecommendationItem | null;
+  canReview: GovernanceCheck;
+  /** Policy preview per outcome for the signed-in person, when a decision is open. */
+  decisionPreview: Record<DecisionOutcome, PolicyEvaluation> | null;
+  handoff: HandoffItem | null;
+  memory: MemoryItem | null;
+}
+
+/** A recorded decision in the institution-wide log (Decisions & Approvals). */
+export interface DecisionLogItem extends DecisionItem {
+  caseKey: string;
+  caseTitle: string;
+  recommendationKey: string;
+  actionClass: string;
 }

@@ -637,8 +637,8 @@ export const gsiaDemo: InstitutionFixture = {
         'Compare hold, defer, hedge and reallocate responses for the synthetic demonstration portfolio under a ' +
         'route-disruption assumption. A scenario comparison only — not investment advice.',
       summary:
-        'Synthetic capital-allocation slice prepared for expert review. Option comparison and calculations arrive with ' +
-        'the scenario engine (Phase 3); this record demonstrates the review queue.',
+        'Synthetic capital-allocation slice prepared for expert review. A scenario run ranks the response options; ' +
+        'an analyst then recommends one for the mandatory review.',
       whyItMatters:
         'Shows how the same event connects to mandate-level choices that require named human authority.',
       unresolvedQuestions: [
@@ -695,6 +695,64 @@ export const gsiaDemo: InstitutionFixture = {
           fromState: 'scenario',
           toState: 'review',
           rationale: 'Routed for mandatory expert review.',
+          daysAgo: 1,
+        },
+      ],
+      updatedDaysAgo: 1,
+    },
+    {
+      key: 'CAP-HEDGE-02',
+      title: 'Hedging the route-dependent sleeve during a Hormuz disruption',
+      state: 'analysis',
+      domain: 'Sovereign capital',
+      sensitivity: 'confidential',
+      urgency: 'routine',
+      dataMode: 'synthetic_demo',
+      ownerRef: 'analyst',
+      objective:
+        'Decide whether the synthetic route-dependent holdings should be hedged, held or reduced while transit ' +
+        'through the strait is restricted. A scenario comparison only — not investment advice.',
+      summary:
+        'Synthetic follow-on to the capital response case, focused on the hedge decision and its follow-through. ' +
+        'Used to walk a recommendation from scenario to institutional memory.',
+      whyItMatters:
+        'A hedge needs two approvers under the authority matrix, so this case shows the two-person rule end to end.',
+      unresolvedQuestions: ['Confirm the synthetic hedge budget before the decision.'],
+      confidence: {
+        band: 'insufficient',
+        factors: [
+          { factor: 'source_quality', band: 'low', note: 'Synthetic portfolio context.' },
+          { factor: 'corroboration', band: 'insufficient', note: 'Not applicable to synthetic inputs.' },
+          { factor: 'freshness', band: 'high', note: 'Static synthetic fixture.' },
+          { factor: 'graph_completeness', band: 'low', note: 'Portfolio links are synthetic.' },
+          { factor: 'assumption_load', band: 'low', note: 'Depends on unreviewed duration assumptions.' },
+          { factor: 'scenario_stability', band: 'insufficient', note: 'No scenario runs yet.' },
+        ],
+      },
+      evidenceRefs: ['E-gsia-exposure'],
+      events: [
+        {
+          actorRef: 'analyst',
+          eventType: 'case.created',
+          fromState: null,
+          toState: 'detected',
+          rationale: null,
+          daysAgo: 2,
+        },
+        {
+          actorRef: 'analyst',
+          eventType: 'case.state_changed',
+          fromState: 'detected',
+          toState: 'triaged',
+          rationale: null,
+          daysAgo: 2,
+        },
+        {
+          actorRef: 'analyst',
+          eventType: 'case.state_changed',
+          fromState: 'triaged',
+          toState: 'analysis',
+          rationale: 'Hedge question split from CAP-ALLOC-01.',
           daysAgo: 1,
         },
       ],

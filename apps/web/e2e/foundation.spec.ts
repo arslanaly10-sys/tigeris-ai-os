@@ -121,13 +121,14 @@ test.describe('case workspace (AC-03, AC-04)', () => {
 });
 
 test.describe('shell', () => {
-  test('exposes the nine navigation items and labels later-phase modules honestly', async ({ page }) => {
+  test('exposes the nine navigation items, every module built', async ({ page }) => {
     await signInAs(page, /Executive/);
     await openNav(page);
     const nav = page.getByRole('navigation', { name: 'Primary navigation' }).filter({ visible: true });
     await expect(nav.getByRole('link')).toHaveCount(9);
     await nav.getByRole('link', { name: /Institutional Memory/ }).click();
-    await expect(page.getByText('Arrives in Phase 4')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Institutional Memory' })).toBeVisible();
+    await expect(page.getByText('Arrives in Phase')).toHaveCount(0);
     await expectAccessible(page);
   });
 
@@ -203,7 +204,11 @@ test.describe('governance', () => {
     await expect(page.getByText('Deterministic stub only')).toBeVisible();
     await expectAccessible(page);
     await page.goto('/execution');
-    await expect(page.getByText('No approved handoffs yet')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Governed Execution' })).toBeVisible();
+    await expect(page.getByText('TIGERIS does not execute actions in external systems.')).toBeVisible();
+    await expectAccessible(page);
+    await page.goto('/memory');
+    await expect(page.getByLabel('Search memory')).toBeVisible();
     await expectAccessible(page);
   });
 });

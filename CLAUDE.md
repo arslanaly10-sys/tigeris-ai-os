@@ -33,7 +33,8 @@ a portfolio system or a SaaS service. Full decisions: `docs/decisions.md`.
   TanStack Query, React Router. Logical CSS properties only (`ps-`, `me-`, `start-`, `end-`) for RTL readiness.
   Fonts self-hosted via `@fontsource` (no CDN — must work air-gapped).
 - `apps/api` — Fastify modular monolith (TypeScript). Modules: `auth`, `command-centre`, `cases`, `evidence`,
-  `sources`, `audit`, `sectors`, `scenarios`, `gateway` (deterministic stub only). Drizzle ORM over postgres.js. SQL migrations in `apps/api/db/migrations` (plain SQL,
+  `sources`, `audit`, `sectors`, `scenarios`, `gateway` (deterministic stub only), `governance` (recommendations,
+  expert review, policy-checked decisions, handoffs, memory). Drizzle ORM over postgres.js. SQL migrations in `apps/api/db/migrations` (plain SQL,
   numbered, forward-only).
 - `packages/shared` — vocabulary, lifecycle rules and API types shared by web and api.
 - Later phases: pg-boss jobs, MinIO evidence store, model gateway, policy engine, MapLibre + deck.gl, React Flow.

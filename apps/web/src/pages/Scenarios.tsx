@@ -722,8 +722,14 @@ export function ScenarioRunPage() {
                     Draft options
                   </h2>
                   <p className="text-sm text-ink-muted">
-                    Ranked by a published rule for expert review. None is approved; recording a decision
-                    arrives in Phase 4.
+                    Ranked by a published rule. An analyst recommends one from the case&apos;s{' '}
+                    <Link
+                      to={`/cases/${r.caseKey}?tab=decision`}
+                      className="text-cyan underline underline-offset-2"
+                    >
+                      Decision &amp; memory
+                    </Link>{' '}
+                    tab for mandatory expert review.
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-muted">

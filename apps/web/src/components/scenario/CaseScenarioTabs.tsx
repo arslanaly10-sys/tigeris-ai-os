@@ -74,7 +74,7 @@ export function CaseScenariosTab({ caseKey }: { caseKey: string }) {
   );
 }
 
-/** Draft options from the case's latest scenario run. Review and decision arrive in Phase 4. */
+/** Draft options from the case's latest scenario run. One is recommended for review in the Decision & memory tab. */
 export function CaseOptionsTab({ caseKey }: { caseKey: string }) {
   const runs = useQuery({ queryKey: ['scenarios', caseKey], queryFn: () => api.scenarios(caseKey) });
   const latest = runs.data?.[0]?.key;

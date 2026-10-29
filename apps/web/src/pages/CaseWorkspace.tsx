@@ -9,10 +9,11 @@ import {
 } from '@tigeris/shared';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useQuery } from '@tanstack/react-query';
+import { CaseGovernanceTab } from '@/components/governance/CaseGovernanceTab';
 import { AlertTriangle, ChevronLeft, FileText, GitCommitVertical, Lock, Radar } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { ImpactGraph } from '@/components/graph/ImpactGraph';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
 import { GulfMap, MapItemList } from '@/components/map/GulfMap';
@@ -52,7 +53,7 @@ const FACTOR_LABEL: Record<ConfidenceFactor, string> = {
   scenario_stability: 'Scenario stability',
 };
 
-const LATER_TABS = [{ value: 'decision', label: 'Decision & memory', phase: 4 }];
+const CASE_TABS = ['overview', 'evidence', 'graph', 'timeline', 'scenarios', 'options', 'decision'];
 
 const tabClass =
   'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
@@ -487,7 +488,10 @@ export function CaseWorkspacePage() {
   });
   const mapLayers = useQuery({ queryKey: ['map-layers'], queryFn: api.mapLayers, enabled: q.isSuccess });
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
-  const [tab, setTab] = useState('overview');
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState(() =>
+    CASE_TABS.includes(params.get('tab') ?? '') ? params.get('tab')! : 'overview',
+  );
 
   if (q.error instanceof ApiError && q.error.status === 404) {
     return (
@@ -532,17 +536,10 @@ export function CaseWorkspacePage() {
             Draft options
             <TabIndicator active={tab === 'options'} />
           </Tabs.Trigger>
-          {LATER_TABS.map((t) => (
-            <Tabs.Trigger
-              key={t.value}
-              value={t.value}
-              disabled
-              className="px-4 py-2.5 text-sm text-ink-faint"
-              title={`Arrives in Phase ${t.phase}`}
-            >
-              {t.label} <span className="text-[12px]">· P{t.phase}</span>
-            </Tabs.Trigger>
-          ))}
+          <Tabs.Trigger value="decision" className={tabClass}>
+            Decision & memory
+            <TabIndicator active={tab === 'decision'} />
+          </Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="overview" className="outline-none">
           <FadeSwap>
@@ -590,6 +587,11 @@ export function CaseWorkspacePage() {
         <Tabs.Content value="options" className="outline-none">
           <FadeSwap>
             <CaseOptionsTab caseKey={c.key} />
+          </FadeSwap>
+        </Tabs.Content>
+        <Tabs.Content value="decision" className="outline-none">
+          <FadeSwap>
+            <CaseGovernanceTab caseKey={c.key} />
           </FadeSwap>
         </Tabs.Content>
       </Tabs.Root>

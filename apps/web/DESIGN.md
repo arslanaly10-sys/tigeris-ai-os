@@ -321,6 +321,14 @@ Quiet and exact: thin borders, flat white surfaces, one emerald action per area,
 - Sidebar items are 14.5px Inter with an 18px icon, 10px by 12px padding and 8px corners. Inactive items are Ink Muted and darken to Ink on hover. The active item is Sovereign Emerald, semibold, on a Sovereign Emerald Soft fill with a 3px emerald inline-start rule; the fill slides between items with a critically damped spring. Planned modules carry a small phase tag ("P4"). On phones the same list opens as a sheet.
 - Tabs use a 2px emerald underline that slides to the selected tab.
 
+### Governance Path (signature)
+
+- **Steps:** a five-part strip (Recommendation, Expert review, Decision, Handoff, Memory) with a check for done, a ringed dot and Sovereign Emerald Soft fill for the current step, and an empty ring for what is next; each step also says its state for screen readers.
+- **Policy check:** a Raised Bone box under the decision choices. The result badge is text plus icon in the truth hues (Pass in Observed Green, Hold in Caution Amber, Block in Blocked Red) and every rule that applied is listed with its own icon and plain sentence, ending with the policy version. A blocked outcome hides the rationale field and disables the action.
+- **Record:** reviews and decisions in an inline-start rule list (2px Hairline Strong), each naming the person, their title and the time.
+
+**The Reason-Before-Action Rule.** A person deciding always sees why the policy passes, holds or blocks before the button is enabled; a result is never shown without its reasons.
+
 ### Demonstration Banner (signature)
 
 A full-width Provenance Gold Soft strip with a gold hatch, a flask icon and 13px semibold Provenance Gold Text: "Demonstration: fictional institution, synthetic and dated public snapshot data. No live feeds." Pinned at the top on desktop. It is a disclosure, not decoration, and never hides.

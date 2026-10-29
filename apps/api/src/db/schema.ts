@@ -408,3 +408,85 @@ export const draftOptions = pgTable('draft_options', {
   createdBy: uuid('created_by').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Phase 4: governance and memory (migration 0005) ─────────────────────────────
+
+export const recommendations = pgTable('recommendations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  caseId: uuid('case_id').notNull(),
+  optionId: uuid('option_id').notNull(),
+  scenarioRunId: uuid('scenario_run_id').notNull(),
+  rationale: text('rationale').notNull(),
+  status: text('status').notNull().default('in_review'),
+  policyVersion: text('policy_version').notNull(),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+export const expertReviews = pgTable('expert_reviews', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  recommendationId: uuid('recommendation_id').notNull(),
+  reviewerId: uuid('reviewer_id').notNull(),
+  verdict: text('verdict').notNull(),
+  rationale: text('rationale').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const decisions = pgTable('decisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  recommendationId: uuid('recommendation_id').notNull(),
+  caseId: uuid('case_id').notNull(),
+  approverId: uuid('approver_id').notNull(),
+  outcome: text('outcome').notNull(),
+  rationale: text('rationale').notNull(),
+  policyResult: text('policy_result').notNull(),
+  policyVersion: text('policy_version').notNull(),
+  policyReasons: jsonb('policy_reasons').notNull(),
+  completes: boolean('completes').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const handoffs = pgTable('handoffs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  decisionId: uuid('decision_id').notNull(),
+  caseId: uuid('case_id').notNull(),
+  ownerRole: text('owner_role').notNull().default('operations_owner'),
+  scope: text('scope').notNull(),
+  status: text('status').notNull().default('awaiting_acknowledgement'),
+  executedByTigeris: boolean('executed_by_tigeris').notNull().default(false),
+  acknowledgedBy: uuid('acknowledged_by'),
+  acknowledgedAt: ts('acknowledged_at'),
+  startedBy: uuid('started_by'),
+  startedAt: ts('started_at'),
+  statusNote: text('status_note'),
+  outcomeText: text('outcome_text'),
+  completedBy: uuid('completed_by'),
+  completedAt: ts('completed_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const memoryEntries = pgTable('memory_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  caseId: uuid('case_id').notNull(),
+  recommendationId: uuid('recommendation_id').notNull(),
+  handoffId: uuid('handoff_id').notNull(),
+  title: text('title').notNull(),
+  actionClass: text('action_class').notNull(),
+  decisionRationale: text('decision_rationale').notNull(),
+  expected: jsonb('expected').notNull(),
+  outcome: text('outcome').notNull(),
+  lesson: text('lesson').notNull(),
+  approvedBy: jsonb('approved_by').notNull(),
+  recordedBy: uuid('recorded_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

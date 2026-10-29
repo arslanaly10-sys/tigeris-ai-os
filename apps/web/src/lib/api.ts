@@ -1,5 +1,14 @@
 import type {
   AgentRunItem,
+  CaseGovernance,
+  DecisionLogItem,
+  DecisionOutcome,
+  HandoffAction,
+  HandoffItem,
+  MemoryItem,
+  PolicyEvaluation,
+  RecommendationItem,
+  ReviewVerdict,
   ScenarioRunDetail,
   ScenarioRunSummary,
   ScenarioSetup,
@@ -99,4 +108,35 @@ export const api = {
   runScenario: (caseKey: string, drivers: Drivers) =>
     request<{ key: string }>('POST', '/api/scenarios', { caseKey, drivers }),
   agentRuns: () => request<AgentRunItem[]>('GET', '/api/agent-runs'),
+  governance: (caseKey: string) =>
+    request<CaseGovernance>('GET', `/api/cases/${encodeURIComponent(caseKey)}/governance`),
+  recommend: (caseKey: string, optionId: string, rationale: string) =>
+    request<{ key: string }>('POST', `/api/cases/${encodeURIComponent(caseKey)}/recommendations`, {
+      optionId,
+      rationale,
+    }),
+  review: (recKey: string, verdict: ReviewVerdict, rationale: string) =>
+    request<{ ok: true }>('POST', `/api/recommendations/${encodeURIComponent(recKey)}/reviews`, {
+      verdict,
+      rationale,
+    }),
+  decide: (recKey: string, outcome: DecisionOutcome, rationale: string) =>
+    request<{ key: string; evaluation: PolicyEvaluation; handoffKey: string | null }>(
+      'POST',
+      `/api/recommendations/${encodeURIComponent(recKey)}/decisions`,
+      { outcome, rationale },
+    ),
+  openRecommendations: () => request<RecommendationItem[]>('GET', '/api/recommendations'),
+  decisions: () => request<DecisionLogItem[]>('GET', '/api/decisions'),
+  handoffs: () => request<HandoffItem[]>('GET', '/api/handoffs'),
+  handoffAction: (
+    key: string,
+    body: { action: HandoffAction; note?: string; outcome?: string; lesson?: string },
+  ) =>
+    request<{ status: string; memoryKey: string | null }>(
+      'POST',
+      `/api/handoffs/${encodeURIComponent(key)}/actions`,
+      body,
+    ),
+  memory: (q: string) => request<MemoryItem[]>('GET', `/api/memory${q ? `?q=${encodeURIComponent(q)}` : ''}`),
 };

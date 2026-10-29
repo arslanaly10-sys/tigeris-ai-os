@@ -3,29 +3,16 @@
  * Each shows recorded institutional state only; nothing here executes an action (CLAUDE.md §6).
  */
 import type { AuthContext, CaseState } from '@tigeris/shared';
-import { SECTORS } from '@tigeris/shared';
+import { HANDOFF_ROLES, SECTORS } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Ban,
-  Bot,
-  CalendarClock,
-  Check,
-  Cpu,
-  Gavel,
-  Handshake,
-  Lock,
-  ShieldCheck,
-  UserCheck,
-  Users,
-  X,
-} from 'lucide-react';
+import { Ban, Bot, Check, Cpu, Gavel, Handshake, Lock, ShieldCheck, UserCheck, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { AgentDraft } from '@/components/scenario/Drafts';
 import { Sheet } from '@/components/ui/sheet';
 import { ClaimBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
-import { ListRow, StatusPill } from '@/components/ui/data';
+import { StatusPill } from '@/components/ui/data';
 import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { useAgentRunStats, runsLabel, type AgentRunItem } from '@/lib/agents';
@@ -34,6 +21,7 @@ import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 import { AttentionRow } from '@/pages/Overview';
+import { HandoffCard, OUTCOME_LABEL, PolicyResultBadge, RecStatusPill } from '@/components/governance/parts';
 
 function Note({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
@@ -384,22 +372,28 @@ export function MandatesPage() {
 
 const DECISION_STATES: CaseState[] = ['review', 'decision'];
 
-/** Review and decision queue. Recording a decision is a named human transition that arrives in Phase 4. */
+/** Review and decision queue, the institution's decision log, and what is waiting on the signed-in role. */
 export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
   const { t } = useI18n();
   const cases = useQuery({ queryKey: ['cases'], queryFn: api.cases });
+  const open = useQuery({ queryKey: ['recommendations', 'open'], queryFn: api.openRecommendations });
+  const log = useQuery({ queryKey: ['decisions'], queryFn: api.decisions });
   const pending = useQuery({ queryKey: ['approvals', 'pending'], queryFn: api.pendingApprovals });
-  const queue = (cases.data ?? []).filter((c) => DECISION_STATES.includes(c.state));
+  const withRec = new Set((open.data ?? []).map((r) => r.caseKey));
+  const awaitingRec = (cases.data ?? []).filter(
+    (c) => DECISION_STATES.includes(c.state) && !withRec.has(c.key),
+  );
   const role = ctx.principal.roles[0]!;
   return (
     <>
       <PageHeader
         title={t('nav.decisions')}
-        description="Cases awaiting expert review or a decision, and what is waiting on your role."
+        description="Recommendations awaiting expert review or a decision, the decision log, and what is waiting on your role."
       />
-      <Note icon={<CalendarClock className="h-4 w-4" aria-hidden />}>
-        Decision recording (approve, reject, defer, request evidence) arrives in Phase 4. Expert review is
-        mandatory before any decision, and a creator can never approve their own recommendation.
+      <Note icon={<Gavel className="h-4 w-4" aria-hidden />}>
+        Every decision is checked by decision-policy 1.0.0: expert review comes first, the author of a
+        recommendation never decides on it, the reviewer never approves it, the authority matrix sets the
+        role, and two-person actions need a second, different approver.
       </Note>
       <div className="space-y-6">
         <Panel aria-labelledby="queue-heading">
@@ -408,31 +402,133 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
             icon={<Gavel className="h-4 w-4" aria-hidden />}
             title="Review & decision queue"
           />
-          <LoadState isPending={cases.isPending} error={cases.error} />
-          <StaggerList className="divide-y divide-line border-t border-line">
-            {cases.data && queue.length === 0 ? (
-              <StaggerItem className="px-5 py-4 text-sm text-ink-muted">
-                Nothing is awaiting review or decision.
-              </StaggerItem>
-            ) : null}
-            {queue.map((c) => (
-              <StaggerItem key={c.id}>
-                <Link to={`/cases/${c.key}`} className="block px-5 py-3.5 hover:bg-raised/60">
-                  <span className="flex flex-wrap items-center gap-2">
-                    <span className="tabular text-[12px] text-ink-faint">{c.key}</span>
-                    <StateBadge value={c.state} />
-                    <UrgencyBadge value={c.urgency} />
-                  </span>
-                  <span className="mt-1 block text-sm font-medium text-ink">{c.title}</span>
-                  <span className="text-[12px] text-ink-faint">
-                    Next: {c.nextStep} · {c.nextStepRole ? ROLE_LABEL[c.nextStepRole] : '—'} ·{' '}
-                    {formatRelative(c.updatedAt)}
-                  </span>
-                </Link>
-              </StaggerItem>
-            ))}
-          </StaggerList>
+          <LoadState isPending={open.isPending} error={open.error} />
+          {open.data ? (
+            <StaggerList className="divide-y divide-line border-t border-line">
+              {open.data.length === 0 && awaitingRec.length === 0 ? (
+                <StaggerItem className="px-5 py-4 text-sm text-ink-muted">
+                  Nothing is awaiting review or decision.
+                </StaggerItem>
+              ) : null}
+              {open.data.map((r) => (
+                <StaggerItem key={r.id}>
+                  <Link
+                    to={`/cases/${r.caseKey}?tab=decision`}
+                    className="block px-5 py-3.5 hover:bg-raised/60"
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="tabular text-[12px] text-ink-faint">
+                        {r.key} · {r.caseKey}
+                      </span>
+                      <RecStatusPill value={r.status} />
+                    </span>
+                    <span className="mt-1 block text-sm font-medium text-ink">
+                      {r.option.title}: {r.caseTitle}
+                    </span>
+                    <span className="text-[12px] text-ink-faint">
+                      Next:{' '}
+                      {r.status === 'in_review'
+                        ? 'expert review · Domain Expert'
+                        : r.status === 'awaiting_second_approval'
+                          ? 'second approval · a different Expert Approver or Executive / Governor'
+                          : `decision · ${r.option.authority ? ROLE_LABEL[r.option.authority.requiredRole] : 'Expert Approver'}`}{' '}
+                      · {formatRelative(r.updatedAt)}
+                    </span>
+                  </Link>
+                </StaggerItem>
+              ))}
+              {awaitingRec.map((c) => (
+                <StaggerItem key={c.id}>
+                  <Link to={`/cases/${c.key}?tab=decision`} className="block px-5 py-3.5 hover:bg-raised/60">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="tabular text-[12px] text-ink-faint">{c.key}</span>
+                      <StateBadge value={c.state} />
+                      <UrgencyBadge value={c.urgency} />
+                    </span>
+                    <span className="mt-1 block text-sm font-medium text-ink">{c.title}</span>
+                    <span className="text-[12px] text-ink-faint">
+                      Next: a recommendation from a recorded scenario run · Intelligence Analyst ·{' '}
+                      {formatRelative(c.updatedAt)}
+                    </span>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerList>
+          ) : null}
         </Panel>
+
+        <Panel aria-labelledby="log-heading" className="overflow-x-auto">
+          <PanelHeader
+            id="log-heading"
+            icon={<ShieldCheck className="h-4 w-4" aria-hidden />}
+            title="Decision log"
+            description="Every recorded decision with the policy result it passed. Blocked attempts are refused and kept in the audit trail."
+          />
+          <LoadState isPending={log.isPending} error={log.error} />
+          {log.data ? (
+            log.data.length === 0 ? (
+              <p className="border-t border-line px-5 py-4 text-sm text-ink-muted">
+                No decisions recorded yet.
+              </p>
+            ) : (
+              <table className="w-full min-w-[48rem] border-t border-line text-sm">
+                <caption className="sr-only">Recorded decisions</caption>
+                <thead>
+                  <tr className="text-xs text-ink-faint">
+                    <th scope="col" className="px-5 py-3 text-start font-medium">
+                      Decision
+                    </th>
+                    <th scope="col" className="px-3 py-3 text-start font-medium">
+                      Case
+                    </th>
+                    <th scope="col" className="px-3 py-3 text-start font-medium">
+                      Outcome
+                    </th>
+                    <th scope="col" className="px-3 py-3 text-start font-medium">
+                      Policy
+                    </th>
+                    <th scope="col" className="px-5 py-3 text-start font-medium">
+                      Decided by
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {log.data.map((d) => (
+                    <tr key={d.id}>
+                      <td className="tabular px-5 py-3 align-top text-ink">
+                        {d.key}
+                        <span className="block text-xs text-ink-faint">{formatRelative(d.createdAt)}</span>
+                      </td>
+                      <td className="px-3 py-3 align-top">
+                        <Link
+                          to={`/cases/${d.caseKey}?tab=decision`}
+                          className="text-cyan underline underline-offset-2"
+                        >
+                          {d.caseKey}
+                        </Link>
+                        <span className="block text-xs text-ink-muted">{d.actionClass}</span>
+                      </td>
+                      <td className="px-3 py-3 align-top text-ink">
+                        {OUTCOME_LABEL[d.outcome]}
+                        {d.policyResult === 'hold' ? (
+                          <span className="block text-xs text-ink-muted">First of two approvals</span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-3 align-top">
+                        <PolicyResultBadge value={d.policyResult} />
+                      </td>
+                      <td className="px-5 py-3 align-top text-ink">
+                        {d.approver.name}
+                        <span className="block text-xs text-ink-faint">{d.approver.title}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          ) : null}
+        </Panel>
+
         <Panel aria-labelledby="mine-heading">
           <PanelHeader
             id="mine-heading"
@@ -467,10 +563,12 @@ const HANDOFF_STAGES = [
 ];
 
 /** Governed execution: tracks manual handoffs to operations owners. TIGERIS never executes an external action. */
-export function ExecutionPage() {
+export function ExecutionPage({ ctx }: { ctx: AuthContext }) {
   const { t } = useI18n();
-  const cases = useQuery({ queryKey: ['cases'], queryFn: api.cases });
-  const handoffs = (cases.data ?? []).filter((c) => c.state === 'handoff');
+  const q = useQuery({ queryKey: ['handoffs'], queryFn: api.handoffs });
+  const operates = HANDOFF_ROLES.some((r) => ctx.principal.roles.includes(r));
+  const active = (q.data ?? []).filter((h) => h.status !== 'completed');
+  const done = (q.data ?? []).filter((h) => h.status === 'completed');
   return (
     <>
       <PageHeader
@@ -482,45 +580,45 @@ export function ExecutionPage() {
         the handoff, carries it out through the institution&apos;s own processes, and records status and
         outcome here.
       </Note>
-      <Panel aria-labelledby="handoff-heading">
-        <PanelHeader
-          id="handoff-heading"
-          icon={<Users className="h-4 w-4" aria-hidden />}
-          title="Manual handoffs"
-        />
-        <LoadState isPending={cases.isPending} error={cases.error} />
-        {cases.data ? (
-          handoffs.length === 0 ? (
-            <div className="border-t border-line">
-              <p className="mx-5 mt-4 text-sm text-ink-muted">
-                <span className="font-medium text-ink">No approved handoffs yet.</span> Handoffs appear once a
-                decision is approved; decision recording arrives in Phase 4.
-              </p>
-              <h3 className="mx-5 mt-5 text-[13px] font-semibold text-ink">How a handoff moves</h3>
-              <ol className="grid gap-px overflow-hidden px-5 pt-2 pb-5 sm:grid-cols-2 xl:grid-cols-4">
-                {HANDOFF_STAGES.map((st) => (
-                  <li key={st.name} className="border-s-2 border-line-strong py-1 ps-3 pe-4">
-                    <p className="text-sm font-medium text-ink">{st.name}</p>
-                    <p className="text-[13px] text-ink-muted">{st.detail}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : (
-            <div className="divide-y divide-line border-t border-line">
-              {handoffs.map((c) => (
-                <ListRow
-                  key={c.id}
-                  to={`/cases/${c.key}`}
-                  title={c.title}
-                  description={`${c.key} · ${c.owner}`}
-                  trailing={<StatusPill tone="awaiting">Awaiting acknowledgement</StatusPill>}
-                />
+      <LoadState isPending={q.isPending} error={q.error} />
+      {q.data ? (
+        <div className="space-y-6">
+          <section aria-labelledby="handoff-heading" className="space-y-3">
+            <h2 id="handoff-heading" className="text-lg text-ink">
+              Open handoffs
+            </h2>
+            {active.length === 0 ? (
+              <Panel>
+                <p className="px-5 pt-4 text-sm text-ink-muted">
+                  <span className="font-medium text-ink">No open handoffs.</span> A handoff appears when a
+                  decision is approved after expert review.
+                </p>
+                <h3 className="mx-5 mt-5 text-[13px] font-semibold text-ink">How a handoff moves</h3>
+                <ol className="grid gap-px overflow-hidden px-5 pt-2 pb-5 sm:grid-cols-2 xl:grid-cols-4">
+                  {HANDOFF_STAGES.map((st) => (
+                    <li key={st.name} className="border-s-2 border-line-strong py-1 ps-3 pe-4">
+                      <p className="text-sm font-medium text-ink">{st.name}</p>
+                      <p className="text-[13px] text-ink-muted">{st.detail}</p>
+                    </li>
+                  ))}
+                </ol>
+              </Panel>
+            ) : (
+              active.map((h) => <HandoffCard key={h.id} h={h} canAct={operates} showCase />)
+            )}
+          </section>
+          {done.length ? (
+            <section aria-labelledby="done-heading" className="space-y-3">
+              <h2 id="done-heading" className="text-lg text-ink">
+                Completed
+              </h2>
+              {done.map((h) => (
+                <HandoffCard key={h.id} h={h} canAct={false} showCase />
               ))}
-            </div>
-          )
-        ) : null}
-      </Panel>
+            </section>
+          ) : null}
+        </div>
+      ) : null}
     </>
   );
 }

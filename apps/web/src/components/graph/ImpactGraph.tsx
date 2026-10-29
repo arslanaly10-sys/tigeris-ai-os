@@ -493,8 +493,8 @@ export function ImpactGraph({
               )}
             </div>
             <p className="text-xs text-ink-faint">
-              Causal links are analytical, not proof of causation. Challenging links arrives with expert
-              review (Phase 4).
+              Causal links are analytical, not proof of causation. Challenging an individual link is planned
+              with the complete-case work (Phase 5).
             </p>
           </div>
         ) : null}

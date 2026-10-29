@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-29T22:23:14+00:00",
+  "generatedAt": "2026-10-29T23:27:16+00:00",
   "title": "Design System: TIGERIS AI OS",
   "extensions": {
     "colorMeta": {
@@ -384,6 +384,11 @@
         "name": "The Pinned-Action Rule",
         "body": "When a control panel sits beside a longer reference column, the control panel sticks below the banner, its height is capped to the viewport and its action bar is pinned to its foot, so the primary action never scrolls out of reach.",
         "section": "layout"
+      },
+      {
+        "name": "The Reason-Before-Action Rule",
+        "body": "A person deciding always sees why the policy passes, holds or blocks before the button is enabled; a result is never shown without its reasons.",
+        "section": "components"
       }
     ],
     "dos": [

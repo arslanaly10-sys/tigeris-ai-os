@@ -9,6 +9,7 @@ import type { AppDeps } from './modules/context';
 import { graphRoutes } from './modules/graph';
 import { ingestionRoutes } from './modules/ingestion';
 import { scenarioRoutes } from './modules/scenarios';
+import { governanceRoutes } from './modules/governance';
 import { searchRoutes } from './modules/search';
 import { sectorRoutes } from './modules/sectors';
 import { signalRoutes } from './modules/signals';
@@ -53,5 +54,6 @@ export async function buildApp(opts: BuildOptions) {
   await searchRoutes(app, deps);
   await sectorRoutes(app, deps);
   await scenarioRoutes(app, deps);
+  await governanceRoutes(app, deps);
   return app;
 }

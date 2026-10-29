@@ -347,6 +347,7 @@ export const CASE_ENTITIES: {
   { caseKey: 'RES-EW-01', entityKey: 'com-lng', role: 'origin' },
   { caseKey: 'RES-EW-01', entityKey: 'svc-water', role: 'affected' },
   { caseKey: 'CAP-ALLOC-01', entityKey: 'pf-gsia', role: 'origin' },
+  { caseKey: 'CAP-HEDGE-02', entityKey: 'pf-gsia', role: 'origin' },
 ];
 
 /** Links the real seeded signal to its entity and evidence. */

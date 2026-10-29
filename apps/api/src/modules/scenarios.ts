@@ -709,24 +709,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
           outputHash: row.r.outputHash,
           reproducible,
           confidence: outputs.confidence ?? null,
-          options: optionRows.map((x): DraftOptionItem => ({
-            id: x.o.id,
-            key: x.o.key,
-            rank: x.o.rank,
-            actionClass: x.o.actionClass,
-            title: x.o.title,
-            summary: x.o.summary,
-            rankBasis: x.o.rankBasis,
-            mandateChecks: x.o.mandateChecks as MandateCheck[],
-            authority: x.o.authority as DraftOptionItem['authority'],
-            confidence: x.o.confidence,
-            citedRefs: x.o.citedRefs as string[],
-            rankerVersion: x.o.rankerVersion,
-            status: 'draft',
-            draftedByRunId: x.o.draftedByRunId,
-            createdBy: x.by,
-            createdAt: x.o.createdAt.toISOString(),
-          })),
+          options: optionRows.map((x) => toDraftOption(x.o, x.by)),
           agentRuns: runs,
         };
       },
@@ -739,6 +722,28 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
     const ctx = ctxOf(request);
     return withInstitution(deps.db, ctx.institutionId, (tx) => listAgentRuns(tx, undefined, 200));
   });
+}
+
+/** Maps a stored draft option (immutable, status always 'draft') to its API shape. */
+export function toDraftOption(o: typeof draftOptions.$inferSelect, createdBy: string): DraftOptionItem {
+  return {
+    id: o.id,
+    key: o.key,
+    rank: o.rank,
+    actionClass: o.actionClass,
+    title: o.title,
+    summary: o.summary,
+    rankBasis: o.rankBasis,
+    mandateChecks: o.mandateChecks as MandateCheck[],
+    authority: o.authority as DraftOptionItem['authority'],
+    confidence: o.confidence,
+    citedRefs: o.citedRefs as string[],
+    rankerVersion: o.rankerVersion,
+    status: 'draft',
+    draftedByRunId: o.draftedByRunId,
+    createdBy,
+    createdAt: o.createdAt.toISOString(),
+  };
 }
 
 function toSummary(

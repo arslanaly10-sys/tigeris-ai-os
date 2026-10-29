@@ -36,6 +36,7 @@ const GraphPage = lazy(() => import('@/pages/Graph').then((m) => ({ default: m.G
 const SignalReviewPage = lazy(() =>
   import('@/pages/SignalReview').then((m) => ({ default: m.SignalReviewPage })),
 );
+const MemoryPage = lazy(() => import('@/pages/Memory').then((m) => ({ default: m.MemoryPage })));
 const SourcesPage = lazy(() => import('@/pages/Sources').then((m) => ({ default: m.SourcesPage })));
 
 const pageFallback = <p className="p-8 text-sm text-ink-muted">Loading…</p>;
@@ -72,7 +73,8 @@ function Protected() {
                 <Route path="ai" element={<AiCommandPage />} />
                 <Route path="mandates" element={<MandatesPage />} />
                 <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
-                <Route path="execution" element={<ExecutionPage />} />
+                <Route path="execution" element={<ExecutionPage ctx={ctx} />} />
+                <Route path="memory" element={<MemoryPage />} />
                 <Route path="scenarios" element={<ScenariosPage />} />
                 <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
                 <Route path="scenarios/:key" element={<ScenarioRunPage />} />

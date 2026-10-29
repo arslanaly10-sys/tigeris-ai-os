@@ -50,23 +50,7 @@ export const NAV: NavItem[] = [
   { path: '/mandates', labelKey: 'nav.mandates', icon: ShieldCheck, phase: 0, purpose: '', willDo: [] },
   { path: '/decisions', labelKey: 'nav.decisions', icon: Gavel, phase: 0, purpose: '', willDo: [] },
   { path: '/execution', labelKey: 'nav.execution', icon: Workflow, phase: 0, purpose: '', willDo: [] },
-  {
-    path: '/memory',
-    labelKey: 'nav.memory',
-    icon: Library,
-    phase: 4,
-    purpose: 'Approved decisions, outcomes, precedents and lessons with provenance.',
-    willDo: [
-      'Only approved decisions and recorded outcomes become memory',
-      'Institution-scoped search; no cross-client retrieval or silent model training',
-    ],
-    flow: [
-      { name: 'Decision approved', detail: 'A named approver records it after expert review.' },
-      { name: 'Handoff completed', detail: 'The operations owner carries it out and closes the handoff.' },
-      { name: 'Outcome recorded', detail: 'What actually happened, against what the scenario expected.' },
-      { name: 'Lesson kept', detail: 'Approved precedent, searchable within this institution only.' },
-    ],
-  },
+  { path: '/memory', labelKey: 'nav.memory', icon: Library, phase: 0, purpose: '', willDo: [] },
   { path: '/sources', labelKey: 'nav.data', icon: Database, phase: 0, purpose: '', willDo: [] },
 ];
 

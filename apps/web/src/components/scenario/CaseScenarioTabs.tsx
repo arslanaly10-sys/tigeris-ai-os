@@ -103,7 +103,10 @@ export function CaseOptionsTab({ caseKey }: { caseKey: string }) {
     <div className="space-y-5">
       <p className="text-sm text-ink-muted">
         From the latest run{' '}
-        <Link to={`/scenarios/${r.key}`} className="font-medium text-cyan hover:underline">
+        <Link
+          to={`/scenarios/${r.key}`}
+          className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+        >
           {r.key}
         </Link>{' '}
         · {r.title}. Drafts for expert review; none is approved.

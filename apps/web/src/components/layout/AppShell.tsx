@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { SidebarLandscape } from '@/components/illustrations/Scenes';
 import { Wordmark } from '@/components/illustrations/PalmMark';
@@ -79,10 +79,26 @@ function NavList({ onNavigate, layoutGroup }: { onNavigate?: () => void; layoutG
   );
 }
 
+/**
+ * The demonstration disclosure stays in view on desktop, where the sidebar is pinned beneath it. Its height
+ * (one line, two with the Arabic draft note) is published as --banner-h for the sidebar and anchor offsets.
+ */
 function DemoBanner() {
   const { t, lang } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() => root.style.setProperty('--banner-h', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty('--banner-h');
+    };
+  }, []);
   return (
-    <div role="note" className="border-b border-gold/40 bg-gold-soft">
+    <div ref={ref} role="note" className="border-b border-gold/40 bg-gold-soft lg:sticky lg:top-0 lg:z-30">
       <p className="pattern-synthetic flex items-center justify-center gap-2 px-4 py-1 text-center text-[13px] font-semibold text-gold-bright">
         <FlaskConical className="h-3.5 w-3.5 shrink-0" aria-hidden />
         {t('demo.banner')}
@@ -224,7 +240,7 @@ function SectorSelect() {
   const { pathname } = useLocation();
   const current = pathname.startsWith('/sectors/') ? (pathname.split('/')[2] as SectorKey) : '';
   return (
-    <label className="relative flex h-12 min-w-0 items-center gap-2.5 rounded-lg border border-line bg-panel ps-3 pe-8">
+    <label className="relative flex h-12 min-w-0 items-center gap-2.5 rounded-lg border border-line bg-panel ps-3 pe-8 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gold">
       <Layers className="h-4 w-4 shrink-0 text-gold-bright" aria-hidden />
       <span className="min-w-0">
         <span className="block text-[12px] text-ink-faint">{t('top.sector')}</span>
@@ -366,7 +382,7 @@ export function AppShell({ ctx, children }: { ctx: AuthContext; children: ReactN
       <div className="flex min-h-0 flex-1">
         <nav
           aria-label={t('nav.primary')}
-          className="sticky top-0 hidden h-dvh w-[17rem] shrink-0 border-e border-line lg:block"
+          className="sticky top-[var(--banner-h,0px)] hidden h-[calc(100dvh-var(--banner-h,0px))] w-[17rem] shrink-0 border-e border-line lg:block"
         >
           <Sidebar ctx={ctx} layoutGroup="desktop" />
         </nav>

@@ -5,17 +5,39 @@ import { DURATION, EASE_OUT } from '@/components/ui/motion';
 import { ApiError } from '@/lib/api';
 import { useAuthContext } from '@/lib/session';
 import { NAV } from '@/nav';
-import { CaseWorkspacePage } from '@/pages/CaseWorkspace';
-import { CasesListPage } from '@/pages/CasesList';
-import { AiCommandPage, DecisionsPage, ExecutionPage, MandatesPage } from '@/pages/Governance';
-import { OverviewPage } from '@/pages/Overview';
-import { PlannedModulePage } from '@/pages/PlannedModule';
-import { ScenarioBuilderPage, ScenarioRunPage, ScenariosPage } from '@/pages/Scenarios';
-import { SectorCentrePage, SectorsIndexPage } from '@/pages/Sectors';
-import { SignInPage } from '@/pages/SignIn';
-import { GraphPage } from '@/pages/Graph';
-import { SignalReviewPage } from '@/pages/SignalReview';
-import { SourcesPage } from '@/pages/Sources';
+import { lazy, Suspense } from 'react';
+
+/**
+ * Route-level code splitting: each screen loads its own chunk, so sign-in no longer downloads MapLibre,
+ * deck.gl or React Flow. Pages keep their named exports.
+ */
+const CaseWorkspacePage = lazy(() =>
+  import('@/pages/CaseWorkspace').then((m) => ({ default: m.CaseWorkspacePage })),
+);
+const CasesListPage = lazy(() => import('@/pages/CasesList').then((m) => ({ default: m.CasesListPage })));
+const AiCommandPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.AiCommandPage })));
+const DecisionsPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.DecisionsPage })));
+const ExecutionPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.ExecutionPage })));
+const MandatesPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.MandatesPage })));
+const OverviewPage = lazy(() => import('@/pages/Overview').then((m) => ({ default: m.OverviewPage })));
+const PlannedModulePage = lazy(() =>
+  import('@/pages/PlannedModule').then((m) => ({ default: m.PlannedModulePage })),
+);
+const ScenarioBuilderPage = lazy(() =>
+  import('@/pages/Scenarios').then((m) => ({ default: m.ScenarioBuilderPage })),
+);
+const ScenarioRunPage = lazy(() => import('@/pages/Scenarios').then((m) => ({ default: m.ScenarioRunPage })));
+const ScenariosPage = lazy(() => import('@/pages/Scenarios').then((m) => ({ default: m.ScenariosPage })));
+const SectorCentrePage = lazy(() => import('@/pages/Sectors').then((m) => ({ default: m.SectorCentrePage })));
+const SectorsIndexPage = lazy(() => import('@/pages/Sectors').then((m) => ({ default: m.SectorsIndexPage })));
+const SignInPage = lazy(() => import('@/pages/SignIn').then((m) => ({ default: m.SignInPage })));
+const GraphPage = lazy(() => import('@/pages/Graph').then((m) => ({ default: m.GraphPage })));
+const SignalReviewPage = lazy(() =>
+  import('@/pages/SignalReview').then((m) => ({ default: m.SignalReviewPage })),
+);
+const SourcesPage = lazy(() => import('@/pages/Sources').then((m) => ({ default: m.SourcesPage })));
+
+const pageFallback = <p className="p-8 text-sm text-ink-muted">Loading…</p>;
 
 function Protected() {
   const auth = useAuthContext();
@@ -40,27 +62,29 @@ function Protected() {
           animate={{ opacity: 1, y: 0, transition: { duration: DURATION.base, ease: EASE_OUT } }}
           exit={{ opacity: 0, transition: { duration: 0.1 } }}
         >
-          <Routes location={location}>
-            <Route index element={<OverviewPage ctx={ctx} />} />
-            <Route path="sectors" element={<SectorsIndexPage />} />
-            <Route path="sectors/:key" element={<SectorCentrePage />} />
-            <Route path="ai" element={<AiCommandPage />} />
-            <Route path="mandates" element={<MandatesPage />} />
-            <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
-            <Route path="execution" element={<ExecutionPage />} />
-            <Route path="scenarios" element={<ScenariosPage />} />
-            <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
-            <Route path="scenarios/:key" element={<ScenarioRunPage />} />
-            <Route path="cases" element={<CasesListPage />} />
-            <Route path="cases/:key" element={<CaseWorkspacePage />} />
-            <Route path="sources" element={<SourcesPage ctx={ctx} />} />
-            <Route path="signals" element={<SignalReviewPage />} />
-            <Route path="graph" element={<GraphPage />} />
-            {NAV.filter((n) => n.phase > 0).map((n) => (
-              <Route key={n.path} path={n.path.slice(1)} element={<PlannedModulePage item={n} />} />
-            ))}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={pageFallback}>
+            <Routes location={location}>
+              <Route index element={<OverviewPage ctx={ctx} />} />
+              <Route path="sectors" element={<SectorsIndexPage />} />
+              <Route path="sectors/:key" element={<SectorCentrePage />} />
+              <Route path="ai" element={<AiCommandPage />} />
+              <Route path="mandates" element={<MandatesPage />} />
+              <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
+              <Route path="execution" element={<ExecutionPage />} />
+              <Route path="scenarios" element={<ScenariosPage />} />
+              <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
+              <Route path="scenarios/:key" element={<ScenarioRunPage />} />
+              <Route path="cases" element={<CasesListPage />} />
+              <Route path="cases/:key" element={<CaseWorkspacePage />} />
+              <Route path="sources" element={<SourcesPage ctx={ctx} />} />
+              <Route path="signals" element={<SignalReviewPage />} />
+              <Route path="graph" element={<GraphPage />} />
+              {NAV.filter((n) => n.phase > 0).map((n) => (
+                <Route key={n.path} path={n.path.slice(1)} element={<PlannedModulePage item={n} />} />
+              ))}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </AppShell>
@@ -69,9 +93,11 @@ function Protected() {
 
 export function App() {
   return (
-    <Routes>
-      <Route path="/sign-in" element={<SignInPage />} />
-      <Route path="/*" element={<Protected />} />
-    </Routes>
+    <Suspense fallback={pageFallback}>
+      <Routes>
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/*" element={<Protected />} />
+      </Routes>
+    </Suspense>
   );
 }

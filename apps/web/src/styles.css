@@ -52,6 +52,17 @@
   --text-xs--line-height: 1.125rem;
 }
 
+/*
+ * Cartography: the Arabian Gulf map and the sign-in waves. MapLibre and WebGL need literal colours, so they
+ * read these at runtime (lib/tokens.ts); `static` keeps every one emitted even when no utility uses it.
+ */
+@theme static {
+  --color-sea: #9fcccb;
+  --color-land: #f0e4c9;
+  --color-coast: #f7f1e2;
+  --color-border-gilt: #b89b66;
+}
+
 @layer base {
   html {
     background: var(--color-canvas);
@@ -70,6 +81,20 @@
     font-family: var(--font-serif);
     font-weight: 600;
     letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  /* No one-word last lines in running text (audit: stragglers on every screen). */
+  p,
+  li,
+  dd,
+  figcaption {
+    text-wrap: pretty;
+  }
+  /* The demo banner is sticky on desktop; anchored targets land below it. */
+  @media (width >= 64rem) {
+    html {
+      scroll-padding-top: var(--banner-h, 0px);
+    }
   }
   html:lang(ar) h1,
   html:lang(ar) h2,
@@ -125,10 +150,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /*
+   * Motion components follow MotionConfig reducedMotion="user" (opacity kept, movement dropped). CSS here only
+   * stops looping keyframes and smooth scrolling; colour and opacity transitions stay, as state feedback.
+   */
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

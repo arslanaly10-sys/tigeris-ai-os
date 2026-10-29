@@ -12,6 +12,9 @@ import {
   Position,
   ReactFlow,
   getBezierPath,
+  getViewportForBounds,
+  useStore,
+  useReactFlow,
   type Edge,
   type EdgeProps,
   type Node,
@@ -34,10 +37,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'react';
 import { ClaimBadge, CONFIDENCE_LABEL } from '@/components/truth/badges';
 import { Sheet } from '@/components/ui/sheet';
 import { cn } from '@/lib/cn';
+import { colorToken } from '@/lib/tokens';
 import { FadeSwap, INDICATOR_SPRING } from '@/components/ui/motion';
 
 const TYPE_ICON: Record<GraphNode['type'], LucideIcon> = {
@@ -56,13 +60,58 @@ const TYPE_ICON: Record<GraphNode['type'], LucideIcon> = {
   region: MapPin,
 };
 
-const EDGE_STYLE: Record<RelationshipClass, { stroke: string; dash?: string; label: string }> = {
-  observed: { stroke: '#18674b', label: 'Observed' },
-  sourced: { stroke: '#16656a', label: 'Sourced' },
-  inferred: { stroke: '#16656a', dash: '6 4', label: 'Inferred' },
-  assumed: { stroke: '#8c540e', dash: '2 4', label: 'Assumption' },
-  synthetic: { stroke: '#b8924f', dash: '8 4', label: 'Synthetic' },
+/** `token` names a colour token; SVG markers need the literal value, so it is read at render (lib/tokens). */
+const EDGE_STYLE: Record<RelationshipClass, { token: string; dash?: string; label: string }> = {
+  observed: { token: 'emerald', label: 'Observed' },
+  sourced: { token: 'cyan', label: 'Sourced' },
+  inferred: { token: 'cyan', dash: '6 4', label: 'Inferred' },
+  assumed: { token: 'amber', dash: '2 4', label: 'Assumption' },
+  synthetic: { token: 'gold', dash: '8 4', label: 'Synthetic' },
 };
+
+/** Column pitch: node width (13rem) plus room for the longest edge label between columns. */
+const COLUMN_X = 360;
+const ROW_Y = 130;
+/** Below this zoom node text drops under ~12px; the canvas starts at the origin instead of fitting all. */
+const READ_ZOOM = 0.9;
+
+/**
+ * Initial viewport: fit the whole graph when it stays readable, otherwise open on the origin column at reading
+ * zoom so the causal chain reads left to right as the user pans.
+ */
+function ReadableFit({
+  canvas,
+  onCropped,
+}: {
+  canvas: RefObject<HTMLDivElement | null>;
+  onCropped: (cropped: boolean) => void;
+}) {
+  // Nodes are controlled without onNodesChange, so measurements live only in React Flow's internal lookup.
+  const ready = useStore(
+    (st) =>
+      st.nodeLookup.size > 0 &&
+      [...st.nodeLookup.values()].every((n) => n.measured.width && n.measured.height),
+  );
+  const rf = useReactFlow();
+  useEffect(() => {
+    const el = canvas.current;
+    if (!ready || !el) return;
+    const bounds = rf.getNodesBounds(rf.getNodes().map((n) => n.id));
+    const { clientWidth: w, clientHeight: h } = el;
+    const fit = getViewportForBounds(bounds, w, h, 0.3, 1.6, 0.12);
+    onCropped(fit.zoom < READ_ZOOM);
+    void rf.setViewport(
+      fit.zoom >= READ_ZOOM
+        ? fit
+        : {
+            x: 24 - bounds.x * READ_ZOOM,
+            y: h / 2 - (bounds.y + bounds.height / 2) * READ_ZOOM,
+            zoom: READ_ZOOM,
+          },
+    );
+  }, [ready, rf, canvas, onCropped]);
+  return null;
+}
 
 const HOP_LABEL = ['Origin', 'Direct', '2nd order', '3rd order', '4th order'];
 
@@ -126,6 +175,7 @@ function ImpactEdge({
   });
   const e = data!.edge;
   const style = EDGE_STYLE[e.relationshipClass];
+  const stroke = colorToken(style.token);
   return (
     <>
       <BaseEdge
@@ -134,7 +184,7 @@ function ImpactEdge({
         markerEnd={markerEnd}
         markerStart={markerStart}
         style={{
-          stroke: style.stroke,
+          stroke,
           strokeWidth: 1.6,
           strokeDasharray: style.dash,
           opacity: e.status === 'challenged' ? 0.5 : 0.9,
@@ -146,7 +196,7 @@ function ImpactEdge({
           onClick={() => data!.onOpen(e)}
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-            borderColor: style.stroke,
+            borderColor: stroke,
           }}
           className="nodrag nopan pointer-events-auto absolute rounded-md border bg-panel px-1.5 py-0.5 text-[13px] font-medium text-ink float-shadow hover:bg-raised"
         >
@@ -198,6 +248,8 @@ export function ImpactGraph({
   const [openEdge, setOpenEdge] = useState<GraphEdge | null>(null);
   const [view, setView] = useState<'graph' | 'list'>('graph');
   const toggleId = useId();
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [cropped, setCropped] = useState(false);
   const nameOf = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n.name])), [graph]);
 
   const { nodes, edges } = useMemo(() => {
@@ -229,7 +281,7 @@ export function ImpactGraph({
         rfNodes.push({
           id: n.id,
           type: 'entity',
-          position: { x: h * 300, y: i * 130 - ((list.length - 1) * 130) / 2 },
+          position: { x: h * COLUMN_X, y: i * ROW_Y - ((list.length - 1) * ROW_Y) / 2 },
           data: {
             node: { ...n, hop: n.hop ?? h },
             dimmed: !!focusId && n.id !== focusId && !neighbours.has(n.id),
@@ -243,7 +295,7 @@ export function ImpactGraph({
       const reversed = hop.get(e.source)! > hop.get(e.target)!;
       const marker = {
         type: MarkerType.ArrowClosed,
-        color: EDGE_STYLE[e.relationshipClass].stroke,
+        color: colorToken(EDGE_STYLE[e.relationshipClass].token),
         width: 14,
         height: 14,
       };
@@ -271,7 +323,7 @@ export function ImpactGraph({
                   y1="3"
                   x2="22"
                   y2="3"
-                  stroke={s.stroke}
+                  stroke={colorToken(s.token)}
                   strokeWidth="2"
                   strokeDasharray={s.dash}
                 />
@@ -311,6 +363,7 @@ export function ImpactGraph({
         {view === 'graph' ? (
           <FadeSwap
             key="graph"
+            ref={canvasRef}
             className="min-h-[26rem] flex-1 rounded-lg border border-line bg-canvas"
             role="group"
             aria-label="Impact graph canvas. Use the Table view for a keyboard-friendly list of every link."
@@ -320,8 +373,6 @@ export function ImpactGraph({
               edges={edges}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
-              fitView
-              fitViewOptions={{ padding: 0.15 }}
               minZoom={0.3}
               maxZoom={1.6}
               proOptions={{ hideAttribution: true }}
@@ -329,7 +380,8 @@ export function ImpactGraph({
               style={{ background: 'transparent' }}
               nodesConnectable={false}
             >
-              <Background color="#ddd3bf" gap={22} size={1} />
+              <Background color={colorToken('line-strong')} gap={22} size={1} />
+              <ReadableFit canvas={canvasRef} onCropped={setCropped} />
             </ReactFlow>
           </FadeSwap>
         ) : (
@@ -380,6 +432,12 @@ export function ImpactGraph({
           </FadeSwap>
         )}
       </AnimatePresence>
+      {view === 'graph' && cropped ? (
+        <p className="mt-2 text-xs text-ink-muted">
+          The chain continues to the right: drag the canvas to follow it, or use the Table view for every
+          link.
+        </p>
+      ) : null}
 
       <Sheet
         open={openEdge !== null}

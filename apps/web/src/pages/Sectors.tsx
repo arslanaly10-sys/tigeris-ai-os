@@ -153,7 +153,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
               </div>
               <PanelFooter grow={false}>
                 <span className="tabular">{mapKeys.length} assets mapped for this sector</span>
-                <Link to="/graph" className="font-medium text-cyan hover:underline">
+                <Link
+                  to="/graph"
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
                   Open the intelligence graph
                 </Link>
               </PanelFooter>
@@ -207,7 +210,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   <span className="tabular">
                     {def.scenarios.filter((x) => x.modelTemplate).length} of {def.scenarios.length} modelled
                   </span>
-                  <Link to="/scenarios" className="font-medium text-cyan hover:underline">
+                  <Link
+                    to="/scenarios"
+                    className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                  >
                     Foresight & Scenarios
                   </Link>
                 </PanelFooter>
@@ -235,7 +241,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 </div>
                 <PanelFooter>
                   <span className="tabular">{d.reviewQueue.length} awaiting expert review</span>
-                  <Link to="/decisions" className="font-medium text-cyan hover:underline">
+                  <Link
+                    to="/decisions"
+                    className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                  >
                     Decisions & Approvals
                   </Link>
                 </PanelFooter>
@@ -251,7 +260,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   icon={<Brain className="h-4 w-4" aria-hidden />}
                   title={t('sector.cases')}
                   action={
-                    <Link to="/cases" className="text-sm text-cyan hover:underline">
+                    <Link
+                      to="/cases"
+                      className="inline-flex min-h-6 items-center text-sm text-cyan hover:underline"
+                    >
                       {t('common.viewAll')}
                     </Link>
                   }
@@ -315,7 +327,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 </StaggerList>
                 <PanelFooter>
                   <span className="tabular">{d.signals.length} signals in this sector</span>
-                  <Link to="/signals" className="font-medium text-cyan hover:underline">
+                  <Link
+                    to="/signals"
+                    className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                  >
                     {t('common.viewAll')}
                   </Link>
                 </PanelFooter>
@@ -371,7 +386,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   <span className="tabular">
                     {mandates.data?.mandates.length ?? 0} mandates in the register
                   </span>
-                  <Link to="/mandates" className="font-medium text-cyan hover:underline">
+                  <Link
+                    to="/mandates"
+                    className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                  >
                     {t('common.viewAll')}
                   </Link>
                 </PanelFooter>

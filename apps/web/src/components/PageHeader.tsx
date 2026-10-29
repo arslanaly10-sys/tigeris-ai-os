@@ -32,7 +32,9 @@ export function PageHeader({
         <div className="min-w-0 max-w-3xl">
           {eyebrow ? <p className="mb-1 text-[13px] text-ink-muted">{eyebrow}</p> : null}
           <h1 className="text-2xl leading-tight text-ink sm:text-[1.75rem]">{title}</h1>
-          {description ? <p className="mt-1.5 text-[15px] text-ink-muted">{description}</p> : null}
+          {description ? (
+            <p className="mt-1.5 max-w-[62ch] text-[15px] text-ink-muted">{description}</p>
+          ) : null}
           {showStrip ? (
             <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-faint">
               <span className="rounded border border-gold/50 bg-gold-soft px-1.5 py-0.5 font-semibold text-gold-bright">

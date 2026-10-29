@@ -116,9 +116,13 @@ test.describe('data & sources (FR-09)', () => {
     desktopOnly(info.project.name);
     await signInAs(page, /Governance Administrator/);
     await page.goto('/sources');
-    const before = await page.getByText(/^demo-sample-/).count();
+    // Count from the panel's recorded total once it has loaded, not from whatever has rendered so far.
+    const total = page.getByText(/^\d+ ingestion runs recorded$/);
+    await expect(total).toBeVisible();
+    const before = Number.parseInt((await total.textContent()) ?? '', 10);
     await page.getByRole('button', { name: 'Import synthetic sample package' }).click();
-    await expect(page.getByText(/^demo-sample-/)).toHaveCount(before + 1);
+    await expect(total).toHaveText(`${before + 1} ingestion runs recorded`);
+    await expect(page.getByText(/^demo-sample-/).first()).toBeVisible();
   });
 });
 

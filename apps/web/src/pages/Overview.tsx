@@ -248,7 +248,10 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
               </StaggerList>
               <PanelFooter>
                 <span className="tabular">{open.length} open cases</span>
-                <Link to="/cases" className="font-medium text-cyan hover:underline">
+                <Link
+                  to="/cases"
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
                   {t('common.viewAll')}
                 </Link>
               </PanelFooter>
@@ -292,7 +295,10 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
                 <span className="tabular">
                   {Math.min(6, cc.data.sourceHealth.length)} of {cc.data.sourceHealth.length} sources shown
                 </span>
-                <Link to="/sources" className="font-medium text-cyan hover:underline">
+                <Link
+                  to="/sources"
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
                   {t('common.viewAll')}
                 </Link>
               </PanelFooter>
@@ -307,7 +313,10 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
               )}
               <PanelFooter>
                 <span className="tabular">{sectors.data?.length ?? 0} sector configurations</span>
-                <Link to="/sectors" className="font-medium text-cyan hover:underline">
+                <Link
+                  to="/sectors"
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
                   {t('common.viewAll')}
                 </Link>
               </PanelFooter>

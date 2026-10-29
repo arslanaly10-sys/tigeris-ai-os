@@ -11,6 +11,7 @@ import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
+import { colorToken } from '@/lib/tokens';
 
 function LanguageLinks() {
   const { lang, setLang, t } = useI18n();
@@ -134,9 +135,9 @@ export function SignInPage() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%]" aria-hidden>
           <GradientWaves
             lightMode
-            horizonColor="#9fcccb"
-            waveColor="#1a6a6e"
-            crestColor="#f6eedc"
+            horizonColor={colorToken('sea')}
+            waveColor={colorToken('cyan')}
+            crestColor={colorToken('gold-soft')}
             speed={0.25}
             amplitude={2.2}
             tilt={74}

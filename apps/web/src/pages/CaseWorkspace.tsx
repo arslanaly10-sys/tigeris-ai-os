@@ -360,7 +360,7 @@ function OverviewTab({
               <span className="tabular min-w-[7.5rem] font-serif text-lg font-semibold text-ink">
                 {formatFactValue(f)}
               </span>
-              <span className="min-w-0 flex-1 text-sm text-ink">
+              <span className="min-w-0 basis-full text-sm text-ink sm:basis-auto sm:flex-1">
                 {f.predicate}
                 <span className="block text-xs text-ink-faint">{e.source.publisher}</span>
               </span>

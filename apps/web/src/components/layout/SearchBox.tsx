@@ -80,7 +80,7 @@ export function SearchBox({ className }: { className?: string }) {
             setOpen(false);
           }
         }}
-        className="h-10 w-full rounded-lg border border-line-strong bg-panel ps-9 pe-3 text-sm text-ink placeholder:text-ink-faint focus:border-brand/60 focus:outline-none"
+        className="h-10 w-full rounded-lg border border-line-strong bg-panel ps-9 pe-3 text-sm text-ink placeholder:text-ink-faint focus:border-brand"
       />
       <AnimatePresence>
         {open && term.length >= 2 ? (

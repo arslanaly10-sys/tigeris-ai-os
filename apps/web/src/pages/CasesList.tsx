@@ -7,6 +7,8 @@ import { Panel } from '@/components/ui/panel';
 import { api } from '@/lib/api';
 import { formatRelative, humanize } from '@/lib/format';
 import { ROLE_LABEL } from '@/lib/roles';
+import { motion } from 'motion/react';
+import { itemVariants, listVariants } from '@/components/ui/motion';
 
 export function CasesListPage() {
   const q = useQuery({ queryKey: ['cases'], queryFn: api.cases });
@@ -41,9 +43,14 @@ export function CasesListPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <motion.tbody
+              className="divide-y divide-line"
+              variants={listVariants}
+              initial="hidden"
+              animate="show"
+            >
               {q.data.map((c) => (
-                <tr key={c.id} className="hover:bg-raised/50">
+                <motion.tr key={c.id} variants={itemVariants} className="hover:bg-raised/50">
                   <td className="px-5 py-3">
                     <Link to={`/cases/${c.key}`} className="font-medium text-ink hover:underline">
                       {c.title}
@@ -69,9 +76,9 @@ export function CasesListPage() {
                     ) : null}
                   </td>
                   <td className="px-5 py-3 text-ink-muted">{formatRelative(c.updatedAt)}</td>
-                </tr>
+                </motion.tr>
               ))}
-            </tbody>
+            </motion.tbody>
           </table>
         </Panel>
       ) : null}

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { PalmMark } from '@/components/illustrations/PalmMark';
 import { SkylineHero } from '@/components/illustrations/Scenes';
+import { Collapse, StaggerItem, StaggerList } from '@/components/ui/motion';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useI18n } from '@/lib/i18n';
@@ -72,9 +73,9 @@ function RolePicker({ onBack }: { onBack: () => void }) {
           The demonstration service is unavailable.
         </p>
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+        <StaggerList className="divide-y divide-line overflow-hidden rounded-lg border border-line">
           {principals.data.principals.map((p) => (
-            <li key={p.id}>
+            <StaggerItem key={p.id}>
               <button
                 type="button"
                 disabled={start.isPending}
@@ -92,9 +93,9 @@ function RolePicker({ onBack }: { onBack: () => void }) {
                   aria-hidden
                 />
               </button>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerList>
       )}
       <button
         type="button"
@@ -200,18 +201,22 @@ export function SignInPage() {
                   <p id="institution-hint" className="mt-1.5 text-xs text-ink-faint">
                     {t('signin.demoHint')}
                   </p>
-                  {notConnected ? (
-                    <p
-                      role="alert"
-                      className="mt-2 rounded-md border border-amber/40 bg-amber-soft px-3 py-2 text-sm text-amber"
-                    >
-                      {t('signin.notConnected')}
-                    </p>
-                  ) : null}
+                  <AnimatePresence initial={false}>
+                    {notConnected ? (
+                      <Collapse key="not-connected">
+                        <p
+                          role="alert"
+                          className="mt-2 rounded-md border border-amber/40 bg-amber-soft px-3 py-2 text-sm text-amber"
+                        >
+                          {t('signin.notConnected')}
+                        </p>
+                      </Collapse>
+                    ) : null}
+                  </AnimatePresence>
                   <button
                     type="submit"
                     disabled={identifier.trim().length < 2 || resolve.isPending}
-                    className="mt-5 flex h-13 w-full items-center justify-center gap-3 rounded-lg bg-brand px-5 py-3.5 font-serif text-[17px] text-white shadow-sm transition-colors hover:bg-brand-hover disabled:opacity-60"
+                    className="mt-5 flex h-13 w-full items-center justify-center gap-3 rounded-lg bg-brand px-5 py-3.5 font-serif text-[17px] text-white shadow-sm transition-[background-color,transform] duration-150 hover:bg-brand-hover active:scale-[0.99] motion-reduce:active:scale-100 disabled:opacity-60"
                   >
                     {t('signin.continue')}
                     <ArrowRight className="h-5 w-5 rtl:rotate-180" aria-hidden />

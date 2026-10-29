@@ -8,11 +8,19 @@ import { Panel, PanelHeader } from '@/components/ui/panel';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, humanize } from '@/lib/format';
+import { AnimatePresence, motion } from 'motion/react';
+import { DURATION, EASE_OUT } from '@/components/ui/motion';
 
 function JobCard({ job }: { job: IngestionJobItem }) {
   const Icon = job.status === 'rejected' ? PackageX : PackageCheck;
   return (
-    <li className="rounded-lg border border-line bg-raised/30">
+    <motion.li
+      layout="position"
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: DURATION.base, ease: EASE_OUT }}
+      className="rounded-lg border border-line bg-raised/30"
+    >
       <details>
         <summary className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-3">
           <Icon
@@ -75,7 +83,7 @@ function JobCard({ job }: { job: IngestionJobItem }) {
           </ul>
         </div>
       </details>
-    </li>
+    </motion.li>
   );
 }
 
@@ -208,9 +216,11 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
             ) : null}
             {jobs.data ? (
               <ul className="space-y-2">
-                {jobs.data.map((j) => (
-                  <JobCard key={j.id} job={j} />
-                ))}
+                <AnimatePresence initial={false}>
+                  {jobs.data.map((j) => (
+                    <JobCard key={j.id} job={j} />
+                  ))}
+                </AnimatePresence>
               </ul>
             ) : (
               <LoadState isPending={jobs.isPending} error={jobs.error} />

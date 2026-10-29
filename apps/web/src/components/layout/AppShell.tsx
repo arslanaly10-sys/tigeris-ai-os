@@ -25,6 +25,7 @@ import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 import { useSignOut } from '@/lib/session';
 import { isActive, NAV } from '@/nav';
+import { DURATION, EASE_OUT, INDICATOR_SPRING } from '@/components/ui/motion';
 import { SearchBox } from './SearchBox';
 
 function hrefFor(kind: string, ref: string) {
@@ -47,7 +48,7 @@ function NavList({ onNavigate, layoutGroup }: { onNavigate?: () => void; layoutG
               <motion.span
                 layoutId={`nav-active-${layoutGroup}`}
                 className="absolute inset-0 rounded-lg bg-brand-soft"
-                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                transition={INDICATOR_SPRING}
                 aria-hidden
               />
             ) : null}
@@ -97,35 +98,42 @@ function DemoBanner() {
 
 function LanguageSwitch() {
   const { lang, setLang, t } = useI18n();
+  const options = [
+    { value: 'en' as const, label: 'EN', className: '' },
+    { value: 'ar' as const, label: 'العربية', className: 'font-arabic' },
+  ];
   return (
     <div role="group" aria-label={t('top.language')} className="flex items-center text-sm">
-      <button
-        type="button"
-        lang="en"
-        aria-pressed={lang === 'en'}
-        onClick={() => setLang('en')}
-        className={cn(
-          'rounded px-1.5 py-1',
-          lang === 'en' ? 'font-semibold text-ink' : 'text-ink-faint hover:text-ink',
-        )}
-      >
-        EN
-      </button>
-      <span className="text-line-strong" aria-hidden>
-        |
-      </span>
-      <button
-        type="button"
-        lang="ar"
-        aria-pressed={lang === 'ar'}
-        onClick={() => setLang('ar')}
-        className={cn(
-          'rounded px-1.5 py-1 font-arabic',
-          lang === 'ar' ? 'font-semibold text-ink' : 'text-ink-faint hover:text-ink',
-        )}
-      >
-        العربية
-      </button>
+      {options.map((o, i) => (
+        <span key={o.value} className="flex items-center">
+          {i > 0 ? (
+            <span className="text-line-strong" aria-hidden>
+              |
+            </span>
+          ) : null}
+          <button
+            type="button"
+            lang={o.value}
+            aria-pressed={lang === o.value}
+            onClick={() => setLang(o.value)}
+            className={cn(
+              'relative rounded px-1.5 py-1',
+              o.className,
+              lang === o.value ? 'font-semibold text-ink' : 'text-ink-faint hover:text-ink',
+            )}
+          >
+            {lang === o.value ? (
+              <motion.span
+                layoutId="lang-active"
+                className="absolute inset-x-1.5 -bottom-0.5 h-0.5 rounded-full bg-brand"
+                transition={INDICATOR_SPRING}
+                aria-hidden
+              />
+            ) : null}
+            {o.label}
+          </button>
+        </span>
+      ))}
     </div>
   );
 }
@@ -145,15 +153,25 @@ function ApprovalsPopover() {
       >
         <ShieldAlert className="h-4 w-4" aria-hidden />
         <span className="hidden lg:inline">{t('top.approvals')}</span>
-        <span
+        <motion.span
+          key={count}
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: DURATION.base, ease: EASE_OUT }}
           className={cn(
             'tabular min-w-5 rounded-full px-1.5 text-center text-xs font-semibold',
             count > 0 ? 'bg-gold-bright text-white' : 'bg-raised text-ink-faint',
           )}
         >
           {count}
-        </span>
-        <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+        </motion.span>
+        <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: DURATION.fast }}
+          className="inline-flex"
+        >
+          <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+        </motion.span>
       </Popover.Trigger>
       <AnimatePresence>
         {open ? (
@@ -163,7 +181,7 @@ function ApprovalsPopover() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.16 }}
+                transition={{ duration: DURATION.fast, ease: EASE_OUT }}
                 className="card-shadow z-40 w-[22rem] rounded-xl border border-line bg-panel p-2"
               >
                 <p className="px-2 pt-1 pb-2 text-xs text-ink-faint">{t('top.approvalsHint')}</p>
@@ -333,7 +351,7 @@ function Sidebar({
 
 export function AppShell({ ctx, children }: { ctx: AuthContext; children: ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   return (
     <div className="flex min-h-dvh flex-col bg-canvas">
       <a
@@ -352,22 +370,45 @@ export function AppShell({ ctx, children }: { ctx: AuthContext; children: ReactN
         </nav>
 
         <Dialog.Root open={navOpen} onOpenChange={setNavOpen}>
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 z-40 bg-navy-950/35 lg:hidden" />
-            <Dialog.Content className="fixed inset-y-0 start-0 z-50 w-72 border-e border-line outline-none lg:hidden">
-              <Dialog.Title className="sr-only">{t('nav.primary')}</Dialog.Title>
-              <Dialog.Description className="sr-only">{t('nav.primary')}</Dialog.Description>
-              <Dialog.Close
-                className="absolute end-3 top-5 z-20 rounded p-1 text-ink-muted hover:text-ink"
-                aria-label={t('nav.close')}
-              >
-                <X className="h-5 w-5" aria-hidden />
-              </Dialog.Close>
-              <nav aria-label={t('nav.primary')} className="h-full">
-                <Sidebar ctx={ctx} layoutGroup="mobile" onNavigate={() => setNavOpen(false)} />
-              </nav>
-            </Dialog.Content>
-          </Dialog.Portal>
+          <AnimatePresence>
+            {navOpen ? (
+              <Dialog.Portal forceMount>
+                <Dialog.Overlay forceMount asChild>
+                  <motion.div
+                    className="fixed inset-0 z-40 bg-navy-950/35 lg:hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: DURATION.base }}
+                  />
+                </Dialog.Overlay>
+                <Dialog.Content forceMount asChild>
+                  <motion.div
+                    initial={{ x: dir === 'rtl' ? '100%' : '-100%' }}
+                    animate={{ x: 0 }}
+                    exit={{
+                      x: dir === 'rtl' ? '100%' : '-100%',
+                      transition: { duration: DURATION.base, ease: [0.4, 0, 1, 1] },
+                    }}
+                    transition={{ duration: DURATION.slow, ease: EASE_OUT }}
+                    className="fixed inset-y-0 start-0 z-50 w-72 border-e border-line outline-none lg:hidden"
+                  >
+                    <Dialog.Title className="sr-only">{t('nav.primary')}</Dialog.Title>
+                    <Dialog.Description className="sr-only">{t('nav.primary')}</Dialog.Description>
+                    <Dialog.Close
+                      className="absolute end-3 top-5 z-20 rounded p-1 text-ink-muted hover:text-ink"
+                      aria-label={t('nav.close')}
+                    >
+                      <X className="h-5 w-5" aria-hidden />
+                    </Dialog.Close>
+                    <nav aria-label={t('nav.primary')} className="h-full">
+                      <Sidebar ctx={ctx} layoutGroup="mobile" onNavigate={() => setNavOpen(false)} />
+                    </nav>
+                  </motion.div>
+                </Dialog.Content>
+              </Dialog.Portal>
+            ) : null}
+          </AnimatePresence>
         </Dialog.Root>
 
         <div className="flex min-w-0 flex-1 flex-col">

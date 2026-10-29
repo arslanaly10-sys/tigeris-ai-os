@@ -7,6 +7,7 @@ import {
 } from '@tigeris/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronRight, ExternalLink, FolderOpen } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
@@ -23,6 +24,7 @@ import {
   ValidationBadge,
 } from '@/components/truth/badges';
 import { Button } from '@/components/ui/button';
+import { DURATION, EASE_OUT, FadeSwap, INDICATOR_SPRING } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { Modal } from '@/components/ui/sheet';
 import { api, ApiError } from '@/lib/api';
@@ -47,7 +49,12 @@ const ACTION_HELP: Record<SignalAction, string> = {
 
 function SignalRow({ s, selected, onSelect }: { s: SignalSummary; selected: boolean; onSelect: () => void }) {
   return (
-    <tr
+    <motion.tr
+      layout="position"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: DURATION.fast } }}
+      transition={{ duration: DURATION.base, ease: EASE_OUT }}
       aria-selected={selected}
       className={cn(
         'cursor-pointer border-s-2 transition-colors',
@@ -100,7 +107,7 @@ function SignalRow({ s, selected, onSelect }: { s: SignalSummary; selected: bool
       <td className="pe-4 text-ink-faint">
         <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden />
       </td>
-    </tr>
+    </motion.tr>
   );
 }
 
@@ -348,14 +355,22 @@ export function SignalReviewPage() {
                   aria-pressed={filter === t}
                   onClick={() => setFilter(t)}
                   className={cn(
-                    'rounded-lg border px-3 py-1.5 text-sm transition-colors',
+                    'relative rounded-lg border px-3 py-1.5 text-sm transition-colors',
                     filter === t
-                      ? 'border-gold/70 bg-gold/10 text-ink'
+                      ? 'border-gold/70 text-ink'
                       : 'border-line-strong text-ink-muted hover:text-ink',
                   )}
                 >
-                  {t === 'all' ? 'All signals' : SIGNAL_TYPE[t].label}
-                  <span className="tabular ms-2 rounded bg-raised px-1.5 text-xs text-ink-muted">
+                  {filter === t ? (
+                    <motion.span
+                      layoutId="signal-filter-active"
+                      className="absolute inset-0 rounded-[7px] bg-gold-soft"
+                      transition={INDICATOR_SPRING}
+                      aria-hidden
+                    />
+                  ) : null}
+                  <span className="relative">{t === 'all' ? 'All signals' : SIGNAL_TYPE[t].label}</span>
+                  <span className="tabular relative ms-2 rounded bg-raised px-1.5 text-xs text-ink-muted">
                     {count}
                   </span>
                 </button>
@@ -391,18 +406,26 @@ export function SignalReviewPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {shown.map((s) => (
-                    <SignalRow
-                      key={s.id}
-                      s={s}
-                      selected={s.key === selected}
-                      onSelect={() => select(s.key)}
-                    />
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {shown.map((s) => (
+                      <SignalRow
+                        key={s.id}
+                        s={s}
+                        selected={s.key === selected}
+                        onSelect={() => select(s.key)}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </tbody>
               </table>
             </Panel>
-            {selected ? <SignalDetailPanel key={selected} signalKey={selected} /> : null}
+            <AnimatePresence mode="wait" initial={false}>
+              {selected ? (
+                <FadeSwap key={selected} className="min-w-0">
+                  <SignalDetailPanel signalKey={selected} />
+                </FadeSwap>
+              ) : null}
+            </AnimatePresence>
           </div>
         </>
       ) : null}

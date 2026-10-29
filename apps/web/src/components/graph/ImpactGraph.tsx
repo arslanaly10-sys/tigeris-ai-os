@@ -33,10 +33,12 @@ import {
   Waves,
   type LucideIcon,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useId, useMemo, useState } from 'react';
 import { ClaimBadge, CONFIDENCE_LABEL } from '@/components/truth/badges';
 import { Sheet } from '@/components/ui/sheet';
 import { cn } from '@/lib/cn';
+import { FadeSwap, INDICATOR_SPRING } from '@/components/ui/motion';
 
 const TYPE_ICON: Record<GraphNode['type'], LucideIcon> = {
   event: Siren,
@@ -195,6 +197,7 @@ export function ImpactGraph({
 }) {
   const [openEdge, setOpenEdge] = useState<GraphEdge | null>(null);
   const [view, setView] = useState<'graph' | 'list'>('graph');
+  const toggleId = useId();
   const nameOf = useMemo(() => new Map(graph.nodes.map((n) => [n.id, n.name])), [graph]);
 
   const { nodes, edges } = useMemo(() => {
@@ -288,84 +291,95 @@ export function ImpactGraph({
               type="button"
               aria-pressed={view === v}
               onClick={() => setView(v)}
-              className={cn('rounded px-2.5 py-1', view === v ? 'bg-raised text-ink' : 'text-ink-muted')}
+              className={cn('relative rounded px-2.5 py-1', view === v ? 'text-ink' : 'text-ink-muted')}
             >
-              {v === 'graph' ? 'Graph' : 'Table'}
+              {view === v ? (
+                <motion.span
+                  layoutId={`graph-view-${toggleId}`}
+                  className="absolute inset-0 rounded bg-raised"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+              <span className="relative">{v === 'graph' ? 'Graph' : 'Table'}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {view === 'graph' ? (
-        <div
-          className="min-h-[26rem] flex-1 rounded-lg border border-line bg-canvas"
-          role="group"
-          aria-label="Impact graph canvas. Use the Table view for a keyboard-friendly list of every link."
-        >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.15 }}
-            minZoom={0.3}
-            maxZoom={1.6}
-            proOptions={{ hideAttribution: true }}
-            colorMode="light"
-            style={{ background: 'transparent' }}
-            nodesConnectable={false}
+      <AnimatePresence mode="wait" initial={false}>
+        {view === 'graph' ? (
+          <FadeSwap
+            key="graph"
+            className="min-h-[26rem] flex-1 rounded-lg border border-line bg-canvas"
+            role="group"
+            aria-label="Impact graph canvas. Use the Table view for a keyboard-friendly list of every link."
           >
-            <Background color="#ddd3bf" gap={22} size={1} />
-          </ReactFlow>
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-line">
-          <table className="w-full min-w-[44rem] text-sm">
-            <caption className="sr-only">Every link in the graph with its class and confidence</caption>
-            <thead>
-              <tr className="border-b border-line bg-raised/50 text-xs text-ink-muted">
-                <th scope="col" className="px-4 py-2 text-start font-medium">
-                  From
-                </th>
-                <th scope="col" className="px-3 py-2 text-start font-medium">
-                  Link
-                </th>
-                <th scope="col" className="px-3 py-2 text-start font-medium">
-                  To
-                </th>
-                <th scope="col" className="px-3 py-2 text-start font-medium">
-                  Class
-                </th>
-                <th scope="col" className="px-4 py-2 text-start font-medium">
-                  Confidence
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {graph.edges.map((e) => (
-                <tr key={e.id}>
-                  <td className="px-4 py-2 text-ink">{nameOf.get(e.source)}</td>
-                  <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => setOpenEdge(e)}
-                      className="text-cyan underline-offset-2 hover:underline"
-                    >
-                      {e.predicate}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2 text-ink">{nameOf.get(e.target)}</td>
-                  <td className="px-3 py-2">
-                    <ClaimBadge value={e.relationshipClass} />
-                  </td>
-                  <td className="px-4 py-2 text-ink-muted">{CONFIDENCE_LABEL[e.confidenceBand]}</td>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.15 }}
+              minZoom={0.3}
+              maxZoom={1.6}
+              proOptions={{ hideAttribution: true }}
+              colorMode="light"
+              style={{ background: 'transparent' }}
+              nodesConnectable={false}
+            >
+              <Background color="#ddd3bf" gap={22} size={1} />
+            </ReactFlow>
+          </FadeSwap>
+        ) : (
+          <FadeSwap key="list" className="overflow-x-auto rounded-lg border border-line">
+            <table className="w-full min-w-[44rem] text-sm">
+              <caption className="sr-only">Every link in the graph with its class and confidence</caption>
+              <thead>
+                <tr className="border-b border-line bg-raised/50 text-xs text-ink-muted">
+                  <th scope="col" className="px-4 py-2 text-start font-medium">
+                    From
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-start font-medium">
+                    Link
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-start font-medium">
+                    To
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-start font-medium">
+                    Class
+                  </th>
+                  <th scope="col" className="px-4 py-2 text-start font-medium">
+                    Confidence
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-line">
+                {graph.edges.map((e) => (
+                  <tr key={e.id}>
+                    <td className="px-4 py-2 text-ink">{nameOf.get(e.source)}</td>
+                    <td className="px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => setOpenEdge(e)}
+                        className="text-cyan underline-offset-2 hover:underline"
+                      >
+                        {e.predicate}
+                      </button>
+                    </td>
+                    <td className="px-3 py-2 text-ink">{nameOf.get(e.target)}</td>
+                    <td className="px-3 py-2">
+                      <ClaimBadge value={e.relationshipClass} />
+                    </td>
+                    <td className="px-4 py-2 text-ink-muted">{CONFIDENCE_LABEL[e.confidenceBand]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </FadeSwap>
+        )}
+      </AnimatePresence>
 
       <Sheet
         open={openEdge !== null}

@@ -22,8 +22,8 @@ import { GulfMap, MapItemList } from '@/components/map/GulfMap';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { SignalTypeTile, StateBadge, UrgencyBadge, ValidationBadge } from '@/components/truth/badges';
 import { ConnectDataChart, KpiCard, ListRow, StatusPill } from '@/components/ui/data';
+import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
-import { Reveal } from '@/components/ui/reveal';
 import { api } from '@/lib/api';
 import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
@@ -42,23 +42,21 @@ export function SectorsIndexPage() {
       <PageHeader title={t('sector.index')} description={t('sector.indexLead')} />
       <LoadState isPending={sectors.isPending} error={sectors.error} />
       {sectors.data ? (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {sectors.data.map((s, i) => (
-            <li key={s.key}>
-              <Reveal delay={i * 0.03} className="h-full">
-                <div className="h-full overflow-hidden rounded-xl">
-                  <SectorBanner
-                    sector={s.key}
-                    className="h-24 w-full rounded-t-xl border border-b-0 border-line"
-                  />
-                  <div className="-mt-px h-[calc(100%-6rem)]">
-                    <SectorTile s={s} />
-                  </div>
+        <StaggerList className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {sectors.data.map((s) => (
+            <StaggerItem key={s.key}>
+              <div className="h-full overflow-hidden rounded-xl">
+                <SectorBanner
+                  sector={s.key}
+                  className="h-24 w-full rounded-t-xl border border-b-0 border-line"
+                />
+                <div className="-mt-px h-[calc(100%-6rem)]">
+                  <SectorTile s={s} />
                 </div>
-              </Reveal>
-            </li>
+              </div>
+            </StaggerItem>
           ))}
-        </ul>
+        </StaggerList>
       ) : null}
     </>
   );
@@ -129,15 +127,13 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
             <h2 id="glance-heading" className="mb-3 text-xl text-ink">
               {t('sector.atGlance')}
             </h2>
-            <Reveal>
-              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {d.kpis.map((k, i) => (
-                  <li key={k.key}>
-                    <KpiCard kpi={k} icon={KPI_ICONS[i % KPI_ICONS.length]!} onLineage={openLineage} />
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
+            <StaggerList className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {d.kpis.map((k, i) => (
+                <StaggerItem key={k.key}>
+                  <KpiCard kpi={k} icon={KPI_ICONS[i % KPI_ICONS.length]!} onLineage={openLineage} />
+                </StaggerItem>
+              ))}
+            </StaggerList>
           </section>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -177,14 +173,14 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 icon={<Compass className="h-4 w-4" aria-hidden />}
                 title={t('sector.areas')}
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {def.intelligenceAreas.map((a) => (
-                  <li key={a.title} className="px-5 py-3">
+                  <StaggerItem key={a.title} className="px-5 py-3">
                     <p className="text-sm font-medium text-ink">{a.title}</p>
                     <p className="text-xs text-ink-muted">{a.description}</p>
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </StaggerList>
             </Panel>
           </div>
 
@@ -200,12 +196,14 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   </Link>
                 }
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {d.cases.length === 0 ? (
-                  <li className="px-5 py-4 text-sm text-ink-muted">{t('sector.noCases')}</li>
+                  <StaggerItem className="px-5 py-4 text-sm text-ink-muted">
+                    {t('sector.noCases')}
+                  </StaggerItem>
                 ) : (
                   d.cases.map((c) => (
-                    <li key={c.id}>
+                    <StaggerItem key={c.id}>
                       <Link to={`/cases/${c.key}`} className="block px-5 py-3 hover:bg-raised/60">
                         <span className="flex flex-wrap items-center gap-2">
                           <span className="tabular font-mono text-[11px] text-ink-faint">{c.key}</span>
@@ -217,10 +215,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                           {c.nextStep} · {formatRelative(c.updatedAt)}
                         </span>
                       </Link>
-                    </li>
+                    </StaggerItem>
                   ))
                 )}
-              </ul>
+              </StaggerList>
             </Panel>
 
             <Panel aria-labelledby="sc-signals-heading">
@@ -234,12 +232,14 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   </Link>
                 }
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {d.signals.length === 0 ? (
-                  <li className="px-5 py-4 text-sm text-ink-muted">No signals for this sector.</li>
+                  <StaggerItem className="px-5 py-4 text-sm text-ink-muted">
+                    No signals for this sector.
+                  </StaggerItem>
                 ) : (
                   d.signals.slice(0, 5).map((s) => (
-                    <li key={s.id}>
+                    <StaggerItem key={s.id}>
                       <Link
                         to={`/signals?selected=${s.key}`}
                         className="flex items-start gap-3 px-5 py-3 hover:bg-raised/60"
@@ -253,10 +253,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                           </span>
                         </span>
                       </Link>
-                    </li>
+                    </StaggerItem>
                   ))
                 )}
-              </ul>
+              </StaggerList>
             </Panel>
 
             <Panel aria-labelledby="sc-review-heading">
@@ -314,9 +314,9 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 title={t('sector.scenarios')}
                 description={t('common.phase').replace('{n}', '3')}
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {def.scenarios.map((s) => (
-                  <li key={s.key} className="flex items-center gap-3 px-5 py-3">
+                  <StaggerItem key={s.key} className="flex items-center gap-3 px-5 py-3">
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-medium text-ink">{s.title}</span>
                       <span className="block text-xs text-ink-muted">{s.description}</span>
@@ -330,9 +330,9 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                       Launch
                       <span className="sr-only"> {s.title} (available in Phase 3)</span>
                     </button>
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </StaggerList>
             </Panel>
 
             <Panel aria-labelledby="sc-mandates-heading">

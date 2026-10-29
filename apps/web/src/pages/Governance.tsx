@@ -24,6 +24,7 @@ import { Link } from 'react-router';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { ClaimBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
 import { ListRow, StatusPill } from '@/components/ui/data';
+import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { Reveal } from '@/components/ui/reveal';
 import { api } from '@/lib/api';
@@ -154,9 +155,9 @@ export function MandatesPage() {
               icon={<ShieldCheck className="h-4 w-4" aria-hidden />}
               title="Mandate register"
             />
-            <ul className="divide-y divide-line border-t border-line">
+            <StaggerList className="divide-y divide-line border-t border-line">
               {q.data.mandates.map((m) => (
-                <li
+                <StaggerItem
                   key={m.id}
                   className="grid gap-2 px-5 py-3.5 md:grid-cols-[8rem_minmax(0,1fr)_minmax(0,16rem)]"
                 >
@@ -172,9 +173,9 @@ export function MandatesPage() {
                     {m.limitText}
                     <ClaimBadge value={m.claimClass} />
                   </span>
-                </li>
+                </StaggerItem>
               ))}
-            </ul>
+            </StaggerList>
           </Panel>
 
           <Panel aria-labelledby="authority-heading">
@@ -272,12 +273,14 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
             title="Review & decision queue"
           />
           <LoadState isPending={cases.isPending} error={cases.error} />
-          <ul className="divide-y divide-line border-t border-line">
+          <StaggerList className="divide-y divide-line border-t border-line">
             {cases.data && queue.length === 0 ? (
-              <li className="px-5 py-4 text-sm text-ink-muted">Nothing is awaiting review or decision.</li>
+              <StaggerItem className="px-5 py-4 text-sm text-ink-muted">
+                Nothing is awaiting review or decision.
+              </StaggerItem>
             ) : null}
             {queue.map((c) => (
-              <li key={c.id}>
+              <StaggerItem key={c.id}>
                 <Link to={`/cases/${c.key}`} className="block px-5 py-3.5 hover:bg-raised/60">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="tabular font-mono text-[11px] text-ink-faint">{c.key}</span>
@@ -290,9 +293,9 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
                     {formatRelative(c.updatedAt)}
                   </span>
                 </Link>
-              </li>
+              </StaggerItem>
             ))}
-          </ul>
+          </StaggerList>
         </Panel>
         <Panel aria-labelledby="mine-heading" className="self-start">
           <PanelHeader
@@ -306,11 +309,11 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
             pending.data.items.length === 0 ? (
               <p className="border-t border-line px-5 py-4 text-sm text-ink-muted">{t('top.noApprovals')}</p>
             ) : (
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {pending.data.items.map((i) => (
                   <AttentionRow key={`${i.kind}:${i.id}`} item={i} />
                 ))}
-              </ul>
+              </StaggerList>
             )
           ) : null}
         </Panel>

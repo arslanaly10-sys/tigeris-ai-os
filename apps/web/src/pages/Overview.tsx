@@ -7,8 +7,8 @@ import { GulfMap, MapItemList } from '@/components/map/GulfMap';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { DataModeBadge, SourceClassBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
 import { ListRow, StatusPill } from '@/components/ui/data';
+import { StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
-import { Reveal } from '@/components/ui/reveal';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatRelative } from '@/lib/format';
@@ -32,7 +32,7 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
   const kind = KIND[item.kind];
   const Icon = kind.icon;
   return (
-    <li>
+    <StaggerItem>
       <Link
         to={hrefFor(item)}
         className={cn(
@@ -64,7 +64,7 @@ export function AttentionRow({ item }: { item: AttentionItem }) {
           </span>
         </div>
       </Link>
-    </li>
+    </StaggerItem>
   );
 }
 
@@ -77,11 +77,11 @@ function Counts({ data }: { data: CommandCentre }) {
     { key: 'kpi.staleSources', value: data.counts.staleSources, to: '/sources', icon: Database },
   ];
   return (
-    <ul className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Work counts">
+    <StaggerList className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Work counts">
       {items.map((i) => {
         const Icon = i.icon;
         return (
-          <li key={i.key}>
+          <StaggerItem key={i.key}>
             <Link
               to={i.to}
               className="card-shadow flex items-center gap-4 rounded-xl border border-line bg-panel px-4 py-3.5 transition-colors hover:border-gold/60"
@@ -96,10 +96,10 @@ function Counts({ data }: { data: CommandCentre }) {
                 <span className="mt-1 block text-xs text-ink-muted">{t(i.key)}</span>
               </span>
             </Link>
-          </li>
+          </StaggerItem>
         );
       })}
-    </ul>
+    </StaggerList>
   );
 }
 
@@ -173,9 +173,7 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
       <LoadState isPending={cc.isPending} error={cc.error} />
       {cc.data ? (
         <>
-          <Reveal>
-            <Counts data={cc.data} />
-          </Reveal>
+          <Counts data={cc.data} />
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_25rem]">
             <Panel aria-labelledby="map-heading">
               <PanelHeader id="map-heading" title={t('overview.map')} description={t('overview.mapLead')} />
@@ -204,11 +202,11 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
               {cc.data.attention.length === 0 ? (
                 <p className="px-5 py-6 text-sm text-ink-muted">Nothing needs attention.</p>
               ) : (
-                <ul className="max-h-[34rem] flex-1 divide-y divide-line overflow-y-auto border-t border-line">
+                <StaggerList className="max-h-[34rem] flex-1 divide-y divide-line overflow-y-auto border-t border-line">
                   {cc.data.attention.map((item) => (
                     <AttentionRow key={`${item.kind}:${item.id}`} item={item} />
                   ))}
-                </ul>
+                </StaggerList>
               )}
             </Panel>
           </div>
@@ -223,13 +221,13 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
               </Link>
             </div>
             {sectors.data ? (
-              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StaggerList className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {sectors.data.map((s) => (
-                  <li key={s.key}>
+                  <StaggerItem key={s.key}>
                     <SectorTile s={s} />
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </StaggerList>
             ) : (
               <LoadState isPending={sectors.isPending} error={sectors.error} />
             )}
@@ -247,9 +245,9 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
                   </Link>
                 }
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {open.slice(0, 4).map((c) => (
-                  <li key={c.id}>
+                  <StaggerItem key={c.id}>
                     <Link to={`/cases/${c.key}`} className="block px-5 py-3 hover:bg-raised/60">
                       <span className="flex items-center gap-2">
                         <span className="tabular font-mono text-[11px] text-ink-faint">{c.key}</span>
@@ -260,9 +258,9 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
                         {c.nextStep} · {formatRelative(c.updatedAt)}
                       </span>
                     </Link>
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </StaggerList>
             </Panel>
 
             <Panel aria-labelledby="review-heading">
@@ -305,11 +303,11 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
                   </Link>
                 }
               />
-              <ul className="divide-y divide-line border-t border-line">
+              <StaggerList className="divide-y divide-line border-t border-line">
                 {cc.data.sourceHealth.map((s) => {
                   const warn = s.approvalStatus !== 'approved' || s.freshness === 'stale';
                   return (
-                    <li key={s.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                    <StaggerItem key={s.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
                       <span className="min-w-0">
                         <span className="block truncate text-sm text-ink">{s.publisher}</span>
                         <span className="text-[11px] text-ink-faint">
@@ -329,10 +327,10 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
                         />
                         <SourceClassBadge value={s.sourceClass} />
                       </span>
-                    </li>
+                    </StaggerItem>
                   );
                 })}
-              </ul>
+              </StaggerList>
             </Panel>
           </div>
         </>

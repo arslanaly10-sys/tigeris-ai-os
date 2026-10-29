@@ -11,11 +11,20 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, ChevronLeft, FileText, GitCommitVertical, Lock, Radar } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import { Link, useParams } from 'react-router';
 import { ImpactGraph } from '@/components/graph/ImpactGraph';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
 import { GulfMap, MapItemList } from '@/components/map/GulfMap';
 import { LoadState } from '@/components/PageHeader';
+import {
+  FadeSwap,
+  INDICATOR_SPRING,
+  itemVariants,
+  listVariants,
+  StaggerItem,
+  StaggerList,
+} from '@/components/ui/motion';
 import {
   ClaimBadge,
   ConfidenceBandMeter,
@@ -49,7 +58,19 @@ const LATER_TABS = [
 ];
 
 const tabClass =
-  '-mb-px border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:border-gold data-[state=active]:text-ink';
+  'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
+
+/** Underline that slides to the active tab. */
+function TabIndicator({ active }: { active: boolean }) {
+  return active ? (
+    <motion.span
+      layoutId="case-tab-indicator"
+      className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"
+      transition={INDICATOR_SPRING}
+      aria-hidden
+    />
+  ) : null;
+}
 
 function Lifecycle({ state }: { state: CaseDetail['state'] }) {
   const current = CASE_STATES.indexOf(state);
@@ -60,12 +81,20 @@ function Lifecycle({ state }: { state: CaseDetail['state'] }) {
           key={s}
           aria-current={i === current ? 'step' : undefined}
           className={cn(
-            'rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
+            'relative isolate rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
             i < current && 'bg-raised text-ink-muted',
-            i === current && 'bg-brand text-white',
+            i === current && 'text-white',
             i > current && 'border border-line text-ink-faint',
           )}
         >
+          {i === current ? (
+            <motion.span
+              layoutId="lifecycle-current"
+              className="absolute inset-0 -z-10 rounded-md bg-brand"
+              transition={INDICATOR_SPRING}
+              aria-hidden
+            />
+          ) : null}
           {i < current ? <span className="sr-only">Completed: </span> : null}
           {STATE_LABEL[s]}
         </li>
@@ -292,9 +321,9 @@ function OverviewTab({
             title="Figures cited in this case"
             description="Every figure resolves to a source record or a labelled synthetic or assumed value."
           />
-          <ul className="divide-y divide-line border-t border-line">
+          <StaggerList className="divide-y divide-line border-t border-line">
             {keyFacts.map(({ e, f }) => (
-              <li key={f.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
+              <StaggerItem key={f.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3">
                 <span className="tabular min-w-[7.5rem] font-serif text-lg font-semibold text-ink">
                   {formatFactValue(f)}
                 </span>
@@ -305,9 +334,9 @@ function OverviewTab({
                 <ClaimBadge value={f.claimClass} />
                 {e.validationStatus !== 'validated' ? <ValidationBadge value={e.validationStatus} /> : null}
                 <LineageButton label={f.predicate} onClick={() => onOpen({ evidenceId: e.id, fact: f })} />
-              </li>
+              </StaggerItem>
             ))}
-          </ul>
+          </StaggerList>
         </Panel>
       </div>
 
@@ -426,11 +455,20 @@ function TimelineTab({ c }: { c: CaseDetail }) {
         title="Case timeline"
         description="Event times, evidence retrieval and state transitions — newest first. Event time and retrieval time are kept separate."
       />
-      <ol className="border-t border-line px-5 py-4">
+      <motion.ol
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="border-t border-line px-5 py-4"
+      >
         {items.map((it, i) => {
           const Icon = ICON[it.kind];
           return (
-            <li key={i} className="relative border-s border-line-strong ps-6 pb-5 last:pb-0">
+            <motion.li
+              key={i}
+              variants={itemVariants}
+              className="relative border-s border-line-strong ps-6 pb-5 last:pb-0"
+            >
               <span
                 className={cn('absolute -start-[5px] top-1.5 h-2.5 w-2.5 rounded-full', DOT[it.kind])}
                 aria-hidden
@@ -441,10 +479,10 @@ function TimelineTab({ c }: { c: CaseDetail }) {
                 {it.title}
               </p>
               <p className="text-sm text-ink-muted">{it.detail}</p>
-            </li>
+            </motion.li>
           );
         })}
-      </ol>
+      </motion.ol>
     </Panel>
   );
 }
@@ -459,6 +497,7 @@ export function CaseWorkspacePage() {
   });
   const mapLayers = useQuery({ queryKey: ['map-layers'], queryFn: api.mapLayers, enabled: q.isSuccess });
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
+  const [tab, setTab] = useState('overview');
 
   if (q.error instanceof ApiError && q.error.status === 404) {
     return (
@@ -477,19 +516,23 @@ export function CaseWorkspacePage() {
   return (
     <>
       <CaseHeader c={c} />
-      <Tabs.Root defaultValue="overview">
+      <Tabs.Root value={tab} onValueChange={setTab}>
         <Tabs.List aria-label="Case workspace" className="mb-5 flex flex-wrap gap-1 border-b border-line">
           <Tabs.Trigger value="overview" className={tabClass}>
             Overview
+            <TabIndicator active={tab === 'overview'} />
           </Tabs.Trigger>
           <Tabs.Trigger value="evidence" className={tabClass}>
             Evidence ({c.evidence.length})
+            <TabIndicator active={tab === 'evidence'} />
           </Tabs.Trigger>
           <Tabs.Trigger value="graph" className={tabClass}>
             Impact graph
+            <TabIndicator active={tab === 'graph'} />
           </Tabs.Trigger>
           <Tabs.Trigger value="timeline" className={tabClass}>
             Timeline
+            <TabIndicator active={tab === 'timeline'} />
           </Tabs.Trigger>
           {LATER_TABS.map((t) => (
             <Tabs.Trigger
@@ -504,34 +547,42 @@ export function CaseWorkspacePage() {
           ))}
         </Tabs.List>
         <Tabs.Content value="overview" className="outline-none">
-          <OverviewTab c={c} graph={graph.data} mapLayers={mapLayers.data} onOpen={setLineage} />
+          <FadeSwap>
+            <OverviewTab c={c} graph={graph.data} mapLayers={mapLayers.data} onOpen={setLineage} />
+          </FadeSwap>
         </Tabs.Content>
         <Tabs.Content value="evidence" className="outline-none">
-          <EvidenceTab c={c} onOpen={setLineage} />
+          <FadeSwap>
+            <EvidenceTab c={c} onOpen={setLineage} />
+          </FadeSwap>
         </Tabs.Content>
         <Tabs.Content value="graph" className="outline-none">
-          <Panel className="p-4">
-            <p className="mb-3 text-sm text-ink-muted">
-              Direct, second- and third-order paths from the case origin. Links are analytical, not proof of
-              causation; open any link for its rationale and evidence.
-            </p>
-            {graph.data ? (
-              graph.data.nodes.length > 0 ? (
-                <ImpactGraph
-                  graph={graph.data}
-                  className="h-[34rem]"
-                  onOpenEvidence={(id) => setLineage({ evidenceId: id, fact: null })}
-                />
+          <FadeSwap>
+            <Panel className="p-4">
+              <p className="mb-3 text-sm text-ink-muted">
+                Direct, second- and third-order paths from the case origin. Links are analytical, not proof of
+                causation; open any link for its rationale and evidence.
+              </p>
+              {graph.data ? (
+                graph.data.nodes.length > 0 ? (
+                  <ImpactGraph
+                    graph={graph.data}
+                    className="h-[34rem]"
+                    onOpenEvidence={(id) => setLineage({ evidenceId: id, fact: null })}
+                  />
+                ) : (
+                  <p className="text-sm text-ink-muted">No entities are linked to this case yet.</p>
+                )
               ) : (
-                <p className="text-sm text-ink-muted">No entities are linked to this case yet.</p>
-              )
-            ) : (
-              <LoadState isPending={graph.isPending} error={graph.error} />
-            )}
-          </Panel>
+                <LoadState isPending={graph.isPending} error={graph.error} />
+              )}
+            </Panel>
+          </FadeSwap>
         </Tabs.Content>
         <Tabs.Content value="timeline" className="outline-none">
-          <TimelineTab c={c} />
+          <FadeSwap>
+            <TimelineTab c={c} />
+          </FadeSwap>
         </Tabs.Content>
       </Tabs.Root>
       <LineageDrawer target={lineage} onClose={() => setLineage(null)} />

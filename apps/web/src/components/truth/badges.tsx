@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 /**
  * Truth badges. Every state is carried by text + icon (+ border style/pattern), never colour alone (D-19, WCAG 2.2).
  */
@@ -305,10 +306,19 @@ export function ConfidenceBandMeter({ band, className }: { band: ConfidenceBand;
           <span
             key={i}
             className={cn(
-              'h-2 w-4 rounded-sm',
-              i <= level ? 'bg-emerald' : 'border border-line-strong bg-transparent',
+              'relative h-2 w-4 overflow-hidden rounded-sm border',
+              i <= level ? 'border-emerald' : 'border-line-strong',
             )}
-          />
+          >
+            {i <= level ? (
+              <motion.span
+                className="absolute inset-0 origin-left bg-emerald rtl:origin-right"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1], delay: 0.08 * i }}
+              />
+            ) : null}
+          </span>
         ))}
       </span>
       <span className="text-sm font-semibold text-ink">{CONFIDENCE_LABEL[band]}</span>

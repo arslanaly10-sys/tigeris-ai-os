@@ -1,4 +1,6 @@
+import { motion } from 'motion/react';
 import { NavLink } from 'react-router';
+import { INDICATOR_SPRING } from '@/components/ui/motion';
 import { cn } from '@/lib/cn';
 import { useI18n, type MessageKey } from '@/lib/i18n';
 
@@ -20,12 +22,24 @@ export function SectorSubnav() {
           to={i.to}
           className={({ isActive }) =>
             cn(
-              '-mb-px border-b-2 px-3.5 py-2 text-sm font-medium transition-colors',
-              isActive ? 'border-brand text-brand' : 'border-transparent text-ink-muted hover:text-ink',
+              'relative px-3.5 py-2 text-sm font-medium transition-colors',
+              isActive ? 'text-brand' : 'text-ink-muted hover:text-ink',
             )
           }
         >
-          {t(i.key)}
+          {({ isActive }) => (
+            <>
+              {t(i.key)}
+              {isActive ? (
+                <motion.span
+                  layoutId="sector-subnav-indicator"
+                  className="absolute inset-x-0 -bottom-px h-0.5 bg-brand"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+            </>
+          )}
         </NavLink>
       ))}
     </nav>

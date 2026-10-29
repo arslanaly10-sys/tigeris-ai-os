@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ClaimBadge, SourceClassBadge, ValidationBadge } from '@/components/truth/badges';
+import { FadeSwap } from '@/components/ui/motion';
 import { Sheet } from '@/components/ui/sheet';
 import { api } from '@/lib/api';
 import { formatDateTime, formatFactValue, humanize } from '@/lib/format';
@@ -61,7 +62,7 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
         </p>
       ) : null}
       {e ? (
-        <>
+        <FadeSwap>
           {fact ? (
             <Section title="Value">
               <Row label="Value">
@@ -124,7 +125,7 @@ export function LineageDrawer({ target, onClose }: { target: LineageTarget | nul
           <p className="px-5 py-4 text-xs text-ink-muted">
             Viewing lineage is recorded in the institution&rsquo;s audit trail.
           </p>
-        </>
+        </FadeSwap>
       ) : null}
     </Sheet>
   );

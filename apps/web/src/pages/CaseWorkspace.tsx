@@ -40,6 +40,7 @@ import {
   ValidationBadge,
 } from '@/components/truth/badges';
 import { Panel, PanelHeader } from '@/components/ui/panel';
+import { useI18n } from '@/lib/i18n';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, formatFactValue, humanize } from '@/lib/format';
@@ -104,6 +105,7 @@ function Lifecycle({ state }: { state: CaseDetail['state'] }) {
 }
 
 function CaseHeader({ c }: { c: CaseDetail }) {
+  const { t } = useI18n();
   return (
     <header className="mb-5">
       <Link to="/cases" className="inline-flex items-center gap-1 text-sm text-cyan hover:underline">
@@ -117,7 +119,16 @@ function CaseHeader({ c }: { c: CaseDetail }) {
         <UrgencyBadge value={c.urgency} />
         <DataModeBadge value={c.dataMode} />
       </div>
-      <h1 className="mt-1.5 text-2xl text-ink sm:text-3xl">{c.title}</h1>
+      <div className="mt-1.5 flex flex-wrap items-start justify-between gap-3">
+        <h1 className="text-2xl text-ink sm:text-3xl">{c.title}</h1>
+        <Link
+          to={`/cases/${c.key}/report`}
+          className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-line-strong bg-panel px-3 text-sm text-ink hover:border-brand/50 hover:bg-raised"
+        >
+          <FileText className="h-4 w-4" aria-hidden />
+          {t('report.open')}
+        </Link>
+      </div>
       <p className="mt-1 max-w-4xl text-sm text-ink-muted">{c.objective}</p>
       <dl className="mt-4 grid gap-x-6 gap-y-3 rounded-t-xl border border-b-0 border-line bg-panel px-5 py-4 text-sm sm:grid-cols-2 lg:grid-cols-5">
         <div>
@@ -489,6 +500,7 @@ function TimelineTab({ c }: { c: CaseDetail }) {
 }
 
 export function CaseWorkspacePage() {
+  const { t } = useI18n();
   const { key = '' } = useParams();
   const q = useQuery({ queryKey: ['case', key], queryFn: () => api.case(key) });
   const graph = useQuery({
@@ -547,7 +559,7 @@ export function CaseWorkspacePage() {
             <TabIndicator active={tab === 'options'} />
           </Tabs.Trigger>
           <Tabs.Trigger value="analysis" className={tabClass}>
-            Analysis
+            {t('case.tab.analysis')}
             <TabIndicator active={tab === 'analysis'} />
           </Tabs.Trigger>
           <Tabs.Trigger value="decision" className={tabClass}>

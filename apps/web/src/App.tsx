@@ -40,6 +40,7 @@ const MemoryPage = lazy(() => import('@/pages/Memory').then((m) => ({ default: m
 const OutcomeReviewPage = lazy(() =>
   import('@/pages/OutcomeReview').then((m) => ({ default: m.OutcomeReviewPage })),
 );
+const CaseReportPage = lazy(() => import('@/pages/CaseReport').then((m) => ({ default: m.CaseReportPage })));
 const OversightPage = lazy(() => import('@/pages/Oversight').then((m) => ({ default: m.OversightPage })));
 const SourcesPage = lazy(() => import('@/pages/Sources').then((m) => ({ default: m.SourcesPage })));
 
@@ -86,6 +87,7 @@ function Protected() {
                 <Route path="scenarios/:key" element={<ScenarioRunPage />} />
                 <Route path="cases" element={<CasesListPage />} />
                 <Route path="cases/:key" element={<CaseWorkspacePage />} />
+                <Route path="cases/:key/report" element={<CaseReportPage />} />
                 <Route path="sources" element={<SourcesPage ctx={ctx} />} />
                 <Route path="signals" element={<SignalReviewPage />} />
                 <Route path="graph" element={<GraphPage />} />

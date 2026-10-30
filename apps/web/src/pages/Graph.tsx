@@ -12,16 +12,18 @@ import { LoadState, PageHeader } from '@/components/PageHeader';
 import { INDICATOR_SPRING } from '@/components/ui/motion';
 import { Panel } from '@/components/ui/panel';
 import { api } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 const tabClass =
   'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
 
 const VIEWS = [
-  { value: 'graph', label: 'Graph' },
-  { value: 'entities', label: 'Entities & dependencies' },
+  { value: 'graph', label: 'graph.view.graph' },
+  { value: 'entities', label: 'graph.view.entities' },
 ] as const;
 
 export function GraphPage() {
+  const { t } = useI18n();
   const q = useQuery({ queryKey: ['graph'], queryFn: api.graph });
   const [params, setParams] = useSearchParams();
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
@@ -54,10 +56,10 @@ export function GraphPage() {
         onValueChange={(v) => setParams(v === 'graph' ? {} : { view: v }, { replace: true })}
       >
         <Tabs.List aria-label="Graph views" className="mb-5 flex flex-wrap gap-1 border-b border-line">
-          {VIEWS.map((t) => (
-            <Tabs.Trigger key={t.value} value={t.value} className={tabClass}>
-              {t.label}
-              {view === t.value ? (
+          {VIEWS.map((x) => (
+            <Tabs.Trigger key={x.value} value={x.value} className={tabClass}>
+              {t(x.label)}
+              {view === x.value ? (
                 <motion.span
                   layoutId="graph-tab-indicator"
                   className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"

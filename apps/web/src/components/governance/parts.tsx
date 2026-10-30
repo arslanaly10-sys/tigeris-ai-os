@@ -39,6 +39,7 @@ import { StatusPill } from '@/components/ui/data';
 import { ApiError, api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 
 export const REC_STATUS: Record<
@@ -873,6 +874,7 @@ export function HandoffCard({
 // ───────────────────────────── Memory ─────────────────────────────
 
 export function MemoryCard({ m, showCase = true }: { m: MemoryItem; showCase?: boolean }) {
+  const { t } = useI18n();
   return (
     <article aria-labelledby={`mem-${m.key}`} className="rounded-xl border border-line bg-panel">
       <header className="px-5 pt-4 pb-3">
@@ -944,7 +946,7 @@ export function MemoryCard({ m, showCase = true }: { m: MemoryItem; showCase?: b
       {m.expected.length ? (
         <footer className="border-t border-line px-5 py-3 text-sm">
           <Link to={`/memory/${m.key}`} className="font-medium text-cyan underline underline-offset-2">
-            Expected versus observed
+            {t('outcome.link')}
           </Link>
           <span className="text-ink-muted"> · compare each figure with what actually happened</span>
         </footer>

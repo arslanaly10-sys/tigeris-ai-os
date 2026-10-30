@@ -5,6 +5,7 @@ import { LoadState, PageHeader } from '@/components/PageHeader';
 import { OutcomeBadge, SourceClassBadge } from '@/components/truth/badges';
 import { Button } from '@/components/ui/button';
 import { Panel, PanelFooter, PanelHeader } from '@/components/ui/panel';
+import { useI18n, type MessageKey } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, humanize } from '@/lib/format';
@@ -282,26 +283,27 @@ function SourcesAndPackages({ ctx }: { ctx: AuthContext }) {
 }
 
 const TABS = [
-  { value: 'connectors', label: 'Connectors' },
-  { value: 'import', label: 'Import' },
-  { value: 'runs', label: 'Runs' },
-  { value: 'records', label: 'Records' },
-  { value: 'quality', label: 'Data quality' },
-  { value: 'sources', label: 'Sources & packages' },
-] as const;
+  { value: 'connectors', label: 'data.connectors' },
+  { value: 'import', label: 'data.import' },
+  { value: 'runs', label: 'data.runs' },
+  { value: 'records', label: 'data.records' },
+  { value: 'quality', label: 'data.quality' },
+  { value: 'sources', label: 'data.sources' },
+] as const satisfies readonly { value: string; label: MessageKey }[];
 
 const tabClass =
   'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
 
 /** Data & Integrations: connectors, imports, runs, normalized records, data quality and the source registry. */
 export function SourcesPage({ ctx }: { ctx: AuthContext }) {
+  const { t } = useI18n();
   const [params, setParams] = useSearchParams();
   const requested = params.get('tab');
   const tab = TABS.some((t) => t.value === requested) ? requested! : 'connectors';
   return (
     <>
       <PageHeader
-        title="Data & Sources"
+        title={t('data.title')}
         description="Connectors, imports and the source registry. Unapproved sources cannot be ingested; rejected rows and quarantined records never reach cases, the graph or recommendations. Nothing here is a live feed until a connector proves it."
       />
       <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })}>
@@ -309,10 +311,10 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
           aria-label="Data and integrations"
           className="mb-5 flex flex-wrap gap-1 border-b border-line"
         >
-          {TABS.map((t) => (
-            <Tabs.Trigger key={t.value} value={t.value} className={tabClass}>
-              {t.label}
-              {tab === t.value ? (
+          {TABS.map((x) => (
+            <Tabs.Trigger key={x.value} value={x.value} className={tabClass}>
+              {t(x.label)}
+              {tab === x.value ? (
                 <motion.span
                   layoutId="data-tab-indicator"
                   className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"

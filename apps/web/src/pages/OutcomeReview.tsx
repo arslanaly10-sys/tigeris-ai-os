@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { api, ApiError } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 
 const VERDICT: Record<OutcomeVerdict, { short: string; icon: typeof CircleCheck; className: string }> = {
   held: {
@@ -46,6 +47,7 @@ const field =
   'mt-1 block min-h-10 w-full rounded-md border border-line-strong bg-panel px-3 text-sm text-ink focus-visible:border-brand';
 
 function ReviewForm({ memoryKey, f }: { memoryKey: string; f: OutcomeFigure }) {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const id = useId();
   const today = new Date().toISOString().slice(0, 10);
@@ -154,7 +156,7 @@ function ReviewForm({ memoryKey, f }: { memoryKey: string; f: OutcomeFigure }) {
       ) : null}
       <div className="md:col-span-2">
         <Button type="submit" variant="primary" disabled={!valid || m.isPending}>
-          Record observation
+          {t('outcome.record')}
         </Button>
       </div>
     </form>

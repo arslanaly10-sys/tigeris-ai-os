@@ -1,6 +1,6 @@
 import type { AttentionItem, AuthContext, CommandCentre, SectorSummary } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Brain, Database, Radar, UserCheck, type LucideIcon } from 'lucide-react';
+import { Brain, Clock, Database, Radar, UserCheck, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import { GulfMap, MapItemList } from '@/components/map/GulfMap';
 import { LoadState, PageHeader } from '@/components/PageHeader';
@@ -150,6 +150,53 @@ function SectorList({ sectors }: { sectors: SectorSummary[] }) {
   );
 }
 
+/** Governed steps past their (synthetic) service level. Listed only; nothing is escalated automatically. */
+function OverduePanel({ data }: { data: CommandCentre }) {
+  const { t } = useI18n();
+  const items = data.overdue;
+  const days = (h: number) => (h < 48 ? `${h} h` : `${Math.floor(h / 24)} days`);
+  return (
+    <Panel aria-labelledby="overdue-heading" className="mb-6">
+      <PanelHeader
+        id="overdue-heading"
+        icon={<Clock className="h-4 w-4" aria-hidden />}
+        title={t('overdue.title')}
+        description={t('overdue.basis')}
+      />
+      {items.length === 0 ? (
+        <p className="border-t border-line px-5 py-3 text-sm text-ink-muted">{t('overdue.none')}</p>
+      ) : (
+        <ul className="divide-y divide-line border-t border-line">
+          {items.map((o) => (
+            <li key={`${o.kind}:${o.ref}`}>
+              <Link
+                to={`/cases/${o.caseKey}?tab=decision`}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 hover:bg-raised/60"
+              >
+                <span className="inline-flex items-center gap-1 rounded-md border border-amber/50 bg-amber-soft px-1.5 py-0.5 text-xs font-medium text-amber">
+                  <Clock className="h-3.5 w-3.5" aria-hidden />
+                  {days(o.overdueHours)} {t('overdue.late')}
+                </span>
+                <span className="min-w-0 flex-1 text-sm">
+                  <span className="font-medium text-ink">{o.label}</span>
+                  <span className="text-ink-muted">
+                    {' '}
+                    · {o.ref} · {o.title}
+                  </span>
+                </span>
+                <span className="text-xs text-ink-muted">
+                  {ROLE_LABEL[o.role]}
+                  {o.forYou ? ' · for you' : ''}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
 export function OverviewPage({ ctx }: { ctx: AuthContext }) {
   const { t } = useI18n();
   const cc = useQuery({ queryKey: ['command-centre'], queryFn: api.commandCentre });
@@ -184,6 +231,7 @@ export function OverviewPage({ ctx }: { ctx: AuthContext }) {
       {cc.data ? (
         <>
           <Counts data={cc.data} />
+          <OverduePanel data={cc.data} />
           <div className="grid gap-6 xl:grid-cols-3">
             <Panel aria-labelledby="map-heading" className="xl:col-span-2">
               <PanelHeader id="map-heading" title={t('overview.map')} description={t('overview.mapLead')} />

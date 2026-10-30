@@ -10,11 +10,13 @@ import { LoadState } from '@/components/PageHeader';
 import { ClaimBadge } from '@/components/truth/badges';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { api } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 const field =
   'mt-1 min-h-10 rounded-md border border-line-strong bg-panel px-3 text-sm text-ink focus-visible:border-brand';
 
 export function SensitivityPanel({ scenarioKey }: { scenarioKey: string }) {
+  const { t } = useI18n();
   const [metric, setMetric] = useState('nav_at_risk_peak');
   const [horizon, setHorizon] = useState<HorizonKey>('d90');
   const q = useQuery({
@@ -34,7 +36,7 @@ export function SensitivityPanel({ scenarioKey }: { scenarioKey: string }) {
     <Panel aria-labelledby="sens-heading">
       <PanelHeader
         id="sens-heading"
-        title="Sensitivity"
+        title={t('sensitivity.title')}
         description="Which inputs this estimate rests on. Each row moves one input across its range (assumptions to their registered low and high, drivers 20% either side of your choice) with everything else held central."
         action={
           <div className="flex flex-wrap gap-3">

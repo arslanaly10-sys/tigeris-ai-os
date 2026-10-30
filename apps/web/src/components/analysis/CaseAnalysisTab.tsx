@@ -12,6 +12,7 @@ import { Panel, PanelHeader } from '@/components/ui/panel';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 
 function StepStatus({ status }: { status: AnalysisStepItem['status'] }) {
   return status === 'gap' ? (
@@ -92,6 +93,7 @@ function GatewayNote({ g }: { g: CaseAnalysisPayload['gateway'] }) {
 }
 
 export function CaseAnalysisTab({ caseKey }: { caseKey: string }) {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['analysis', caseKey], queryFn: () => api.caseAnalysis(caseKey) });
   const run = useMutation({
@@ -107,12 +109,12 @@ export function CaseAnalysisTab({ caseKey }: { caseKey: string }) {
         <PanelHeader
           id="analysis-heading"
           icon={<Bot className="h-4 w-4" aria-hidden />}
-          title="Case analysis"
+          title={t('analysis.title')}
           description="A planner and seven specialist agents read only the records this case may use and draft what they find. They cannot change the case, approve anything or reach outside TIGERIS."
           action={
             d.canRun ? (
               <Button variant="primary" onClick={() => run.mutate()} disabled={run.isPending}>
-                {run.isPending ? 'Running…' : latest ? 'Run again' : 'Run analysis'}
+                {run.isPending ? 'Running…' : latest ? t('analysis.runAgain') : t('analysis.run')}
               </Button>
             ) : null
           }

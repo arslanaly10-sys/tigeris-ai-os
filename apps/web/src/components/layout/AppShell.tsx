@@ -292,7 +292,7 @@ function TopBar({ ctx, onOpenNav }: { ctx: AuthContext; onOpenNav: () => void })
   const signOut = useSignOut();
   const navigate = useNavigate();
   return (
-    <header className="flex items-center gap-3 border-b border-line bg-canvas px-4 py-2.5 lg:px-6">
+    <header className="flex items-center gap-3 border-b border-line bg-canvas px-4 py-2.5 lg:px-6 print:hidden">
       <button
         type="button"
         className="rounded-md p-2 text-ink-muted hover:bg-raised hover:text-ink lg:hidden"
@@ -382,7 +382,7 @@ export function AppShell({ ctx, children }: { ctx: AuthContext; children: ReactN
       <div className="flex min-h-0 flex-1">
         <nav
           aria-label={t('nav.primary')}
-          className="sticky top-[var(--banner-h,0px)] hidden h-[calc(100dvh-var(--banner-h,0px))] w-[17rem] shrink-0 border-e border-line lg:block"
+          className="sticky top-[var(--banner-h,0px)] hidden h-[calc(100dvh-var(--banner-h,0px))] w-[17rem] shrink-0 border-e border-line lg:block print:hidden"
         >
           <Sidebar ctx={ctx} layoutGroup="desktop" />
         </nav>

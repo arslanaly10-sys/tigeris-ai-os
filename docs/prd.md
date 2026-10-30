@@ -149,8 +149,8 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ### 5.7 Reports and exports
 
-- **FR-38** Governance-ready case report (printable HTML) and JSON evidence pack: executive summary, what changed and when, affected entities and paths, evidence and timestamps, assumptions and gaps, scenario impacts with method and version, options, mandate and policy checks, reviews and disagreements, decision with authority and time, actions and outcome. _Planned (slice I)._
-- **FR-39** Export authorization: only readable records, demonstration label, every export audited. _Planned (slice I)._
+- **FR-38** Governance-ready case report (printable HTML) and JSON evidence pack: executive summary, what changed and when, affected entities and paths, evidence and timestamps, assumptions and gaps, scenario impacts with method and version, options, mandate and policy checks, reviews and disagreements, decision with authority and time, actions and outcome. _Implemented (slice I): print view at `/cases/:key/report` and JSON evidence pack with a content hash._
+- **FR-39** Export authorization: only readable records, demonstration label, every export audited. _Implemented (slice I): composed from the screens' own endpoints with the reader's session; export roles only._
 
 ### 5.8 Audit, administration and isolation
 
@@ -187,24 +187,24 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ## 7. Acceptance criteria
 
-| ID    | Criterion                                                                                                        | Status                                        |
-| ----- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| AC-01 | Enter a clearly labelled demo institution with a named role; no password field                                   | Implemented                                   |
-| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Implemented                                   |
-| AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                   |
-| AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                   |
-| AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                   |
-| AC-06 | Imported records appear in the right institution and sector workspace                                            | Implemented                                   |
-| AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                   |
-| AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                   |
-| AC-09 | A permitted user submits an option; an authorized approver approves, rejects or requests changes                 | Implemented                                   |
-| AC-10 | The decision and an accountable action are recorded; case and approval history are inspectable                   | Implemented                                   |
-| AC-11 | Sample data is visibly distinct from connected data                                                              | Implemented                                   |
-| AC-12 | Server-side authorization on reads, writes and exports                                                           | Implemented for reads/writes; exports Planned |
-| AC-13 | Errors, stale sources, missing data and empty states are explicit                                                | Implemented                                   |
-| AC-14 | An administrator configures the five CI domains, runs or schedules a crawl, sees status and source-linked claims | Planned; crawling Blocked on network policy   |
-| AC-15 | Competitive intelligence stays separate from portfolio and operational data                                      | Planned                                       |
-| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented (sources and connectors)          |
+| ID    | Criterion                                                                                                        | Status                                      |
+| ----- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| AC-01 | Enter a clearly labelled demo institution with a named role; no password field                                   | Implemented                                 |
+| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Implemented                                 |
+| AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                 |
+| AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                 |
+| AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                 |
+| AC-06 | Imported records appear in the right institution and sector workspace                                            | Implemented                                 |
+| AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                 |
+| AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                 |
+| AC-09 | A permitted user submits an option; an authorized approver approves, rejects or requests changes                 | Implemented                                 |
+| AC-10 | The decision and an accountable action are recorded; case and approval history are inspectable                   | Implemented                                 |
+| AC-11 | Sample data is visibly distinct from connected data                                                              | Implemented                                 |
+| AC-12 | Server-side authorization on reads, writes and exports                                                           | Implemented                                 |
+| AC-13 | Errors, stale sources, missing data and empty states are explicit                                                | Implemented                                 |
+| AC-14 | An administrator configures the five CI domains, runs or schedules a crawl, sees status and source-linked claims | Planned; crawling Blocked on network policy |
+| AC-15 | Competitive intelligence stays separate from portfolio and operational data                                      | Planned                                     |
+| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented (sources and connectors)        |
 
 ## 8. Competitive landscape (context, unverified)
 

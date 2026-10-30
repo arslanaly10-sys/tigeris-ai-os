@@ -34,6 +34,7 @@ import type {
   SectorDetail,
   SectorKey,
   CaseAnalysisPayload,
+  CaseReport,
   OutcomeReviewPayload,
   AuditPage,
   AuditVerification,
@@ -183,6 +184,8 @@ export const api = {
   ) => request<{ ok: true }>('POST', `/api/admin/principals/${encodeURIComponent(principalId)}/access`, body),
   provision: (body: { displayName: string; title: string; idpSubject: string; role: Role; reason: string }) =>
     request<{ id: string }>('POST', '/api/admin/principals', body),
+  caseReport: (caseKey: string) =>
+    request<CaseReport>('GET', `/api/cases/${encodeURIComponent(caseKey)}/report?format=print`),
   caseAnalysis: (caseKey: string) =>
     request<CaseAnalysisPayload>('GET', `/api/cases/${encodeURIComponent(caseKey)}/analysis`),
   runAnalysis: (caseKey: string) =>

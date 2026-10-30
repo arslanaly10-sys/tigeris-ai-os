@@ -84,6 +84,7 @@ function AuditRow({ e }: { e: AuditEventItem }) {
 }
 
 function AuditLog({ roles }: { roles: Role[] }) {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [action, setAction] = useState('');
   const [caseKey, setCaseKey] = useState('');
@@ -127,7 +128,7 @@ function AuditLog({ roles }: { roles: Role[] }) {
           action={
             canVerify ? (
               <Button onClick={() => verify.mutate()} disabled={verify.isPending}>
-                {verify.isPending ? 'Verifying…' : 'Verify the chain'}
+                {verify.isPending ? 'Verifying…' : t('oversight.verify')}
               </Button>
             ) : null
           }
@@ -587,8 +588,8 @@ function Administration({ roles, me }: { roles: Role[]; me: string }) {
 }
 
 const VIEWS = [
-  { value: 'audit', label: 'Audit log' },
-  { value: 'admin', label: 'Administration' },
+  { value: 'audit', label: 'oversight.audit' },
+  { value: 'admin', label: 'oversight.admin' },
 ] as const;
 
 export function OversightPage({ ctx }: { ctx: AuthContext }) {
@@ -609,7 +610,7 @@ export function OversightPage({ ctx }: { ctx: AuthContext }) {
         >
           {VIEWS.map((x) => (
             <Tabs.Trigger key={x.value} value={x.value} className={tabClass}>
-              {x.label}
+              {t(x.label)}
               {tab === x.value ? (
                 <motion.span
                   layoutId="oversight-tab-indicator"

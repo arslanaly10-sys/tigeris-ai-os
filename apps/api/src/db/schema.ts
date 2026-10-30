@@ -861,3 +861,51 @@ export const semanticRules = pgTable('semantic_rules', {
   mandateKey: text('mandate_key'),
   rationale: text('rationale').notNull(),
 });
+
+// ───────────────────────────── Phase 5B: intervention engine (migration 0014) ─────────────────────────────
+
+export const watchRules = pgTable('watch_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  version: integer('version').notNull(),
+  label: text('label').notNull(),
+  kind: text('kind').notNull(),
+  params: jsonb('params').$type<Record<string, unknown>>().notNull(),
+  severity: text('severity').notNull(),
+  routeRoles: text('route_roles').array().notNull(),
+  rationale: text('rationale').notNull(),
+  claimClass: text('claim_class').notNull(),
+  status: text('status').notNull(),
+  createdBy: uuid('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  approvedBy: uuid('approved_by'),
+  approvedAt: ts('approved_at'),
+  basis: text('basis'),
+});
+
+export const interventions = pgTable('interventions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  watchRuleId: uuid('watch_rule_id').notNull(),
+  engineVersion: text('engine_version').notNull(),
+  subjectRef: text('subject_ref').notNull(),
+  severity: text('severity').notNull(),
+  title: text('title').notNull(),
+  detail: text('detail').notNull(),
+  inputs: jsonb('inputs').notNull(),
+  routeRoles: text('route_roles').array().notNull(),
+  classification: text('classification').notNull(),
+  sectorKey: text('sector_key'),
+  caseId: uuid('case_id'),
+  status: text('status').notNull(),
+  firstSeenAt: ts('first_seen_at').notNull().defaultNow(),
+  lastSeenAt: ts('last_seen_at').notNull().defaultNow(),
+  conditionClearedAt: ts('condition_cleared_at'),
+  acknowledgedBy: uuid('acknowledged_by'),
+  acknowledgedAt: ts('acknowledged_at'),
+  closedBy: uuid('closed_by'),
+  closedAt: ts('closed_at'),
+  closeReason: text('close_reason'),
+});

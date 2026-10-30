@@ -9,6 +9,7 @@ import { seedEiaSnapshot } from './seed-eia-snapshot';
 import { seedSectorSamples } from './seed-sector-samples';
 import { seedMandates } from './seed-mandates';
 import { seedSemantic } from './seed-semantic';
+import { seedInterventions } from './seed-interventions';
 import { seedPhase2 } from './seed-phase2';
 import { createDb, withInstitution, type Db } from './client';
 import {
@@ -201,6 +202,7 @@ export async function seedAll(url = config.DATABASE_OWNER_URL) {
         await seedEiaSnapshot(db, ids.institutionId);
         await seedCi(db, ids.institutionId);
         await seedSectorSamples(db, ids.institutionId);
+        await seedInterventions(db, ids.institutionId);
       }
     }
   } finally {

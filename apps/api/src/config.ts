@@ -12,6 +12,13 @@ const schema = z.object({
   DEMO_INSTITUTION_CODE: z.string().default('GSIA-DEMO'),
   API_PORT: z.coerce.number().int().default(4000),
   NODE_ENV: z.string().default('development'),
+  /** Where uploaded files are stored (outside the web root). Relative paths resolve from apps/api. */
+  UPLOAD_DIR: z.string().default(fileURLToPath(new URL('../var/uploads', import.meta.url))),
+  /** Background jobs (pg-boss) for scheduled connector syncs and crawls. Off in tests. */
+  JOBS_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
 });
 
 export const config = schema.parse(process.env);

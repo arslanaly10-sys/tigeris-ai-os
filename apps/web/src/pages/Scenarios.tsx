@@ -659,7 +659,7 @@ export function ScenarioRunPage() {
 
         <Tabs.Content value="compare" className="outline-none">
           <FadeSwap>
-            <Panel aria-labelledby="compare-heading" className="overflow-x-auto">
+            <Panel aria-labelledby="compare-heading" className="overflow-x-auto" tabIndex={0}>
               <PanelHeader
                 id="compare-heading"
                 title="Compare horizons"

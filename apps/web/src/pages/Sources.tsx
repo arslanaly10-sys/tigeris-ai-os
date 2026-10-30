@@ -9,7 +9,14 @@ import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, humanize } from '@/lib/format';
 import { AnimatePresence, motion } from 'motion/react';
-import { DURATION, EASE_OUT } from '@/components/ui/motion';
+import { DURATION, EASE_OUT, INDICATOR_SPRING } from '@/components/ui/motion';
+import * as Tabs from '@radix-ui/react-tabs';
+import { useSearchParams } from 'react-router';
+import { ConnectorsPanel } from '@/components/data/ConnectorsPanel';
+import { ImportPanel } from '@/components/data/ImportPanel';
+import { QualityPanel } from '@/components/data/QualityPanel';
+import { RecordsPanel } from '@/components/data/RecordsPanel';
+import { RunsPanel } from '@/components/data/RunsPanel';
 
 function JobCard({ job }: { job: IngestionJobItem }) {
   const Icon = job.status === 'rejected' ? PackageX : PackageCheck;
@@ -85,7 +92,7 @@ function JobCard({ job }: { job: IngestionJobItem }) {
   );
 }
 
-export function SourcesPage({ ctx }: { ctx: AuthContext }) {
+function SourcesAndPackages({ ctx }: { ctx: AuthContext }) {
   const q = useQuery({ queryKey: ['sources'], queryFn: api.sources });
   const jobs = useQuery({ queryKey: ['ingestion'], queryFn: api.ingestion });
   const qc = useQueryClient();
@@ -99,19 +106,19 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
         qc.invalidateQueries({ queryKey: ['command-centre'] }),
       ]),
   });
+  const approve = useMutation({
+    mutationFn: (key: string) => api.approveSource(key),
+    onSuccess: () => qc.invalidateQueries(),
+  });
   const quarantined = (jobs.data ?? []).flatMap((j) =>
     j.runs.filter((r) => r.outcome === 'quarantined').map((r) => ({ job: j, run: r })),
   );
 
   return (
     <>
-      <PageHeader
-        title="Data & Sources"
-        description="Source registry, ingestion runs and quarantine. Unapproved sources cannot be ingested; failed records never reach cases, the graph or recommendations."
-      />
       <LoadState isPending={q.isPending} error={q.error} />
       {q.data ? (
-        <Panel className="overflow-x-auto">
+        <Panel className="overflow-x-auto" tabIndex={0} aria-label="Source registry">
           <PanelHeader title="Source registry" />
           <table className="w-full min-w-[56rem] border-t border-line text-sm">
             <caption className="sr-only">Registered sources</caption>
@@ -163,6 +170,16 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
                     >
                       {humanize(s.approvalStatus)}
                     </span>
+                    {isAdmin && s.approvalStatus === 'pending' ? (
+                      <Button
+                        size="sm"
+                        className="mt-1.5"
+                        disabled={approve.isPending}
+                        onClick={() => approve.mutate(s.key)}
+                      >
+                        Approve source
+                      </Button>
+                    ) : null}
                   </td>
                   <td className="px-3 py-3 align-top text-ink">
                     {s.freshness === 'not_applicable' ? (
@@ -260,6 +277,71 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
           </PanelFooter>
         </Panel>
       </div>
+    </>
+  );
+}
+
+const TABS = [
+  { value: 'connectors', label: 'Connectors' },
+  { value: 'import', label: 'Import' },
+  { value: 'runs', label: 'Runs' },
+  { value: 'records', label: 'Records' },
+  { value: 'quality', label: 'Data quality' },
+  { value: 'sources', label: 'Sources & packages' },
+] as const;
+
+const tabClass =
+  'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
+
+/** Data & Integrations: connectors, imports, runs, normalized records, data quality and the source registry. */
+export function SourcesPage({ ctx }: { ctx: AuthContext }) {
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('tab');
+  const tab = TABS.some((t) => t.value === requested) ? requested! : 'connectors';
+  return (
+    <>
+      <PageHeader
+        title="Data & Sources"
+        description="Connectors, imports and the source registry. Unapproved sources cannot be ingested; rejected rows and quarantined records never reach cases, the graph or recommendations. Nothing here is a live feed until a connector proves it."
+      />
+      <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })}>
+        <Tabs.List
+          aria-label="Data and integrations"
+          className="mb-5 flex flex-wrap gap-1 border-b border-line"
+        >
+          {TABS.map((t) => (
+            <Tabs.Trigger key={t.value} value={t.value} className={tabClass}>
+              {t.label}
+              {tab === t.value ? (
+                <motion.span
+                  layoutId="data-tab-indicator"
+                  className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+        <Tabs.Content value="connectors" className="outline-none">
+          <ConnectorsPanel ctx={ctx} />
+        </Tabs.Content>
+        <Tabs.Content value="import" className="outline-none">
+          <ImportPanel ctx={ctx} />
+        </Tabs.Content>
+        <Tabs.Content value="runs" className="outline-none">
+          <RunsPanel />
+        </Tabs.Content>
+        <Tabs.Content value="records" className="outline-none">
+          <RecordsPanel />
+        </Tabs.Content>
+        <Tabs.Content value="quality" className="outline-none">
+          <QualityPanel />
+        </Tabs.Content>
+        <Tabs.Content value="sources" className="outline-none">
+          <SourcesAndPackages ctx={ctx} />
+        </Tabs.Content>
+      </Tabs.Root>
     </>
   );
 }

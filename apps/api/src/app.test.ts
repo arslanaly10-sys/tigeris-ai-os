@@ -106,7 +106,10 @@ describe('command centre', () => {
     ).json();
     expect(cc.counts.staleSources).toBe(1);
     const sources = cc.attention.filter((a) => a.kind === 'source');
-    expect(sources.map((s) => s.ref).sort()).toEqual(['gcc-stat', 'ofac-sls', 'synthetic-movement']);
+    // Seeded stale/pending sources, including the public feed awaiting approval; other test files may add more.
+    expect(sources.map((s) => s.ref)).toEqual(
+      expect.arrayContaining(['gcc-stat', 'ofac-sls', 'synthetic-movement', 'con-eia-rss']),
+    );
     expect(sources.every((s) => s.forYou)).toBe(true);
   });
 

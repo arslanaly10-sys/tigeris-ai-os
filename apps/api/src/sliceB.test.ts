@@ -115,7 +115,9 @@ describe('read scope: clearance by classification', () => {
     expect(list.map((c) => c.key)).not.toContain('CAP-ALLOC-01');
     expect(list.map((c) => c.key)).toContain('HMZ-2024-0413');
     expect(await status(ops, '/api/cases/CAP-ALLOC-01')).toBe(404);
-    expect((await get<PositionsPayload>(ops, '/api/positions')).positions).toHaveLength(0);
+    const opsPositions = (await get<PositionsPayload>(ops, '/api/positions')).positions;
+    expect(opsPositions.every((p) => p.provenance.classification !== 'confidential')).toBe(true);
+    expect(opsPositions.map((p) => p.provenance.connectorKey)).not.toContain('CON-SAMPLE-01');
     // Managers are classified restricted, so they remain readable.
     expect((await get<ManagerItem[]>(ops, '/api/managers')).length).toBeGreaterThan(0);
   });
@@ -123,7 +125,7 @@ describe('read scope: clearance by classification', () => {
 
 describe('canonical records with provenance (FR-12)', () => {
   it('agree with the cited exposure register and carry their provenance', async () => {
-    const pos = await get<PositionsPayload>(await as('executive'), '/api/positions');
+    const pos = await get<PositionsPayload>(await as('executive'), '/api/positions?connector=CON-SAMPLE-01');
     expect(pos.totals.routeDependentCount).toBe(11);
     expect(pos.totals.routeDependentNavSharePct).toBe(18);
     const p = pos.positions[0]!;

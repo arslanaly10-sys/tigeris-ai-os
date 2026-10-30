@@ -1,5 +1,13 @@
 import type {
   AgentRunItem,
+  ConnectorItem,
+  ConnectorRunDetail,
+  ConnectorRunItem,
+  DataQualitySummary,
+  Dataset,
+  DocumentItem,
+  ManagerItem,
+  PositionsPayload,
   CaseGovernance,
   DecisionLogItem,
   DecisionOutcome,
@@ -139,4 +147,71 @@ export const api = {
       body,
     ),
   memory: (q: string) => request<MemoryItem[]>('GET', `/api/memory${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  connectors: () => request<ConnectorItem[]>('GET', '/api/connectors'),
+  registerConnector: (body: Record<string, unknown>) =>
+    request<{ key: string }>('POST', '/api/connectors', body),
+  approveSource: (key: string) =>
+    request<{ ok: true }>('POST', `/api/sources/${encodeURIComponent(key)}/approve`),
+  testConnector: (key: string) =>
+    request<{ status: string; message: string }>('POST', `/api/connectors/${encodeURIComponent(key)}/test`),
+  setConnectorStatus: (key: string, status: 'paused' | 'configured' | 'retired') =>
+    request<{ status: string }>('POST', `/api/connectors/${encodeURIComponent(key)}/status`, { status }),
+  syncConnector: (key: string) =>
+    request<{ status: string; runKey: string; fetched: number; created: number; error: string | null }>(
+      'POST',
+      `/api/connectors/${encodeURIComponent(key)}/sync`,
+    ),
+  /** Multipart upload of one file to a file or document connector. */
+  upload: async (key: string, dataset: Dataset, file: File) => {
+    const form = new FormData();
+    form.append('dataset', dataset);
+    form.append('file', file, file.name);
+    const res = await fetch(`/api/connectors/${encodeURIComponent(key)}/uploads`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: form,
+    });
+    const payload = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
+    if (!res.ok)
+      throw new UploadFailed(res.status, payload.error ?? 'request_failed', payload.message ?? null);
+    return payload as {
+      status: 'succeeded' | 'partial' | 'failed';
+      runKey: string;
+      rowsTotal: number;
+      rowsAccepted: number;
+      rowsWarned: number;
+      rowsRejected: number;
+      error: string | null;
+    };
+  },
+  connectorRuns: (connector?: string) =>
+    request<ConnectorRunItem[]>(
+      'GET',
+      `/api/connector-runs${connector ? `?connector=${encodeURIComponent(connector)}` : ''}`,
+    ),
+  connectorRun: (key: string) =>
+    request<ConnectorRunDetail>('GET', `/api/connector-runs/${encodeURIComponent(key)}`),
+  positions: (connector?: string) =>
+    request<PositionsPayload>(
+      'GET',
+      `/api/positions${connector ? `?connector=${encodeURIComponent(connector)}` : ''}`,
+    ),
+  managers: (connector?: string) =>
+    request<ManagerItem[]>(
+      'GET',
+      `/api/managers${connector ? `?connector=${encodeURIComponent(connector)}` : ''}`,
+    ),
+  documents: () => request<DocumentItem[]>('GET', '/api/documents'),
+  dataQuality: () => request<DataQualitySummary>('GET', '/api/data-quality'),
 };
+
+/** An upload the server refused, with its reason. */
+export class UploadFailed extends ApiError {
+  constructor(
+    status: number,
+    code: string,
+    readonly detail: string | null,
+  ) {
+    super(status, code);
+  }
+}

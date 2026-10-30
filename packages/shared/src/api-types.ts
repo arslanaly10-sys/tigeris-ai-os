@@ -1,5 +1,6 @@
 import type { DriverDef, Drivers, EngineResult, MetricDef } from './scenario-engine';
 import type { MandateCheck, OptionMagnitude } from './scenario-options';
+import type { AuthType, ConnectionType, ConnectorStatus, Dataset } from './connectors';
 import type {
   DecisionOutcome,
   HandoffStatus,
@@ -593,6 +594,9 @@ export interface RecordProvenance {
   mappingVersion: string;
   qualityStatus: QualityStatus;
   ingestedAt: string;
+  /** The connector and run that imported the record; null for seeded synthetic records. */
+  connectorKey: string | null;
+  runKey: string | null;
 }
 
 export interface PositionItem {
@@ -637,4 +641,112 @@ export interface ManagerItem {
     reviewedOn: string | null;
   }[];
   provenance: RecordProvenance;
+}
+
+// ───────────────────────────── Slice C: connectors and ingestion ─────────────────────────────
+
+export interface ConnectorItem {
+  id: string;
+  key: string;
+  provider: string;
+  name: string;
+  connectionType: ConnectionType;
+  support: 'implemented' | 'adapter_boundary';
+  authType: AuthType;
+  /** Name of the environment variable holding the credential, and whether it is set. Never the value. */
+  authRef: string | null;
+  credentialPresent: boolean | null;
+  endpoint: string | null;
+  datasets: Dataset[];
+  sectorKey: SectorKey | null;
+  classification: Sensitivity;
+  schedule: string | null;
+  status: ConnectorStatus;
+  schemaVersion: string;
+  mappingVersion: string;
+  source: { key: string; approvalStatus: 'approved' | 'pending' | 'rejected'; sourceClass: SourceClass };
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  lastErrorAt: string | null;
+  retryCount: number;
+  nextRetryAt: string | null;
+  readOnly: true;
+  runs: { total: number; lastKey: string | null; lastStatus: ConnectorRunItem['status'] | null };
+  createdAt: string;
+}
+
+export interface ConnectorRunItem {
+  id: string;
+  key: string;
+  connectorKey: string;
+  dataset: Dataset;
+  trigger: 'upload' | 'manual' | 'schedule' | 'test';
+  status: 'running' | 'succeeded' | 'partial' | 'failed';
+  file: { name: string; mediaType: string; sizeBytes: number; sha256: string } | null;
+  rowsTotal: number;
+  rowsAccepted: number;
+  rowsWarned: number;
+  rowsRejected: number;
+  mappingVersion: string;
+  error: string | null;
+  actor: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+export interface RowIssueItem {
+  row: number;
+  field: string | null;
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+}
+
+export interface ConnectorRunDetail extends ConnectorRunItem {
+  issues: RowIssueItem[];
+  /** Keys of the records this run created. */
+  acceptedKeys: string[];
+}
+
+export interface DocumentItem {
+  id: string;
+  key: string;
+  title: string;
+  pageCount: number | null;
+  charCount: number;
+  excerpt: string;
+  sectorKey: SectorKey | null;
+  file: { name: string; mediaType: string; sizeBytes: number; sha256: string };
+  provenance: RecordProvenance;
+}
+
+// ───────────────────────────── Slice D: data quality ─────────────────────────────
+
+export interface DatasetQuality {
+  dataset: Dataset;
+  total: number;
+  byQuality: Record<QualityStatus, number>;
+  byMode: Partial<Record<RecordMode, number>>;
+}
+
+export interface DataQualitySummary {
+  datasets: DatasetQuality[];
+  connectors: {
+    key: string;
+    name: string;
+    status: ConnectorStatus;
+    lastError: string | null;
+    lastErrorAt: string | null;
+  }[];
+  runs: {
+    total: number;
+    succeeded: number;
+    partial: number;
+    failed: number;
+    rowsRejected: number;
+    rowsWarned: number;
+  };
+  recentProblemRuns: ConnectorRunItem[];
+  sources: { stale: SourceSummary[]; pending: SourceSummary[] };
+  quarantinedPackageRecords: number;
 }

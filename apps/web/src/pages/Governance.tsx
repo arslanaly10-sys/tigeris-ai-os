@@ -479,7 +479,7 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
           ) : null}
         </Panel>
 
-        <Panel aria-labelledby="log-heading" className="overflow-x-auto">
+        <Panel aria-labelledby="log-heading" className="overflow-x-auto" tabIndex={0}>
           <PanelHeader
             id="log-heading"
             icon={<ShieldCheck className="h-4 w-4" aria-hidden />}

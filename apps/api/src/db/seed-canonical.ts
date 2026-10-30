@@ -10,7 +10,17 @@ import {
   SYNTHETIC_NAV_USD_M,
 } from '../fixtures/canonical';
 import { withInstitution, type Db } from './client';
-import { authorityLimits, cases, ddRecords, entities, managers, positions, sources } from './schema';
+import {
+  authorityLimits,
+  cases,
+  connectors,
+  ddRecords,
+  entities,
+  managers,
+  positions,
+  principalRoles,
+  sources,
+} from './schema';
 
 /** Synthetic canonical records (slice B): positions, managers, due diligence, delegated limits, case workspaces. */
 export async function seedCanonical(db: Db, institutionId: string) {
@@ -93,6 +103,66 @@ export async function seedCanonical(db: Db, institutionId: string) {
         claimClass: 'synthetic',
       })),
     );
+
+    // Connectors: the synthetic register as a sample connector, and a public feed that stays `configured` (its
+    // source pending approval) until an administrator approves it and a fetch actually succeeds.
+    const [admin] = await tx
+      .select({ id: principalRoles.principalId })
+      .from(principalRoles)
+      .where(eq(principalRoles.role, 'administrator'));
+    const [sample] = await tx
+      .insert(connectors)
+      .values({
+        institutionId,
+        key: 'CON-SAMPLE-01',
+        provider: 'GSIA (Demo) — synthetic fixture',
+        name: 'Synthetic exposure register',
+        connectionType: 'file',
+        authType: 'none',
+        datasets: ['positions', 'managers', 'due_diligence'],
+        sectorKey: 'capital',
+        classification: 'confidential',
+        status: 'sample',
+        mappingVersion: MAPPING_VERSION,
+        sourceId: source.id,
+        createdBy: admin!.id,
+      })
+      .returning({ id: connectors.id });
+    await tx.update(positions).set({ connectorId: sample!.id });
+    await tx.update(managers).set({ connectorId: sample!.id });
+    await tx.update(ddRecords).set({ connectorId: sample!.id });
+    const [feedSource] = await tx
+      .insert(sources)
+      .values({
+        institutionId,
+        key: 'con-eia-rss',
+        publisher: 'U.S. Energy Information Administration',
+        title: 'Today in Energy (RSS)',
+        sourceClass: 'public',
+        url: 'https://www.eia.gov/rss/todayinenergy.xml',
+        termsRef: 'EIA public information (citation required)',
+        allowedPurpose: 'Institutional analysis (registered connector)',
+        cadence: 'On sync',
+        freshnessLimitHours: null,
+        approvalStatus: 'pending',
+      })
+      .returning({ id: sources.id });
+    await tx.insert(connectors).values({
+      institutionId,
+      key: 'CON-EIA-RSS',
+      provider: 'U.S. Energy Information Administration',
+      name: 'Today in Energy (RSS)',
+      connectionType: 'rss',
+      authType: 'none',
+      endpoint: 'https://www.eia.gov/rss/todayinenergy.xml',
+      datasets: ['signals'],
+      sectorKey: 'energy',
+      classification: 'internal',
+      status: 'configured',
+      mappingVersion: 'feed.items.v1',
+      sourceId: feedSource!.id,
+      createdBy: admin!.id,
+    });
 
     for (const [key, sectorKey] of Object.entries(CASE_SECTORS)) {
       await tx.update(cases).set({ sectorKey }).where(eq(cases.key, key));

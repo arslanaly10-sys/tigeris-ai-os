@@ -90,14 +90,14 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ### 5.2 Data, sources and connectors
 
-- **FR-06** Connector registry: provider, connector, institution scope, connection type, auth type (no plaintext secrets), schedule, last success, last error and retry, datasets, schema and mapping version, classification, status (sample, configured, connected, paused, failed, retired). _Planned (slice C)._
-- **FR-07** Adapter interface so a provider is added without touching the rest of the system: REST, webhooks, relational databases, SFTP, CSV/XLSX/JSON, PDF/office documents, scheduled batch, event streams where justified. Read-only first. _Planned (slice C)._
+- **FR-06** Connector registry: provider, connector, institution scope, connection type, auth type (no plaintext secrets), schedule, last success, last error and retry, datasets, schema and mapping version, classification, status (sample, configured, connected, paused, failed, retired). _Implemented (slice C)._
+- **FR-07** Adapter interface so a provider is added without touching the rest of the system: REST, webhooks, relational databases, SFTP, CSV/XLSX/JSON, PDF/office documents, scheduled batch, event streams where justified. Read-only first. _Implemented: file, document, REST and RSS adapters; webhook, SQL, SFTP and stream are declared boundaries that refuse to run (D-70)._
 - **FR-08** Lineage: every figure opens its source record, fact, transformation and timestamps. _Implemented._
 - **FR-09** Ingestion with validation and quarantine: hashed, idempotent packages; per-record checks (TR-001..TR-011). _Implemented (JSON packages)._
-- **FR-10** File import: CSV, XLSX, JSON and document uploads with row-level validation errors, ingestion status and a normalized record browser. _Planned (slice C)._
-- **FR-11** Data quality and freshness: per-source freshness limits, stale warnings in dependent views, quality status per record. _Implemented (sources); record-level Planned._
-- **FR-12** Provenance on every record: source system and record ID, owner, connector or method, source and ingestion timestamps, licence notes, classification and access scope, transformation, freshness, and whether live, imported, synthetic, sample or manual. _Partial; completed in slice B/C._
-- **FR-13** Public-feed connectors (RSS/JSON advisories) that stay "configured, not connected" until a fetch succeeds (D-59). _Planned._
+- **FR-10** File import: CSV, XLSX, JSON and document uploads with row-level validation errors, ingestion status and a normalized record browser. _Implemented (slice C)._
+- **FR-11** Data quality and freshness: per-source freshness limits, stale warnings in dependent views, quality status per record. _Implemented (slice D)._
+- **FR-12** Provenance on every record: source system and record ID, owner, connector or method, source and ingestion timestamps, licence notes, classification and access scope, transformation, freshness, and whether live, imported, synthetic, sample or manual. _Implemented (slices B/C)._
+- **FR-13** Public-feed connectors (RSS/JSON advisories) that stay "configured, not connected" until a fetch succeeds (D-59). _Implemented: the seeded EIA feed stays configured until its source is approved and a fetch succeeds (D-73)._
 
 ### 5.3 Entities, graph and exposure
 
@@ -190,10 +190,10 @@ labelled as such, never implying a live institution or the ability to move capit
 | ID    | Criterion                                                                                                        | Status                                        |
 | ----- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | AC-01 | Enter a clearly labelled demo institution with a named role; no password field                                   | Implemented                                   |
-| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Partial (JSON sample); file import Planned    |
+| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Implemented                                   |
 | AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                   |
 | AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                   |
-| AC-05 | Validation reports row-level issues and retains provenance                                                       | Partial                                       |
+| AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                   |
 | AC-06 | Imported records appear in the right institution and sector workspace                                            | Planned                                       |
 | AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                   |
 | AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                   |
@@ -204,7 +204,7 @@ labelled as such, never implying a live institution or the ability to move capit
 | AC-13 | Errors, stale sources, missing data and empty states are explicit                                                | Implemented                                   |
 | AC-14 | An administrator configures the five CI domains, runs or schedules a crawl, sees status and source-linked claims | Planned; crawling Blocked on network policy   |
 | AC-15 | Competitive intelligence stays separate from portfolio and operational data                                      | Planned                                       |
-| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented for current sources               |
+| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented (sources and connectors)          |
 
 ## 8. Competitive landscape (context, unverified)
 

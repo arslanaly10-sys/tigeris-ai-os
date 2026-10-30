@@ -541,6 +541,8 @@ export const positions = pgTable('positions', {
   routeDependent: boolean('route_dependent').notNull().default(false),
   asOf: date('as_of').notNull(),
   qualityNotes: jsonb('quality_notes').notNull().default([]),
+  connectorId: uuid('connector_id'),
+  runId: uuid('run_id'),
   ...provenance,
 });
 
@@ -552,6 +554,8 @@ export const managers = pgTable('managers', {
   strategy: text('strategy').notNull(),
   domicile: text('domicile'),
   sectorKey: text('sector_key'),
+  connectorId: uuid('connector_id'),
+  runId: uuid('run_id'),
   ...provenance,
 });
 
@@ -565,5 +569,100 @@ export const ddRecords = pgTable('dd_records', {
   openIssues: integer('open_issues').notNull().default(0),
   summary: text('summary').notNull(),
   reviewedOn: date('reviewed_on'),
+  connectorId: uuid('connector_id'),
+  runId: uuid('run_id'),
+  ...provenance,
+});
+
+// ───────────────────────────── Slice C: connectors and ingestion (migration 0007) ─────────────────────────────
+
+export const connectors = pgTable('connectors', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  provider: text('provider').notNull(),
+  name: text('name').notNull(),
+  connectionType: text('connection_type').notNull(),
+  authType: text('auth_type').notNull(),
+  authRef: text('auth_ref'),
+  endpoint: text('endpoint'),
+  datasets: jsonb('datasets').$type<string[]>().notNull().default([]),
+  sectorKey: text('sector_key'),
+  classification: text('classification').notNull(),
+  schedule: text('schedule'),
+  status: text('status').notNull().default('configured'),
+  schemaVersion: text('schema_version').notNull().default('v1'),
+  mappingVersion: text('mapping_version').notNull().default('v1'),
+  sourceId: uuid('source_id').notNull(),
+  lastSuccessAt: ts('last_success_at'),
+  lastError: text('last_error'),
+  lastErrorAt: ts('last_error_at'),
+  retryCount: integer('retry_count').notNull().default(0),
+  nextRetryAt: ts('next_retry_at'),
+  readOnly: boolean('read_only').notNull().default(true),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+export const uploadedFiles = pgTable('uploaded_files', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  connectorId: uuid('connector_id').notNull(),
+  originalName: text('original_name').notNull(),
+  mediaType: text('media_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
+  sha256: text('sha256').notNull(),
+  storagePath: text('storage_path').notNull(),
+  classification: text('classification').notNull(),
+  uploadedBy: uuid('uploaded_by').notNull(),
+  uploadedAt: ts('uploaded_at').notNull().defaultNow(),
+});
+
+export const connectorRuns = pgTable('connector_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  connectorId: uuid('connector_id').notNull(),
+  dataset: text('dataset').notNull(),
+  trigger: text('trigger').notNull(),
+  fileId: uuid('file_id'),
+  status: text('status').notNull(),
+  rowsTotal: integer('rows_total').notNull().default(0),
+  rowsAccepted: integer('rows_accepted').notNull().default(0),
+  rowsWarned: integer('rows_warned').notNull().default(0),
+  rowsRejected: integer('rows_rejected').notNull().default(0),
+  mappingVersion: text('mapping_version').notNull(),
+  error: text('error'),
+  actorId: uuid('actor_id'),
+  startedAt: ts('started_at').notNull().defaultNow(),
+  finishedAt: ts('finished_at'),
+});
+
+export const rowIssues = pgTable('row_issues', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  runId: uuid('run_id').notNull(),
+  rowNumber: integer('row_number').notNull(),
+  field: text('field'),
+  severity: text('severity').notNull(),
+  code: text('code').notNull(),
+  message: text('message').notNull(),
+  raw: jsonb('raw').notNull(),
+});
+
+export const documents = pgTable('documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  title: text('title').notNull(),
+  fileId: uuid('file_id').notNull(),
+  pageCount: integer('page_count'),
+  charCount: integer('char_count').notNull(),
+  excerpt: text('excerpt').notNull(),
+  fullText: text('full_text').notNull(),
+  sectorKey: text('sector_key'),
+  connectorId: uuid('connector_id'),
+  runId: uuid('run_id'),
   ...provenance,
 });

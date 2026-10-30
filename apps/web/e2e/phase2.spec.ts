@@ -99,7 +99,7 @@ test.describe('map (map spec §6)', () => {
 test.describe('data & sources (FR-09)', () => {
   test('shows rejected and quarantined ingestion with reasons', async ({ page }) => {
     await signInAs(page, /Auditor/);
-    await page.goto('/sources');
+    await page.goto('/sources?tab=sources');
     await expect(page.getByText('gcc-stat-trial-extract')).toBeVisible();
     await expect(page.getByText('Only governance administrators can import packages.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Quarantine' })).toBeVisible();
@@ -115,7 +115,7 @@ test.describe('data & sources (FR-09)', () => {
   test('lets an administrator import a sample package', async ({ page }, info) => {
     desktopOnly(info.project.name);
     await signInAs(page, /Governance Administrator/);
-    await page.goto('/sources');
+    await page.goto('/sources?tab=sources');
     // Count from the panel's recorded total once it has loaded, not from whatever has rendered so far.
     const total = page.getByText(/^\d+ ingestion runs recorded$/);
     await expect(total).toBeVisible();

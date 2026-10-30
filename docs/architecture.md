@@ -89,7 +89,7 @@ Provenance fields every imported record will carry (FR-12): source system, sourc
 method, source timestamp, ingestion timestamp, licence notes, classification and access scope, transformation
 (mapping version), freshness and quality status, and record mode (live, imported, synthetic, sample, manual).
 
-## 5. Connector framework (planned, slice C)
+## 5. Connector framework (slices C/D)
 
 ```
 Connector (registry row) ──▶ Adapter (code, by type) ──▶ Raw batch (hashed) ──▶ Validation rules ──▶ Normalized records
@@ -105,9 +105,22 @@ Connector (registry row) ──▶ Adapter (code, by type) ──▶ Raw batch (
   error and retry time; `paused` and `retired` stop scheduling.
 - Read-only first. Write-back needs a configured destination, server authorization, audit and human approval (PRD §9).
 
-How to add a provider: write an adapter (`apps/api/src/connectors/adapters/<type>.ts`), a mapping
-(`mappings/<provider>.<dataset>.v1.ts`), register the connector in the UI, run `test`, then schedule. Portfolio
-systems, ERP, market data, document management, public data and sector operations systems all follow the same path.
+As built (D-69..D-75):
+
+- Registry and runs: `connectors`, `connector_runs`, `row_issues`, `uploaded_files`, `documents` (migration 0007);
+  canonical rows carry `connector_id` and `run_id`. Routes in `apps/api/src/modules/connectors.ts`; writes are
+  administrator-only and audited.
+- Adapters: `apps/api/src/connectors/adapters.ts` (`ADAPTERS` keyed by connection type). File and document uploads go
+  through `parse.ts` (magic-byte sniffing, CSV/XLSX/JSON parsing, PDF/DOCX text) and `ingest.ts`; feeds through
+  `sync.ts`. Field rules and mapping versions live in `packages/shared/src/connectors.ts` (`DATASET_FIELDS`,
+  `validateRows`) so the import screen and the API agree.
+- Jobs: `apps/api/src/jobs.ts` runs pg-boss queues `connector-sync` and `ci-crawl` on the schema created by migration 0008.
+- Data quality: `GET /api/data-quality`, shown on Data & Sources → Data quality.
+
+How to add a provider: add an adapter to `ADAPTERS` (implementing `test` and `fetch`), add or version a dataset mapping in
+`packages/shared/src/connectors.ts`, register the connector in Data & Sources, approve its source, run Test, then
+schedule. Portfolio systems, ERP, market data, document management, public data and sector operations systems all follow
+the same path.
 
 ## 6. AI and agents
 

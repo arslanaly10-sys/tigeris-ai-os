@@ -1,9 +1,13 @@
 import cookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
 import Fastify, { type FastifyError } from 'fastify';
+import { MAX_UPLOAD_BYTES } from './connectors/parse';
 import type { Db } from './db/client';
+import { disabledJobs, type JobScheduler } from './jobs';
 import { DemoIdentityProvider } from './modules/auth/identity';
 import { authRoutes } from './modules/auth/routes';
 import { caseRoutes } from './modules/cases';
+import { connectorRoutes } from './modules/connectors';
 import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
 import { graphRoutes } from './modules/graph';
@@ -23,11 +27,14 @@ export interface BuildOptions {
   demoInstitutionCode?: string;
   secureCookies?: boolean;
   logger?: boolean;
+  /** Background job scheduler; omitted in tests, where scheduling is refused with a clear message. */
+  jobs?: JobScheduler;
 }
 
 export async function buildApp(opts: BuildOptions) {
   const app = Fastify({ logger: opts.logger ?? false, trustProxy: false });
   await app.register(cookie, { secret: opts.sessionSecret });
+  await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 5, parts: 6 } });
   app.decorateRequest('ctx', null);
 
   const deps: AppDeps = {
@@ -35,6 +42,7 @@ export async function buildApp(opts: BuildOptions) {
     identity: new DemoIdentityProvider(opts.secureCookies ?? false),
     demoInstitutionKey: opts.demoInstitutionKey,
     demoInstitutionCode: opts.demoInstitutionCode ?? 'GSIA-DEMO',
+    jobs: opts.jobs ?? disabledJobs,
   };
 
   // Never expose stack traces, SQL or sensitive text to clients (TRD §11.2).
@@ -57,5 +65,6 @@ export async function buildApp(opts: BuildOptions) {
   await scenarioRoutes(app, deps);
   await governanceRoutes(app, deps);
   await portfolioRoutes(app, deps);
+  await connectorRoutes(app, deps);
   return app;
 }

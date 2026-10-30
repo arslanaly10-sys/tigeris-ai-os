@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { withInstitution, type Db, type Tx } from '../db/client';
 import { principalRoles, principals, principalWorkspaces } from '../db/schema';
+import type { JobScheduler } from '../jobs';
 import type { IdentityProvider } from './auth/identity';
 
 export interface RequestContext {
@@ -23,6 +24,7 @@ export interface AppDeps {
   demoInstitutionKey: string;
   /** Code a user types at sign-in to reach the demonstration institution. */
   demoInstitutionCode: string;
+  jobs: JobScheduler;
 }
 
 declare module 'fastify' {

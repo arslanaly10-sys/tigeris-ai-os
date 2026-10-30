@@ -909,3 +909,26 @@ export const interventions = pgTable('interventions', {
   closedAt: ts('closed_at'),
   closeReason: text('close_reason'),
 });
+
+// ───────────────────────────── Phase 5C: guardrails (migration 0015) ─────────────────────────────
+
+export const guardrails = pgTable('guardrails', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  decisionId: uuid('decision_id').notNull(),
+  caseId: uuid('case_id').notNull(),
+  actionClass: text('action_class').notNull(),
+  effect: text('effect').notNull(),
+  requiredRole: text('required_role'),
+  thresholdValue: numeric('threshold_value'),
+  thresholdUnit: text('threshold_unit'),
+  statement: text('statement').notNull(),
+  expiresOn: date('expires_on'),
+  status: text('status').notNull(),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  liftedBy: uuid('lifted_by'),
+  liftedAt: ts('lifted_at'),
+  liftReason: text('lift_reason'),
+});

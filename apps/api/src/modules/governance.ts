@@ -26,6 +26,7 @@ import {
   type DecisionItem,
   type DecisionLogItem,
   type DecisionOutcome,
+  type GuardrailInput,
   type DraftOptionItem,
   type EngineResult,
   type ExpectedFigure,
@@ -61,6 +62,7 @@ import {
   recommendations,
   scenarioRuns,
 } from '../db/schema';
+import { activeGuardrails } from './guardrails';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
 import { caseReadable } from './scope';
 import { toDraftOption } from './scenarios';
@@ -266,6 +268,7 @@ function policyFor(
   outcome: DecisionOutcome,
   limit: Limit,
   dissent: { count: number; acknowledged: boolean },
+  guardrails: readonly GuardrailInput[],
 ): PolicyEvaluation {
   return evaluatePolicy({
     outcome,
@@ -282,6 +285,7 @@ function policyFor(
     magnitude: rec.option.magnitude,
     limit,
     dissent,
+    guardrails,
   });
 }
 
@@ -438,6 +442,7 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         const open = recs.find((r) => OPEN_RECOMMENDATION_STATUSES.includes(r.status)) ?? null;
         const decidable = open && (open.status === 'endorsed' || open.status === 'awaiting_second_approval');
         const openLimit = decidable ? await limitFor(tx, open.option.actionClass, ctx.roles) : null;
+        const openGuardrails = decidable ? await activeGuardrails(tx, open.option.actionClass) : [];
         const [handoff] = await loadHandoffs(tx, eq(handoffs.caseId, kase.id));
         const [memory] = await loadMemory(tx, eq(memoryEntries.caseId, kase.id));
         const notes = await loadNotes(
@@ -462,7 +467,7 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
             ? (Object.fromEntries(
                 DECISION_OUTCOMES.map((o) => [
                   o,
-                  policyFor(open, ctx, o, openLimit, dissentOf(notes, open.key, false)),
+                  policyFor(open, ctx, o, openLimit, dissentOf(notes, open.key, false), openGuardrails),
                 ]),
               ) as Record<DecisionOutcome, PolicyEvaluation>)
             : null,
@@ -741,6 +746,7 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         body.data.outcome,
         limit,
         dissentOf(notes, row.key, body.data.acknowledgeDissent),
+        await activeGuardrails(tx, rec!.option.actionClass),
       );
       const now = new Date();
       if (evaluation.result === 'block') {

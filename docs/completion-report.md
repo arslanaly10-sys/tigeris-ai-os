@@ -2,7 +2,7 @@
 
 Date: 30 October 2026. Branch: `main`. This report states what was built against the owner's brief (sections 1–15),
 how to run it, how it is configured, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to
-`docs/decisions.md` (D-01..D-101).
+`docs/decisions.md` (D-01..D-102).
 
 ## 1. What the platform does
 
@@ -91,7 +91,8 @@ Stated plainly, so nothing here is mistaken for a claim:
   the same way. Allowing those hosts in the environment's network settings (a change may only reach a new session) is
   all that is needed; nothing about vendors has been collected or invented.
 - **No live data.** Every source is a dated snapshot, a synthetic fixture or an import. The seeded EIA feed connector
-  source is approved by the owner (D-98) but the connector stays "configured" until a fetch succeeds. Public figures from secondary summaries are
+  source is approved by the owner (D-98) but the connector stays "configured" until a fetch succeeds. One EIA item
+  pasted by the owner is held as a manual, unverified snapshot signal (D-102). Public figures from secondary summaries are
   marked unverified until the primary page is captured.
 - **Identity is a demonstration directory.** Production sign-in through the institution's identity provider (FR-02)
   is an adapter boundary, not built; the provider is chosen (D-100: OpenID Connect, Microsoft Entra ID by default).

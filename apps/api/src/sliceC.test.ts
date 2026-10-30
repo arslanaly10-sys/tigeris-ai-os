@@ -1,6 +1,7 @@
 // Slice C: connector registry, source approval, file and document ingestion with row-level validation and
 // provenance, and honest connector status. Runs as tigeris_app through the API.
 import type {
+  SignalDetail,
   ConnectorItem,
   ConnectorRunDetail,
   DataQualitySummary,
@@ -323,5 +324,18 @@ describe('data quality view (slice D)', () => {
     expect(q.sources.pending.map((s) => s.key)).not.toContain('con-eia-rss');
     const ops = await get<DataQualitySummary>('operations_owner', '/api/data-quality');
     expect(ops.datasets.find((d) => d.dataset === 'positions')!.byMode.synthetic ?? 0).toBe(0);
+  });
+});
+
+describe('owner-supplied EIA snapshot (D-102)', () => {
+  it('is a new, unverified snapshot signal from the approved EIA source, never fetched or live', async () => {
+    const s = await get<SignalDetail>('analyst', '/api/signals/SIG-EIA-20261029');
+    expect(s).toMatchObject({ disposition: 'new', dataMode: 'snapshot', confidenceBand: 'insufficient' });
+    expect(s.summary).toContain('supplied by the owner; unverified');
+    const ev = s.evidence[0]!;
+    expect(ev.validationStatus).toBe('unverified');
+    expect(ev.validationNote).toContain('not fetched by TIGERIS');
+    expect(ev.source.publisher).toBe('U.S. Energy Information Administration');
+    expect(ev.source.approvalStatus).toBe('approved');
   });
 });

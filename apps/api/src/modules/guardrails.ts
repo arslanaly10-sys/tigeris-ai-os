@@ -152,12 +152,10 @@ export async function guardrailRoutes(app: FastifyInstance, deps: AppDeps) {
           .code(409)
           .send({ error: 'not_approved', message: 'Guardrails are recorded from approved decisions only.' });
       if (!ctx.roles.includes('executive') && d.d.approverId !== ctx.principalId)
-        return reply
-          .code(403)
-          .send({
-            error: 'not_decider',
-            message: 'Only the executive or the approver of this decision records one.',
-          });
+        return reply.code(403).send({
+          error: 'not_decider',
+          message: 'Only the executive or the approver of this decision records one.',
+        });
       const classes = await tx.select({ a: authorityRules.actionClass }).from(authorityRules);
       const [option] = await tx
         .select({ actionClass: draftOptions.actionClass })

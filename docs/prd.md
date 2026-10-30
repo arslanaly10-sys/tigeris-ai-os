@@ -170,6 +170,18 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-50** Competitive-intelligence report, separate from decision reports, with citations only to vendor-public sources. _Implemented (slice J): accepted claims only, each citing its vendor page; export audited._
 - **FR-51** Sector datasets and models: one importable dataset per sector without data of its own (utility assets, shipments, counterparty exposures, supplier tiers, project milestones, insured exposures) and two deterministic, versioned indicators each, naming their method and input records, within the reader's clearance. _Implemented (slice K); nothing seeded, so each shows "Source not connected" until data is imported._
 
+### 5.10 Phase 5: institutional second brain (D-103..D-114)
+
+- **FR-52** Semantic registry: versioned metric definitions (formula, unit, owner, source, jurisdiction variants) and codified mandate and business rules (scope, formula, threshold) that the policy and models evaluate; exported as JSON-LD. _Planned (5A)._
+- **FR-53** Intervention engine: versioned watch rules and thresholds over scenario metrics and mandates, sector indicators, signals and sources, and approved decisions; an intervention inbox per role; every alert names its rule, inputs and lineage. Covers FR-36. _Planned (5B)._
+- **FR-54** Decision guardrails: a decision can record standing guardrails enforced by the decision policy on later decisions; approved decisions are monitored against their expected figures with drift alerts. _Planned (5C)._
+- **FR-55** Learning loop: missed outcomes propose new assumption versions for expert approval; calibration view per assumption and model. _Planned (5D)._
+- **FR-56** Validation tasking and roll-up: request validation of any finding from a named person or desk with a due date; asset-class desks as divisions; executive roll-up with assumptions visible. _Planned (5E)._
+- **FR-57** Scenario room and a second template (oil price shock on the portfolio); declarative scenario templates. _Planned (5F)._
+- **FR-58** Ask TIGERIS: grounded questions over cases, graph, memory and sector models with citations; email and Teams notification adapters, off until configured. _Planned (5G)._
+- **FR-59** Production foundations: OIDC with Microsoft Entra ID, container and Helm packaging, backups with restore tests, observability, S3-compatible evidence store. _Planned (5H)._
+- **FR-60** AI economics and model configuration: Claude adapter off by default, tokens and cost per run, case and decision, monthly budget with hard stop; model configuration screen (FR-44). _Planned (5I)._
+
 ## 6. Technical requirements (selected)
 
 - **TR-001..TR-011** Ingestion checks: source approved, schema, data class, integrity hash, timestamps, duplicates, freshness, quarantine reasons, idempotent packages, rule-set version, append-only runs. _Implemented._

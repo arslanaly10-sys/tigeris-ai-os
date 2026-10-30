@@ -6,6 +6,9 @@
  */
 import {
   MAPPING_VERSIONS,
+  SECTOR_DATASET_DEFS,
+  SECTOR_DATASETS,
+  type SectorDataset,
   TABULAR_DATASETS,
   validateRows,
   type CleanValue,
@@ -24,6 +27,7 @@ import {
   managers,
   positions,
   rowIssues,
+  sectorRecords,
   sources,
   uploadedFiles,
 } from '../db/schema';
@@ -158,7 +162,7 @@ async function insertRecords(
       });
       accepted.push(str(v.key)!);
     }
-  } else {
+  } else if (dataset === 'due_diligence') {
     const keys = candidates.map((r) => str(r.values.manager_key)!);
     const mgrs = keys.length
       ? await tx
@@ -203,6 +207,49 @@ async function insertRecords(
         reviewedOn: str(v.reviewed_on),
       });
       accepted.push(str(v.key)!);
+    }
+  } else if ((SECTOR_DATASETS as readonly string[]).includes(dataset)) {
+    // Sector records (slice K): the dataset fixes the workspace; the cleaned row is kept as attributes.
+    const def = SECTOR_DATASET_DEFS[dataset as SectorDataset];
+    const existing = await tx
+      .select({ key: sectorRecords.key, asOf: sectorRecords.asOf })
+      .from(sectorRecords)
+      .where(
+        and(
+          eq(sectorRecords.dataset, dataset),
+          inArray(
+            sectorRecords.key,
+            candidates.map((r) => str(r.values.key)!),
+          ),
+        ),
+      );
+    const taken = new Set(existing.map((e) => `${e.key}|${e.asOf}`));
+    for (const r of candidates) {
+      const v = r.values;
+      if (taken.has(`${v.key}|${v.as_of}`)) {
+        clash(
+          r.row,
+          'key',
+          'already_imported',
+          `${v.key} as of ${v.as_of} already exists; records are immutable.`,
+        );
+        continue;
+      }
+      taken.add(`${v.key}|${v.as_of}`);
+      const attributes = Object.fromEntries(
+        def.fields
+          .filter((f) => f.name !== 'key' && f.name !== 'as_of')
+          .map((f) => [f.name, v[f.name] ?? null]),
+      ) as Record<string, string | number | boolean | null>;
+      await tx.insert(sectorRecords).values({
+        ...prov(r.row, r.issues.length > 0),
+        dataset,
+        key: str(v.key)!,
+        sectorKey: def.sector,
+        attributes,
+        asOf: str(v.as_of)!,
+      });
+      accepted.push(`${v.key}@${v.as_of}`);
     }
   }
   return { accepted, clashes };

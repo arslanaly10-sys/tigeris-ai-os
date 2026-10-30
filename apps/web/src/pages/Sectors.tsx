@@ -1,10 +1,11 @@
-import type { SectorKey, SectorKpi } from '@tigeris/shared';
+import type { SectorKey, SectorKpi, SectorModelItem } from '@tigeris/shared';
 import { SECTOR_BY_KEY, SECTOR_KEYS } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
   Bot,
   Brain,
+  Calculator,
   Compass,
   Database,
   GitFork,
@@ -32,6 +33,70 @@ import { ROLE_LABEL } from '@/lib/roles';
 import { SectorTile } from '@/pages/Overview';
 
 /** Sector index: the eight configured sector packs over one graph and one governed workflow. */
+/** Sector model indicators (slice K): versioned calculations over imported sector records, with their inputs. */
+function SectorModelPanel({ m }: { m: SectorModelItem }) {
+  const fmt = (v: number, unit: string) =>
+    unit === '%'
+      ? `${v}%`
+      : unit === 'USD'
+        ? `USD ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
+        : `${v.toLocaleString('en-US')} ${unit}`;
+  return (
+    <Panel aria-labelledby={`sm-${m.dataset}`} className="mt-6">
+      <PanelHeader
+        id={`sm-${m.dataset}`}
+        icon={<Calculator className="h-4 w-4" aria-hidden />}
+        title="Sector models"
+        description={`${m.version}, computed from ${m.label.toLowerCase()} you are cleared to read. Each figure names its method and the records it used.`}
+      />
+      {m.records === 0 ? (
+        <div className="border-t border-line px-5 py-4 text-sm">
+          <p className="text-ink">
+            Source not connected: no {m.label.toLowerCase()} imported yet, so these indicators are not shown.
+          </p>
+          <p className="mt-1 text-ink-muted">
+            Import a file through{' '}
+            <Link to="/sources?tab=import" className="text-cyan underline underline-offset-2">
+              Data & Sources
+            </Link>{' '}
+            using the{' '}
+            <a href={`/api/templates/${m.dataset}`} className="text-cyan underline underline-offset-2">
+              {m.label.toLowerCase()} template
+            </a>{' '}
+            ({m.mappingVersion}).
+          </p>
+        </div>
+      ) : (
+        <>
+          <ul className="grid gap-px border-t border-line bg-line sm:grid-cols-2">
+            {m.indicators.map((i) => (
+              <li key={i.key} className="bg-panel px-5 py-4">
+                <p className="text-sm text-ink-muted">{i.label}</p>
+                <p className="tabular mt-1 font-serif text-2xl font-semibold text-ink">
+                  {i.value === null ? 'Not computable' : fmt(i.value, i.unit)}
+                </p>
+                <details className="mt-1 text-xs text-ink-muted">
+                  <summary className="cursor-pointer text-cyan">How this is calculated</summary>
+                  <p className="mt-1">{i.method}</p>
+                  <p className="mt-1 break-words">
+                    From {i.inputKeys.length} records; determined by {i.drivingKeys.join(', ') || 'none'}.
+                  </p>
+                </details>
+              </li>
+            ))}
+          </ul>
+          <p className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3 text-xs text-ink-muted">
+            {m.records} records, latest as of {m.latestAsOf} ·{' '}
+            {m.modes.map((x) => (
+              <RecordModeBadge key={x} value={x} />
+            ))}
+          </p>
+        </>
+      )}
+    </Panel>
+  );
+}
+
 export function SectorsIndexPage() {
   const { t } = useI18n();
   const sectors = useQuery({ queryKey: ['sectors'], queryFn: api.sectors });
@@ -411,6 +476,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
               </Panel>
             </div>
           </div>
+
+          {d.models.map((m) => (
+            <SectorModelPanel key={m.dataset} m={m} />
+          ))}
 
           <Panel aria-labelledby="sc-records-heading" className="mt-6">
             <PanelHeader

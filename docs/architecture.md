@@ -128,6 +128,12 @@ How to add a provider: add an adapter to `ADAPTERS` (implementing `test` and `fe
 schedule. Portfolio systems, ERP, market data, document management, public data and sector operations systems all follow
 the same path.
 
+Sector datasets (slice K): six further tabular datasets (`packages/shared/src/sector-models.ts`) use the same
+connector, validation and run machinery and land in `sector_records` (migration 0012) with full provenance; the
+dataset fixes the sector workspace. `GET /api/sectors/:key` returns `models`: the latest version of each readable
+record run through `sector-models 1.0.0`, two indicators per dataset, each with its method, input keys and the keys
+that determine it.
+
 ## 6. AI and agents
 
 - **Gateway** (`modules/gateway.ts`): approved-model policy, versioned templates, grounding check that rejects any

@@ -1,7 +1,13 @@
 import {
   SECTOR_BY_KEY,
+  SECTOR_DATASET_DEFS,
+  SECTOR_DATASET_FOR,
   SECTOR_KEYS,
+  SECTOR_MODELS_VERSION,
   SECTORS,
+  sectorIndicators,
+  type RecordMode,
+  type SectorModelItem,
   type AuthorityRuleItem,
   type ClaimClass,
   type MandateItem,
@@ -14,7 +20,7 @@ import {
   type SectorSummary,
   type ValidationStatus,
 } from '@tigeris/shared';
-import { asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withInstitution, type Tx } from '../db/client';
@@ -24,9 +30,11 @@ import {
   evidenceFacts,
   evidenceObjects,
   mandates,
+  sectorRecords,
   sources,
 } from '../db/schema';
 import { listCases } from './cases';
+import { recordReadable } from './portfolio';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { listSignals } from './signals';
 
@@ -112,6 +120,7 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
       const kpiTimes = kpis.flatMap((k) => (k.value?.retrievedAt ? [k.value.retrievedAt] : []));
       const caseTimes = mine.map((c) => c.updatedAt);
       const lastUpdated = [...kpiTimes, ...caseTimes].sort().at(-1) ?? null;
+      const models = await sectorModels(tx, ctx.scope, def.key);
       return {
         ...all.find((s) => s.key === def.key)!,
         kpisConnected: kpis.filter((k) => k.value).length,
@@ -123,6 +132,7 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
         reviewQueue: mine.filter((c) => c.state === 'review' || c.state === 'decision'),
         entityKeys: def.entityKeys,
         lastUpdated,
+        models,
       };
     });
   });
@@ -169,4 +179,47 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
       };
     });
   });
+}
+
+/**
+ * Sector models (slice K): the latest version of each imported record the reader may see (clearance and workspace),
+ * run through the dataset's versioned, deterministic indicators.
+ */
+async function sectorModels(tx: Tx, scope: ReadScope, sector: SectorKey): Promise<SectorModelItem[]> {
+  const dataset = SECTOR_DATASET_FOR[sector];
+  if (!dataset) return [];
+  const def = SECTOR_DATASET_DEFS[dataset];
+  const rows = await tx
+    .select()
+    .from(sectorRecords)
+    .where(
+      and(
+        eq(sectorRecords.dataset, dataset),
+        recordReadable(scope, sectorRecords.classification, sectorRecords.sectorKey),
+        ne(sectorRecords.qualityStatus, 'quarantined'),
+      ),
+    )
+    .orderBy(desc(sectorRecords.asOf));
+  const latest = new Map<string, (typeof rows)[number]>();
+  for (const r of rows) if (!latest.has(r.key)) latest.set(r.key, r);
+  const current = [...latest.values()];
+  return [
+    {
+      dataset,
+      label: def.label,
+      version: SECTOR_MODELS_VERSION,
+      mappingVersion: def.mappingVersion,
+      records: current.length,
+      latestAsOf:
+        current
+          .map((r) => r.asOf)
+          .sort()
+          .at(-1) ?? null,
+      modes: [...new Set(current.map((r) => r.recordMode as RecordMode))],
+      indicators: sectorIndicators(
+        dataset,
+        current.map((r) => ({ key: r.key, attributes: r.attributes })),
+      ),
+    },
+  ];
 }

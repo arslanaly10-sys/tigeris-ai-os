@@ -2,6 +2,7 @@
  * Connector framework vocabulary and the versioned dataset mappings used by file ingestion (FR-06, FR-07, FR-10).
  * Validation is pure and deterministic: the same file always yields the same accepted rows and row-level issues.
  */
+import { SECTOR_DATASET_DEFS, SECTOR_DATASETS } from './sector-models';
 import { SECTOR_KEYS, type SectorKey } from './sectors';
 
 export const CONNECTION_TYPES = [
@@ -53,9 +54,16 @@ export const CONNECTION_SUPPORT: Record<ConnectionType, 'implemented' | 'adapter
   stream: 'adapter_boundary',
 };
 
-export const DATASETS = ['positions', 'managers', 'due_diligence', 'documents', 'signals'] as const;
+export const DATASETS = [
+  'positions',
+  'managers',
+  'due_diligence',
+  'documents',
+  'signals',
+  ...SECTOR_DATASETS,
+] as const;
 export type Dataset = (typeof DATASETS)[number];
-export const TABULAR_DATASETS = ['positions', 'managers', 'due_diligence'] as const;
+export const TABULAR_DATASETS = ['positions', 'managers', 'due_diligence', ...SECTOR_DATASETS] as const;
 export type TabularDataset = (typeof TABULAR_DATASETS)[number];
 
 export const DATASET_LABEL: Record<Dataset, string> = {
@@ -64,6 +72,10 @@ export const DATASET_LABEL: Record<Dataset, string> = {
   due_diligence: 'Due-diligence records',
   documents: 'Documents',
   signals: 'Public signals (feed items)',
+  ...(Object.fromEntries(SECTOR_DATASETS.map((d) => [d, SECTOR_DATASET_DEFS[d].label])) as Record<
+    (typeof SECTOR_DATASETS)[number],
+    string
+  >),
 };
 
 export const MAPPING_VERSIONS: Record<Dataset, string> = {
@@ -72,6 +84,10 @@ export const MAPPING_VERSIONS: Record<Dataset, string> = {
   due_diligence: 'due_diligence.csv.v1',
   documents: 'documents.text.v1',
   signals: 'feed.items.v1',
+  ...(Object.fromEntries(SECTOR_DATASETS.map((d) => [d, SECTOR_DATASET_DEFS[d].mappingVersion])) as Record<
+    (typeof SECTOR_DATASETS)[number],
+    string
+  >),
 };
 
 export type FieldType =
@@ -252,6 +268,10 @@ export const DATASET_FIELDS: Record<TabularDataset, FieldSpec[]> = {
       example: '2026-08-15',
     },
   ],
+  ...(Object.fromEntries(SECTOR_DATASETS.map((d) => [d, SECTOR_DATASET_DEFS[d].fields])) as Record<
+    (typeof SECTOR_DATASETS)[number],
+    FieldSpec[]
+  >),
 };
 
 export interface RowIssue {

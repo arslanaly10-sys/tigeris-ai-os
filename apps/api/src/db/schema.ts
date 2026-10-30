@@ -806,3 +806,18 @@ export const ciClaims = pgTable('ci_claims', {
   curatedAt: ts('curated_at'),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Slice K: sector records (migration 0012) ─────────────────────────────
+
+export const sectorRecords = pgTable('sector_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  dataset: text('dataset').notNull(),
+  key: text('key').notNull(),
+  sectorKey: text('sector_key').notNull(),
+  attributes: jsonb('attributes').$type<Record<string, string | number | boolean | null>>().notNull(),
+  asOf: date('as_of').notNull(),
+  connectorId: uuid('connector_id'),
+  runId: uuid('run_id'),
+  ...provenance,
+});

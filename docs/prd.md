@@ -122,7 +122,7 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-26** One recommendation per case at a time, by an analyst, with rationale. _Implemented._
 - **FR-27** Mandatory expert review: endorse or request changes. _Implemented._
 - **FR-28** Versioned decision policy with reasons (pass, hold, block), previewed before deciding; blocked attempts audited. _Implemented._
-- **FR-29** Two-person approvals and synthetic numeric limits per delegated authority (D-52). _Two-person Implemented; limits Planned (slice B)._
+- **FR-29** Two-person approvals and synthetic numeric limits per delegated authority (D-52). _Implemented (slice B)._
 - **FR-30** Manual handoff to the operations owner: acknowledge, start, record outcome. _Implemented._
 - **FR-31** Expected-versus-observed outcome review per scenario figure, with variance and verdict (D-60). _Implemented (slice H): observed value, date and source per figure; variance and range verdict computed on the server; append-only._
 - **FR-32** Institutional memory: only approved decisions with outcomes; searchable within the institution. _Implemented._
@@ -145,7 +145,7 @@ labelled as such, never implying a live institution or the ability to move capit
 
 - **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Implemented as a boundary: `MODEL_PROVIDER_URL` is shown as configured and never called while D-14 holds._
 - **FR-36** Early-warning indicators: deterministic, versioned indicator rules (e.g. transit restriction duration, war-risk premium multiple, freshness of corroboration) that raise a signal's urgency with the rule shown. _Planned._
-- **FR-37** Change detection: "what changed since the last review" for a case, a source or a vendor page, from stored versions. _Planned._
+- **FR-37** Change detection: "what changed since the last review" for a case, a source or a vendor page, from stored versions. _Partial: vendor page versions and change feed (slice J); case and source change views Planned._
 
 ### 5.7 Reports and exports
 
@@ -168,6 +168,7 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-48** Claims: paraphrase, supporting passage, clickable source URL, retrieval date, "vendor-published" unless verified by a person (D-55). _Implemented (slice J): rule-based candidates in the vendor's own words; analysts accept or reject; "verified" needs an independent https source._
 - **FR-49** Vendor profiles and a change feed from page versions. _Implemented (slice J)._
 - **FR-50** Competitive-intelligence report, separate from decision reports, with citations only to vendor-public sources. _Implemented (slice J): accepted claims only, each citing its vendor page; export audited._
+- **FR-51** Sector datasets and models: one importable dataset per sector without data of its own (utility assets, shipments, counterparty exposures, supplier tiers, project milestones, insured exposures) and two deterministic, versioned indicators each, naming their method and input records, within the reader's clearance. _Implemented (slice K); nothing seeded, so each shows "Source not connected" until data is imported._
 
 ## 6. Technical requirements (selected)
 
@@ -180,8 +181,8 @@ labelled as such, never implying a live institution or the ability to move capit
 - **TR-050** Authorization on the server for every read, write and export; the UI only mirrors it. _Implemented for current routes; extended in slice B._
 - **TR-051** Governance rules also enforced in the database (triggers, CHECKs, column-level grants). _Implemented (D-45)._
 - **TR-060** Secrets only from the environment or a secret store; never in code, prompts, browser code, logs or reports. _Implemented (no secrets in repo)._
-- **TR-061** Uploaded files: size and type limits, content hashing, stored outside the web root, never executed. _Planned._
-- **TR-070** Jobs on pg-boss with retries, backoff and history (D-58). _Planned._
+- **TR-061** Uploaded files: size and type limits, content hashing, stored outside the web root, never executed. _Implemented (slice C): magic-byte type check, 10 MB and 5,000-row limits, SHA-256 named storage under `UPLOAD_DIR`, never executed._
+- **TR-070** Jobs on pg-boss with retries, backoff and history (D-58). _Implemented (slice C): queues `connector-sync` and `ci-crawl` on a pre-created schema (migration 0008)._
 - **TR-080** Self-hosted fonts and assets; works offline. _Implemented._
 - **TR-090** WCAG 2.2 AA (axe in e2e), keyboard operable, RTL correct. _Implemented for current screens._
 

@@ -16,7 +16,7 @@ Status words: Implemented · Simulated · Planned · Blocked.
 | H     | Expected-versus-observed outcome review; audit log viewer with chain verification; user, role and institution administration                                                                                                              | B          | Implemented                                          |
 | I     | Governance-ready case report (print view) and JSON evidence pack with export authorization and audit; command centre overdue actions; Arabic for new screens                                                                              | H          | Implemented                                          |
 | J     | Competitive intelligence: domain registry, polite crawler, page versions, claims with curation, vendor profiles, change feed, CI report                                                                                                   | C          | Implemented; real crawling Blocked by network policy |
-| K     | Additional sector connectors and models; completion report                                                                                                                                                                                | C, E       | Planned                                              |
+| K     | Additional sector connectors and models; completion report                                                                                                                                                                                | C, E       | Implemented                                          |
 
 ## Not in this build (and why)
 

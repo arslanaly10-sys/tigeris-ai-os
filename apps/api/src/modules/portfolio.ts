@@ -33,7 +33,7 @@ import {
 import { ctxOf, requireSession, type AppDeps } from './context';
 
 /** Classification and workspace filter for any canonical table with `classification` and `sector_key`. */
-function recordReadable(scope: ReadScope, classification: PgColumn, sectorKey: PgColumn): SQL {
+export function recordReadable(scope: ReadScope, classification: PgColumn, sectorKey: PgColumn): SQL {
   if (!scope.sensitivities.length) return sql`false`;
   const clearance = inArray(classification, scope.sensitivities);
   if (!scope.sectors) return clearance;

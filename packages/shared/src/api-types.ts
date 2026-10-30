@@ -1,3 +1,4 @@
+import type { SectorDataset, SectorIndicator } from './sector-models';
 import type { ServiceLevelKey } from './service-levels';
 import type { OutcomeVerdict } from './outcome-review';
 import type { DriverDef, Drivers, EngineResult, HorizonKey, MetricDef } from './scenario-engine';
@@ -318,6 +319,20 @@ export interface SectorDetail extends SectorSummary {
   reviewQueue: CaseSummary[];
   entityKeys: string[];
   lastUpdated: string | null;
+  /** Sector models computed from imported sector records the reader may see (slice K). */
+  models: SectorModelItem[];
+}
+
+export interface SectorModelItem {
+  dataset: SectorDataset;
+  label: string;
+  version: string;
+  mappingVersion: string;
+  records: number;
+  latestAsOf: string | null;
+  /** How the records entered TIGERIS (imported, sample…); never "live" unless a connector proved it. */
+  modes: RecordMode[];
+  indicators: SectorIndicator[];
 }
 
 export interface MandateItem {

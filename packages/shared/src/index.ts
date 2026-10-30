@@ -13,3 +13,4 @@ export * from './scenario-sensitivity';
 export * from './analysis';
 export * from './outcome-review';
 export * from './service-levels';
+export * from './sector-models';

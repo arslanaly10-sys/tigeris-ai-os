@@ -8,7 +8,9 @@ import {
   CONNECTION_TYPES,
   AUTH_TYPES,
   DATASETS,
+  SECTOR_DATASETS,
   SECTOR_KEYS,
+  type SectorDataset,
   SENSITIVITIES,
   TABULAR_DATASETS,
   templateCsv,
@@ -39,6 +41,7 @@ import {
   connectorRuns,
   connectors,
   ddRecords,
+  sectorRecords,
   documents,
   managers,
   positions,
@@ -598,13 +601,35 @@ export async function connectorRoutes(app: FastifyInstance, deps: AppDeps) {
         }
         return { dataset, total: rows.reduce((a, r) => a + r.n, 0), byQuality, byMode };
       };
+      const tallySector = async (dataset: SectorDataset): Promise<DatasetQuality> => {
+        const rows = await tx
+          .select({
+            q: sectorRecords.qualityStatus,
+            m: sectorRecords.recordMode,
+            n: sql<number>`count(*)::int`,
+          })
+          .from(sectorRecords)
+          .where(and(eq(sectorRecords.dataset, dataset), inArray(sectorRecords.classification, allowed)))
+          .groupBy(sectorRecords.qualityStatus, sectorRecords.recordMode);
+        const byQuality: Record<QualityStatus, number> = { valid: 0, warning: 0, quarantined: 0 };
+        const byMode: Partial<Record<RecordMode, number>> = {};
+        for (const r of rows) {
+          byQuality[r.q as QualityStatus] += r.n;
+          byMode[r.m as RecordMode] = (byMode[r.m as RecordMode] ?? 0) + r.n;
+        }
+        return { dataset, total: rows.reduce((a, r) => a + r.n, 0), byQuality, byMode };
+      };
       const [datasets, conns, runRows, sourceList, quarantined] = await Promise.all([
         Promise.all([
           tally('positions', positions),
           tally('managers', managers),
           tally('due_diligence', ddRecords),
           tally('documents', documents),
-        ]),
+          // Sector datasets appear once something has been imported into them.
+          ...SECTOR_DATASETS.map(tallySector),
+        ]).then((all) =>
+          all.filter((d) => !(SECTOR_DATASETS as readonly string[]).includes(d.dataset) || d.total > 0),
+        ),
         tx.select().from(connectors).where(scoped(ctx)).orderBy(asc(connectors.key)),
         tx
           .select({ r: connectorRuns, ck: connectors.key, f: uploadedFiles, actor: principals.displayName })

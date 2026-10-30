@@ -932,3 +932,26 @@ export const guardrails = pgTable('guardrails', {
   liftedAt: ts('lifted_at'),
   liftReason: text('lift_reason'),
 });
+
+// ───────────────────────────── Phase 5D: learning loop (migration 0016) ─────────────────────────────
+
+export const assumptionProposals = pgTable('assumption_proposals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  assumptionKey: text('assumption_key').notNull(),
+  baseVersion: integer('base_version').notNull(),
+  outcomeReviewId: uuid('outcome_review_id').notNull(),
+  methodVersion: text('method_version').notNull(),
+  low: numeric('low').notNull(),
+  central: numeric('central').notNull(),
+  high: numeric('high').notNull(),
+  basis: text('basis').notNull(),
+  status: text('status').notNull(),
+  proposedFor: uuid('proposed_for'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  decidedBy: uuid('decided_by'),
+  decidedAt: ts('decided_at'),
+  decisionNote: text('decision_note'),
+  newVersion: integer('new_version'),
+});

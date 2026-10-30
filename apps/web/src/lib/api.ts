@@ -59,6 +59,7 @@ import type {
   SourceSummary,
   GuardrailItem,
   InterventionInbox,
+  LearningOverview,
   RuleOperator,
   SemanticRegistry,
   WatchRuleList,
@@ -213,6 +214,13 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  learning: () => request<LearningOverview>('GET', '/api/learning'),
+  decideProposal: (key: string, action: 'approve' | 'reject', note: string) =>
+    request<{ status: string; newVersion: number | null }>(
+      'POST',
+      `/api/learning/proposals/${encodeURIComponent(key)}/${action}`,
+      { note },
+    ),
   guardrails: () => request<{ canLift: boolean; guardrails: GuardrailItem[] }>('GET', '/api/guardrails'),
   recordGuardrail: (
     decisionKey: string,

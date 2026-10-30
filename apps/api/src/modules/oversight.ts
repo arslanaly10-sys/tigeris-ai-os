@@ -44,6 +44,7 @@ import {
   scenarioRuns,
 } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
+import { proposeFromMissed } from './learning';
 import { caseReadable } from './scope';
 
 export const OUTCOME_ROLES: readonly Role[] = ['analyst', 'domain_expert'];
@@ -339,10 +340,15 @@ export async function oversightRoutes(app: FastifyInstance, deps: AppDeps) {
           version: OUTCOME_REVIEW_VERSION,
         },
       });
-      return { status: 201 as const, key, comparison: c };
+      // A miss proposes new assumption versions for a domain expert to decide (5D, D-118).
+      const proposals =
+        c.verdict === 'missed' ? await proposeFromMissed(tx, ctx.institutionId, [rev!.id]) : [];
+      return { status: 201 as const, key, comparison: c, proposals };
     });
     if (result.status !== 201) return reply.code(result.status).send({ error: result.error });
-    return reply.code(201).send({ key: result.key, comparison: result.comparison });
+    return reply
+      .code(201)
+      .send({ key: result.key, comparison: result.comparison, proposals: result.proposals });
   });
 
   app.get('/api/audit', guard, async (request, reply): Promise<AuditPage | undefined> => {

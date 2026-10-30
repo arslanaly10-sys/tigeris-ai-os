@@ -1246,3 +1246,51 @@ export interface GuardrailItem {
   liftedAt: string | null;
   liftReason: string | null;
 }
+
+// ───────────────────────────── Phase 5D: learning loop ─────────────────────────────
+
+export interface AssumptionProposalItem {
+  key: string;
+  assumptionKey: string;
+  baseVersion: number;
+  /** The assumption's latest version now; a proposal made against an older one cannot be approved. */
+  currentVersion: number;
+  methodVersion: string;
+  low: number;
+  central: number;
+  high: number;
+  basis: string;
+  status: 'proposed' | 'approved' | 'rejected';
+  outcomeReviewKey: string;
+  /** Shown only to readers of the case the outcome review belongs to. */
+  caseKey: string | null;
+  proposedFor: string | null;
+  decidedBy: string | null;
+  decidedAt: string | null;
+  decisionNote: string | null;
+  newVersion: number | null;
+  createdAt: string;
+  /** True when the reader recorded the outcome review behind it, and so may not decide it. */
+  mine: boolean;
+}
+
+export interface LearningOverview {
+  version: string;
+  canDecide: boolean;
+  assumptions: {
+    key: string;
+    label: string;
+    unit: string;
+    calibration: { held: number; missed: number; hitRate: number | null };
+    versions: {
+      version: number;
+      low: number;
+      central: number;
+      high: number;
+      rationale: string;
+      effectiveFrom: string;
+    }[];
+  }[];
+  models: { engine: string; held: number; missed: number }[];
+  proposals: AssumptionProposalItem[];
+}

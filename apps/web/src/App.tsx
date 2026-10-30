@@ -19,6 +19,9 @@ const CasesListPage = lazy(() => import('@/pages/CasesList').then((m) => ({ defa
 const AiCommandPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.AiCommandPage })));
 const DecisionsPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.DecisionsPage })));
 const ExecutionPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.ExecutionPage })));
+const InterventionsPage = lazy(() =>
+  import('@/pages/Interventions').then((m) => ({ default: m.InterventionsPage })),
+);
 const MandatesPage = lazy(() => import('@/pages/Governance').then((m) => ({ default: m.MandatesPage })));
 const OverviewPage = lazy(() => import('@/pages/Overview').then((m) => ({ default: m.OverviewPage })));
 const PlannedModulePage = lazy(() =>
@@ -79,6 +82,7 @@ function Protected() {
                 <Route path="sectors" element={<SectorsIndexPage />} />
                 <Route path="sectors/:key" element={<SectorCentrePage />} />
                 <Route path="ai" element={<AiCommandPage />} />
+                <Route path="interventions" element={<InterventionsPage />} />
                 <Route path="mandates" element={<MandatesPage />} />
                 <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
                 <Route path="execution" element={<ExecutionPage ctx={ctx} />} />

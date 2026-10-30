@@ -144,7 +144,7 @@ labelled as such, never implying a live institution or the ability to move capit
   | Memory scout       | Finds similar past decisions and their outcomes as precedent                | Institutional memory (same institution only)        |
 
 - **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Implemented as a boundary; provider chosen (D-101): `MODEL_PROVIDER_URL` is shown as configured and never called while D-14 holds._
-- **FR-36** Early-warning indicators: deterministic, versioned indicator rules (e.g. transit restriction duration, war-risk premium multiple, freshness of corroboration) that raise a signal's urgency with the rule shown. _Planned._
+- **FR-36** Early-warning indicators: deterministic, versioned indicator rules (e.g. transit restriction duration, war-risk premium multiple, freshness of corroboration) that raise a signal's urgency with the rule shown. _Partial (5B): untriaged critical signals raise an intervention naming the rule; indicator rules on transit duration and war-risk premiums need a live or snapshot feed._
 - **FR-37** Change detection: "what changed since the last review" for a case, a source or a vendor page, from stored versions. _Partial: vendor page versions and change feed (slice J); case and source change views Planned._
 
 ### 5.7 Reports and exports
@@ -173,7 +173,7 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.10 Phase 5: institutional second brain (D-103..D-114)
 
 - **FR-52** Semantic registry: versioned metric definitions (formula, unit, owner, source, jurisdiction variants) and codified mandate and business rules (scope, formula, threshold) that the policy and models evaluate; exported as JSON-LD. _Implemented (5A): rules are evaluated and shown with lineage; the decision policy still uses the scenario's mandate checks until 5C wires codified rules into policy._
-- **FR-53** Intervention engine: versioned watch rules and thresholds over scenario metrics and mandates, sector indicators, signals and sources, and approved decisions; an intervention inbox per role; every alert names its rule, inputs and lineage. Covers FR-36. _Planned (5B)._
+- **FR-53** Intervention engine: versioned watch rules and thresholds over scenario metrics and mandates, sector indicators, signals and sources, and approved decisions; an intervention inbox per role; every alert names its rule, inputs and lineage. Covers FR-36. _Implemented (5B): four watch-rule kinds, an inbox routed by role within read scope, human acknowledgement and closure with a reason; email and Teams delivery follow in 5G._
 - **FR-54** Decision guardrails: a decision can record standing guardrails enforced by the decision policy on later decisions; approved decisions are monitored against their expected figures with drift alerts. _Planned (5C)._
 - **FR-55** Learning loop: missed outcomes propose new assumption versions for expert approval; calibration view per assumption and model. _Planned (5D)._
 - **FR-56** Validation tasking and roll-up: request validation of any finding from a named person or desk with a due date; asset-class desks as divisions; executive roll-up with assumptions visible. _Planned (5E)._

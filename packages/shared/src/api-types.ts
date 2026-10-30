@@ -1,3 +1,4 @@
+import type { InterventionInput, InterventionSeverity, InterventionStatus, WatchKind } from './interventions';
 import type { DefinitionKind, RuleEvaluation, RuleOperator, RuleSeverity, SemanticStatus } from './semantic';
 import type { SectorDataset, SectorIndicator } from './sector-models';
 import type { ServiceLevelKey } from './service-levels';
@@ -1161,4 +1162,65 @@ export interface SemanticRegistry {
   rules: SemanticRuleItem[];
   canAuthor: boolean;
   canApprove: boolean;
+}
+
+// ───────────────────────────── Phase 5B: intervention engine ─────────────────────────────
+
+export interface InterventionItem {
+  key: string;
+  ruleKey: string;
+  ruleVersion: number;
+  ruleLabel: string;
+  kind: WatchKind;
+  engineVersion: string;
+  subjectRef: string;
+  severity: InterventionSeverity;
+  title: string;
+  detail: string;
+  inputs: InterventionInput[];
+  routeRoles: Role[];
+  classification: Sensitivity;
+  sectorKey: string | null;
+  caseKey: string | null;
+  status: InterventionStatus;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  /** Set by the sweep when the condition is no longer observed; a person still closes the intervention. */
+  conditionClearedAt: string | null;
+  acknowledgedBy: string | null;
+  acknowledgedAt: string | null;
+  closedBy: string | null;
+  closedAt: string | null;
+  closeReason: string | null;
+  routedToMe: boolean;
+}
+
+export interface InterventionInbox {
+  engine: string;
+  lastSweepAt: string | null;
+  items: InterventionItem[];
+}
+
+export interface WatchRuleItem {
+  key: string;
+  version: number;
+  label: string;
+  kind: WatchKind;
+  params: Record<string, unknown>;
+  severity: InterventionSeverity;
+  routeRoles: Role[];
+  rationale: string;
+  claimClass: ClaimClass;
+  status: 'draft' | 'approved' | 'retired';
+  createdBy: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  basis: string | null;
+}
+
+export interface WatchRuleList {
+  engine: string;
+  canAuthor: boolean;
+  canApprove: boolean;
+  rules: WatchRuleItem[];
 }

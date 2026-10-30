@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Workflow,
   type LucideIcon,
+  Siren,
 } from 'lucide-react';
 import type { MessageKey } from '@/lib/i18n';
 
@@ -40,6 +41,7 @@ export const NAV: NavItem[] = [
     purpose: '',
     willDo: [],
   },
+  { path: '/interventions', labelKey: 'nav.interventions', icon: Siren, phase: 0, purpose: '', willDo: [] },
   { path: '/ai', labelKey: 'nav.ai', icon: Bot, phase: 0, purpose: '', willDo: [] },
   {
     path: '/scenarios',

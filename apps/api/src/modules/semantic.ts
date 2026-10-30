@@ -14,6 +14,7 @@ import {
   RULE_SEVERITIES,
   SECTOR_DATASET_DEFS,
   SECTOR_DATASETS,
+  SENSITIVITY_ORDER,
   SEMANTIC_APPROVER_ROLES,
   SEMANTIC_AUTHOR_ROLES,
   SEMANTIC_CONTEXT,
@@ -29,13 +30,15 @@ import {
   type RuleOperator,
   type RuleSeverity,
   type ScenarioInputRef,
+  type ReadScope,
   type SectorDataset,
+  type Sensitivity,
   type SemanticDefinitionItem,
   type SemanticRegistry,
   type SemanticRuleItem,
   type SemanticStatus,
 } from '@tigeris/shared';
-import { and, desc, eq, max } from 'drizzle-orm';
+import { and, desc, eq, inArray, max } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { appendAudit } from '../audit/audit';
@@ -45,6 +48,7 @@ import {
   institutions,
   principals,
   scenarioRuns,
+  sectorRecords,
   semanticDefinitions,
   semanticRules,
 } from '../db/schema';
@@ -63,24 +67,36 @@ const SITUATION_FACT: Record<string, string> = {
   'situation:fuel_buffer_days': INPUT_REFS.fuelBufferDays,
 };
 
-interface Observation {
+export interface Observation {
   value: number | null;
   observedFrom: string | null;
   asOf: string | null;
   inputKeys: string[];
+  /** Where the value came from, so anything raised from it is read under the same scope. */
+  classification: Sensitivity;
+  sectorKey: string | null;
+  caseId: string | null;
 }
 
 /** Reads the current value of each subject from the latest readable scenario run and the sector models. */
-async function observer(tx: Tx, ctx: RequestContext) {
+export async function observer(tx: Tx, scope: ReadScope) {
   const [run] = await tx
-    .select({ r: scenarioRuns })
+    .select({ r: scenarioRuns, sensitivity: cases.sensitivity, sectorKey: cases.sectorKey })
     .from(scenarioRuns)
     .innerJoin(cases, eq(cases.id, scenarioRuns.caseId))
-    .where(caseReadable(ctx.scope))
+    .where(caseReadable(scope))
     .orderBy(desc(scenarioRuns.createdAt))
     .limit(1);
   const sectorCache = new Map<SectorDataset, Awaited<ReturnType<typeof sectorModels>>>();
-  const none: Observation = { value: null, observedFrom: null, asOf: null, inputKeys: [] };
+  const none: Observation = {
+    value: null,
+    observedFrom: null,
+    asOf: null,
+    inputKeys: [],
+    classification: 'internal',
+    sectorKey: null,
+    caseId: null,
+  };
 
   return async (subject: string): Promise<Observation> => {
     if (subject.startsWith('situation:') || subject.startsWith('scenario:')) {
@@ -89,6 +105,9 @@ async function observer(tx: Tx, ctx: RequestContext) {
         observedFrom: `Scenario run ${run.r.key}`,
         asOf: run.r.createdAt.toISOString(),
         inputKeys: [run.r.key],
+        classification: run.sensitivity as Sensitivity,
+        sectorKey: run.sectorKey,
+        caseId: run.r.caseId,
       };
       if (subject.startsWith('situation:')) {
         const fact = (run.r.inputs as ScenarioInputRef[]).find((i) => i.ref === SITUATION_FACT[subject]);
@@ -103,15 +122,27 @@ async function observer(tx: Tx, ctx: RequestContext) {
     if (m && (SECTOR_DATASETS as readonly string[]).includes(m[1]!)) {
       const dataset = m[1] as SectorDataset;
       if (!sectorCache.has(dataset))
-        sectorCache.set(dataset, await sectorModels(tx, ctx.scope, SECTOR_DATASET_DEFS[dataset].sector));
+        sectorCache.set(dataset, await sectorModels(tx, scope, SECTOR_DATASET_DEFS[dataset].sector));
       const model = sectorCache.get(dataset)![0];
       const ind = model?.indicators.find((i) => i.key === m[2]);
       if (!model || !ind || ind.value === null) return none;
+      const classes = ind.drivingKeys.length
+        ? await tx
+            .selectDistinct({ c: sectorRecords.classification })
+            .from(sectorRecords)
+            .where(and(eq(sectorRecords.dataset, dataset), inArray(sectorRecords.key, ind.drivingKeys)))
+        : [];
       return {
         value: ind.value,
         observedFrom: `Sector models ${ind.version}`,
         asOf: model.latestAsOf,
         inputKeys: ind.drivingKeys,
+        classification:
+          SENSITIVITY_ORDER[
+            Math.max(0, ...classes.map((x) => SENSITIVITY_ORDER.indexOf(x.c as Sensitivity)))
+          ]!,
+        sectorKey: SECTOR_DATASET_DEFS[dataset].sector,
+        caseId: null,
       };
     }
     return none;
@@ -166,7 +197,7 @@ async function loadRegistry(tx: Tx, ctx: RequestContext): Promise<SemanticRegist
       basis: d.basis,
     })),
   ];
-  const observe = await observer(tx, ctx);
+  const observe = await observer(tx, ctx.scope);
   const items: SemanticRuleItem[] = [];
   for (const r of rules) {
     const spec = {

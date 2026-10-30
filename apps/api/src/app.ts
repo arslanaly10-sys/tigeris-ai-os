@@ -10,6 +10,7 @@ import { caseRoutes } from './modules/cases';
 import { analysisRoutes } from './modules/analysis';
 import { oversightRoutes } from './modules/oversight';
 import { semanticRoutes } from './modules/semantic';
+import { interventionRoutes } from './modules/interventions';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -79,5 +80,6 @@ export async function buildApp(opts: BuildOptions) {
   await reportRoutes(app, deps);
   await ciRoutes(app, deps);
   await semanticRoutes(app, deps);
+  await interventionRoutes(app, deps);
   return app;
 }

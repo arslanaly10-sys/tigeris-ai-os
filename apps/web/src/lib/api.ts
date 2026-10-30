@@ -57,8 +57,10 @@ import type {
   SignalDetail,
   SignalSummary,
   SourceSummary,
+  InterventionInbox,
   RuleOperator,
   SemanticRegistry,
+  WatchRuleList,
 } from '@tigeris/shared';
 
 export class ApiError extends Error {
@@ -196,6 +198,26 @@ export const api = {
   },
   ciReport: () => request<CiReport>('GET', '/api/ci/report'),
   semantic: () => request<SemanticRegistry>('GET', '/api/semantic'),
+  interventions: (f: { mine: boolean; status: 'live' | 'resolved' | 'dismissed' | 'all' }) =>
+    request<InterventionInbox>('GET', `/api/interventions?mine=${f.mine}&status=${f.status}`),
+  sweepInterventions: () =>
+    request<{ engine: string; rules: number; raised: number; refreshed: number; cleared: number }>(
+      'POST',
+      '/api/interventions/sweep',
+      {},
+    ),
+  actOnIntervention: (key: string, action: 'acknowledge' | 'resolve' | 'dismiss', reason?: string) =>
+    request<{ status: string }>('POST', `/api/interventions/${encodeURIComponent(key)}/act`, {
+      action,
+      reason,
+    }),
+  watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  actOnWatchRule: (key: string, version: number, action: 'approve' | 'retire') =>
+    request<{ status: string }>(
+      'POST',
+      `/api/watch-rules/${encodeURIComponent(key)}/${version}/${action}`,
+      {},
+    ),
   semanticExport: () => request<Record<string, unknown>>('GET', '/api/semantic/export'),
   semanticDraftRule: (body: {
     key: string;

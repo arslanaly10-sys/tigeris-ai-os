@@ -185,7 +185,7 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
  * Sector models (slice K): the latest version of each imported record the reader may see (clearance and workspace),
  * run through the dataset's versioned, deterministic indicators.
  */
-async function sectorModels(tx: Tx, scope: ReadScope, sector: SectorKey): Promise<SectorModelItem[]> {
+export async function sectorModels(tx: Tx, scope: ReadScope, sector: SectorKey): Promise<SectorModelItem[]> {
   const dataset = SECTOR_DATASET_FOR[sector];
   if (!dataset) return [];
   const def = SECTOR_DATASET_DEFS[dataset];

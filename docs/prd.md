@@ -172,7 +172,7 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ### 5.10 Phase 5: institutional second brain (D-103..D-114)
 
-- **FR-52** Semantic registry: versioned metric definitions (formula, unit, owner, source, jurisdiction variants) and codified mandate and business rules (scope, formula, threshold) that the policy and models evaluate; exported as JSON-LD. _Planned (5A)._
+- **FR-52** Semantic registry: versioned metric definitions (formula, unit, owner, source, jurisdiction variants) and codified mandate and business rules (scope, formula, threshold) that the policy and models evaluate; exported as JSON-LD. _Implemented (5A): rules are evaluated and shown with lineage; the decision policy still uses the scenario's mandate checks until 5C wires codified rules into policy._
 - **FR-53** Intervention engine: versioned watch rules and thresholds over scenario metrics and mandates, sector indicators, signals and sources, and approved decisions; an intervention inbox per role; every alert names its rule, inputs and lineage. Covers FR-36. _Planned (5B)._
 - **FR-54** Decision guardrails: a decision can record standing guardrails enforced by the decision policy on later decisions; approved decisions are monitored against their expected figures with drift alerts. _Planned (5C)._
 - **FR-55** Learning loop: missed outcomes propose new assumption versions for expert approval; calibration view per assumption and model. _Planned (5D)._

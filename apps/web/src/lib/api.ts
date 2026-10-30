@@ -57,6 +57,8 @@ import type {
   SignalDetail,
   SignalSummary,
   SourceSummary,
+  RuleOperator,
+  SemanticRegistry,
 } from '@tigeris/shared';
 
 export class ApiError extends Error {
@@ -193,6 +195,41 @@ export const api = {
     return request<CiClaimItem[]>('GET', `/api/ci/claims${q.size ? `?${q}` : ''}`);
   },
   ciReport: () => request<CiReport>('GET', '/api/ci/report'),
+  semantic: () => request<SemanticRegistry>('GET', '/api/semantic'),
+  semanticExport: () => request<Record<string, unknown>>('GET', '/api/semantic/export'),
+  semanticDraftRule: (body: {
+    key: string;
+    label: string;
+    subject: string;
+    operator: RuleOperator;
+    threshold: number;
+    attentionMargin: number;
+    mandateKey?: string;
+    jurisdiction?: string;
+    rationale: string;
+  }) => request<{ key: string; version: number }>('POST', '/api/semantic/rules', body),
+  semanticDraftDefinition: (body: {
+    key: string;
+    kind: 'metric' | 'term';
+    label: string;
+    description: string;
+    unit?: string;
+    formula?: string;
+    ownerRole: Role;
+    sourceRef?: string;
+    jurisdiction?: string;
+  }) => request<{ key: string; version: number }>('POST', '/api/semantic/definitions', body),
+  semanticAct: (
+    kind: 'rules' | 'definitions',
+    key: string,
+    version: number | string,
+    action: 'approve' | 'retire',
+  ) =>
+    request<{ status: string }>(
+      'POST',
+      `/api/semantic/${kind}/${encodeURIComponent(key)}/${encodeURIComponent(String(version))}/${action}`,
+      {},
+    ),
   ciAddDomain: (body: {
     key: string;
     vendor: string;

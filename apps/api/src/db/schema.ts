@@ -821,3 +821,43 @@ export const sectorRecords = pgTable('sector_records', {
   runId: uuid('run_id'),
   ...provenance,
 });
+
+// ───────────────────────────── Phase 5A: semantic registry (migration 0013) ─────────────────────────────
+
+const semanticCommon = {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  version: integer('version').notNull(),
+  label: text('label').notNull(),
+  unit: text('unit').notNull().default(''),
+  jurisdiction: text('jurisdiction'),
+  claimClass: text('claim_class').notNull(),
+  status: text('status').notNull(),
+  createdBy: uuid('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  approvedBy: uuid('approved_by'),
+  approvedAt: ts('approved_at'),
+  basis: text('basis'),
+};
+
+export const semanticDefinitions = pgTable('semantic_definitions', {
+  ...semanticCommon,
+  key: text('key').notNull(),
+  kind: text('kind').notNull(),
+  description: text('description').notNull(),
+  formula: text('formula'),
+  ownerRole: text('owner_role').notNull(),
+  sourceRef: text('source_ref'),
+});
+
+export const semanticRules = pgTable('semantic_rules', {
+  ...semanticCommon,
+  key: text('key').notNull(),
+  subject: text('subject').notNull(),
+  operator: text('operator').notNull(),
+  threshold: numeric('threshold').notNull(),
+  severity: text('severity').notNull(),
+  attentionMargin: numeric('attention_margin').notNull().default('0'),
+  mandateKey: text('mandate_key'),
+  rationale: text('rationale').notNull(),
+});

@@ -1,3 +1,4 @@
+import type { DefinitionKind, RuleEvaluation, RuleOperator, RuleSeverity, SemanticStatus } from './semantic';
 import type { SectorDataset, SectorIndicator } from './sector-models';
 import type { ServiceLevelKey } from './service-levels';
 import type { OutcomeVerdict } from './outcome-review';
@@ -1103,4 +1104,61 @@ export interface CiReport {
     lastError: string | null;
     claims: CiClaimItem[];
   }[];
+}
+
+// ───────────────────────────── Phase 5A: semantic registry ─────────────────────────────
+
+export interface SemanticDefinitionItem {
+  key: string;
+  version: string;
+  kind: DefinitionKind;
+  label: string;
+  description: string;
+  unit: string;
+  formula: string | null;
+  ownerRole: Role | null;
+  source: string | null;
+  jurisdiction: string | null;
+  claimClass: ClaimClass;
+  status: SemanticStatus;
+  /** "system" definitions come from an engine in code; "institution" ones are authored and approved here. */
+  origin: 'system' | 'institution';
+  createdBy: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  basis: string | null;
+}
+
+export interface SemanticRuleItem {
+  key: string;
+  version: number;
+  label: string;
+  subject: string;
+  subjectLabel: string | null;
+  operator: RuleOperator;
+  threshold: number;
+  unit: string;
+  severity: RuleSeverity;
+  attentionMargin: number;
+  mandateKey: string | null;
+  jurisdiction: string | null;
+  rationale: string;
+  claimClass: ClaimClass;
+  status: SemanticStatus;
+  createdBy: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  basis: string | null;
+  /** Current evaluation for approved rules; null for drafts and retired versions. */
+  evaluation:
+    (RuleEvaluation & { observedFrom: string | null; asOf: string | null; inputKeys: string[] }) | null;
+}
+
+export interface SemanticRegistry {
+  version: string;
+  vocabulary: string;
+  definitions: SemanticDefinitionItem[];
+  rules: SemanticRuleItem[];
+  canAuthor: boolean;
+  canApprove: boolean;
 }

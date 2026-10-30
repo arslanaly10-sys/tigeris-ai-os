@@ -28,14 +28,14 @@ Status words: Implemented · Simulated · Planned · Blocked.
 
 ## Phase 5: institutional second brain (D-103..D-114)
 
-| Slice | Scope                                                                                                                     | Depends on | Status  |
-| ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- | ------- |
-| 5A    | Semantic registry: metric definitions, codified mandate and business rules, jurisdiction variants, JSON-LD export (FR-52) | —          | Planned |
-| 5B    | Intervention engine and inbox (FR-53, FR-36)                                                                              | 5A         | Planned |
-| 5C    | Decision guardrails and post-decision monitoring (FR-54)                                                                  | 5A, 5B     | Planned |
-| 5D    | Learning loop: assumption calibration proposals (FR-55)                                                                   | —          | Planned |
-| 5E    | Validation tasking, asset-class desks, roll-up (FR-56)                                                                    | —          | Planned |
-| 5F    | Oil-price-shock template and scenario room (FR-57)                                                                        | 5A         | Planned |
-| 5G    | Ask TIGERIS and notification adapters (FR-58)                                                                             | 5B         | Planned |
-| 5H    | Production foundations (FR-59)                                                                                            | —          | Planned |
-| 5I    | Claude adapter, AI economics, model configuration (FR-60)                                                                 | 5H         | Planned |
+| Slice | Scope                                                                                                                     | Depends on | Status      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- | ----------- |
+| 5A    | Semantic registry: metric definitions, codified mandate and business rules, jurisdiction variants, JSON-LD export (FR-52) | —          | Implemented |
+| 5B    | Intervention engine and inbox (FR-53, FR-36)                                                                              | 5A         | Planned     |
+| 5C    | Decision guardrails and post-decision monitoring (FR-54)                                                                  | 5A, 5B     | Planned     |
+| 5D    | Learning loop: assumption calibration proposals (FR-55)                                                                   | —          | Planned     |
+| 5E    | Validation tasking, asset-class desks, roll-up (FR-56)                                                                    | —          | Planned     |
+| 5F    | Oil-price-shock template and scenario room (FR-57)                                                                        | 5A         | Planned     |
+| 5G    | Ask TIGERIS and notification adapters (FR-58)                                                                             | 5B         | Planned     |
+| 5H    | Production foundations (FR-59)                                                                                            | —          | Planned     |
+| 5I    | Claude adapter, AI economics, model configuration (FR-60)                                                                 | 5H         | Planned     |

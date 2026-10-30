@@ -7,13 +7,15 @@ import { HANDOFF_ROLES, SECTORS } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Ban, Bot, Check, Cpu, Gavel, Handshake, Lock, ShieldCheck, UserCheck, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router';
+import * as Tabs from '@radix-ui/react-tabs';
+import { motion } from 'motion/react';
+import { Link, useSearchParams } from 'react-router';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { AgentDraft } from '@/components/scenario/Drafts';
 import { Sheet } from '@/components/ui/sheet';
 import { ClaimBadge, StateBadge, UrgencyBadge } from '@/components/truth/badges';
 import { StatusPill } from '@/components/ui/data';
-import { StaggerItem, StaggerList } from '@/components/ui/motion';
+import { INDICATOR_SPRING, StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { useAgentRunStats, runsLabel, type AgentRunItem } from '@/lib/agents';
 import { api } from '@/lib/api';
@@ -21,6 +23,7 @@ import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 import { AttentionRow } from '@/pages/Overview';
+import { DefinitionsView, ExportView, RulesView } from '@/components/governance/SemanticRegistry';
 import { HandoffCard, OUTCOME_LABEL, PolicyResultBadge, RecStatusPill } from '@/components/governance/parts';
 
 function Note({ icon, children }: { icon: ReactNode; children: ReactNode }) {
@@ -257,18 +260,70 @@ export function AiCommandPage() {
 }
 
 /** Read-only mandate register and authority matrix (seeded synthetic configuration). */
+const MANDATE_VIEWS = [
+  { value: 'register', label: 'mandates.view.register' },
+  { value: 'rules', label: 'mandates.view.rules' },
+  { value: 'definitions', label: 'mandates.view.definitions' },
+  { value: 'export', label: 'mandates.view.export' },
+] as const;
+type MandateView = (typeof MANDATE_VIEWS)[number]['value'];
+const tabClass =
+  'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
+
 export function MandatesPage() {
   const { t } = useI18n();
-  const q = useQuery({ queryKey: ['mandates'], queryFn: api.mandates });
+  const [params, setParams] = useSearchParams();
+  const view: MandateView = MANDATE_VIEWS.find((v) => v.value === params.get('view'))?.value ?? 'register';
   return (
     <>
       <PageHeader
         title={t('nav.mandates')}
-        description="The mandates options are checked against, and who may authorise each class of action."
+        description="The mandates options are checked against, who may authorise each class of action, and the codified rules and definitions behind them."
       />
+      <Tabs.Root
+        value={view}
+        onValueChange={(v) => setParams(v === 'register' ? {} : { view: v }, { replace: true })}
+      >
+        <Tabs.List aria-label="Mandate views" className="mb-5 flex flex-wrap gap-1 border-b border-line">
+          {MANDATE_VIEWS.map((x) => (
+            <Tabs.Trigger key={x.value} value={x.value} className={tabClass}>
+              {t(x.label)}
+              {view === x.value ? (
+                <motion.span
+                  layoutId="mandate-tab-indicator"
+                  className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+        <Tabs.Content value="register" className="outline-none">
+          <MandateRegister />
+        </Tabs.Content>
+        <Tabs.Content value="rules" className="outline-none">
+          <RulesView />
+        </Tabs.Content>
+        <Tabs.Content value="definitions" className="outline-none">
+          <DefinitionsView />
+        </Tabs.Content>
+        <Tabs.Content value="export" className="outline-none">
+          <ExportView />
+        </Tabs.Content>
+      </Tabs.Root>
+    </>
+  );
+}
+
+function MandateRegister() {
+  const q = useQuery({ queryKey: ['mandates'], queryFn: api.mandates });
+  return (
+    <>
       <Note icon={<Lock className="h-4 w-4" aria-hidden />}>
         Read-only register. Changes go through the governance administrator and are versioned. Values shown
-        are a synthetic demonstration configuration.
+        are a synthetic demonstration configuration. Each numeric limit is codified as a rule under Codified
+        rules.
       </Note>
       <LoadState isPending={q.isPending} error={q.error} />
       {q.data ? (

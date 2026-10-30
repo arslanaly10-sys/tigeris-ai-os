@@ -89,6 +89,12 @@ Provenance fields every imported record will carry (FR-12): source system, sourc
 method, source timestamp, ingestion timestamp, licence notes, classification and access scope, transformation
 (mapping version), freshness and quality status, and record mode (live, imported, synthetic, sample, manual).
 
+Entity explorer (slice E): `GET /api/entities` and `GET /api/entities/:key` read the shared graph as dependencies.
+`packages/shared/src/dependencies.ts` maps each predicate to which side relies on the other (`PREDICATE_READING`);
+unknown predicates count as context, never as dependencies. The walk is directed, bounded at four steps and
+cycle-safe. Positions held through an entity reuse `readPositions`, and linked cases reuse `caseReadable`, so the
+explorer never widens anyone's read scope.
+
 ## 5. Connector framework (slices C/D)
 
 ```

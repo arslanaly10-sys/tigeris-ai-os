@@ -19,7 +19,7 @@ import { and, asc, desc, eq, inArray, isNull, or, sql, type SQL } from 'drizzle-
 import type { PgColumn } from 'drizzle-orm/pg-core';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { withInstitution } from '../db/client';
+import { withInstitution, type Tx } from '../db/client';
 import {
   connectorRuns,
   connectors,
@@ -69,6 +69,47 @@ function provenanceOf(
 const round = (n: number) => Math.round(n * 100) / 100;
 const KEY = /^[A-Z0-9-]{2,40}$/;
 
+/** Positions within the reader's scope, with provenance and totals over the listed rows only. */
+export async function readPositions(tx: Tx, scope: ReadScope, where?: SQL): Promise<PositionsPayload> {
+  const rows = await tx
+    .select({
+      p: positions,
+      s: { key: sources.key, publisher: sources.publisher },
+      connectorKey: connectors.key,
+      runKey: connectorRuns.key,
+    })
+    .from(positions)
+    .innerJoin(sources, eq(sources.id, positions.sourceId))
+    .leftJoin(connectors, eq(connectors.id, positions.connectorId))
+    .leftJoin(connectorRuns, eq(connectorRuns.id, positions.runId))
+    .where(and(recordReadable(scope, positions.classification, positions.sectorKey), where))
+    .orderBy(asc(positions.key), desc(positions.asOf));
+  const items = rows.map(({ p, s, connectorKey, runKey }): PositionItem => ({
+    id: p.id,
+    key: p.key,
+    name: p.name,
+    assetClass: p.assetClass,
+    sectorKey: (p.sectorKey as SectorKey | null) ?? null,
+    country: p.country,
+    currency: p.currency,
+    marketValue: Number(p.marketValue),
+    navSharePct: Number(p.navSharePct),
+    routeDependent: p.routeDependent,
+    asOf: p.asOf,
+    provenance: provenanceOf(p, s, { connectorKey, runKey }),
+  }));
+  const route = items.filter((x) => x.routeDependent);
+  return {
+    positions: items,
+    totals: {
+      navSharePct: round(items.reduce((a, x) => a + x.navSharePct, 0)),
+      routeDependentNavSharePct: round(route.reduce((a, x) => a + x.navSharePct, 0)),
+      routeDependentCount: route.length,
+      rows: items.length,
+    },
+  };
+}
+
 export async function portfolioRoutes(app: FastifyInstance, deps: AppDeps) {
   const guard = { preHandler: requireSession(deps) };
   const links = { connectorKey: connectors.key, runKey: connectorRuns.key };
@@ -80,46 +121,16 @@ export async function portfolioRoutes(app: FastifyInstance, deps: AppDeps) {
       .safeParse(request.query);
     const sector = q.success ? q.data.sector : undefined;
     const connector = q.success ? q.data.connector : undefined;
-    return withInstitution(deps.db, ctx.institutionId, async (tx) => {
-      const rows = await tx
-        .select({ p: positions, s: { key: sources.key, publisher: sources.publisher }, ...links })
-        .from(positions)
-        .innerJoin(sources, eq(sources.id, positions.sourceId))
-        .leftJoin(connectors, eq(connectors.id, positions.connectorId))
-        .leftJoin(connectorRuns, eq(connectorRuns.id, positions.runId))
-        .where(
-          and(
-            recordReadable(ctx.scope, positions.classification, positions.sectorKey),
-            sector ? eq(positions.sectorKey, sector) : undefined,
-            connector ? eq(connectors.key, connector) : undefined,
-          ),
-        )
-        .orderBy(asc(positions.key), desc(positions.asOf));
-      const items = rows.map(({ p, s, connectorKey, runKey }): PositionItem => ({
-        id: p.id,
-        key: p.key,
-        name: p.name,
-        assetClass: p.assetClass,
-        sectorKey: (p.sectorKey as SectorKey | null) ?? null,
-        country: p.country,
-        currency: p.currency,
-        marketValue: Number(p.marketValue),
-        navSharePct: Number(p.navSharePct),
-        routeDependent: p.routeDependent,
-        asOf: p.asOf,
-        provenance: provenanceOf(p, s, { connectorKey, runKey }),
-      }));
-      const route = items.filter((x) => x.routeDependent);
-      return {
-        positions: items,
-        totals: {
-          navSharePct: round(items.reduce((a, x) => a + x.navSharePct, 0)),
-          routeDependentNavSharePct: round(route.reduce((a, x) => a + x.navSharePct, 0)),
-          routeDependentCount: route.length,
-          rows: items.length,
-        },
-      };
-    });
+    return withInstitution(deps.db, ctx.institutionId, (tx) =>
+      readPositions(
+        tx,
+        ctx.scope,
+        and(
+          sector ? eq(positions.sectorKey, sector) : undefined,
+          connector ? eq(connectors.key, connector) : undefined,
+        ),
+      ),
+    );
   });
 
   app.get('/api/managers', guard, async (request): Promise<ManagerItem[]> => {

@@ -1,3 +1,14 @@
+import {
+  ENTITY_TYPES,
+  SECTOR_KEYS,
+  dependencyPair,
+  dependencyWalk,
+  sectorsOfEntity,
+  type CaseState,
+  type DependencyStep,
+  type EntityDetail,
+  type EntityListItem,
+} from '@tigeris/shared';
 import type {
   ReadScope,
   ClaimClass,
@@ -10,7 +21,7 @@ import type {
   MovementTrack,
   RelationshipClass,
 } from '@tigeris/shared';
-import { and, asc, eq, inArray, ne } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne, or } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withInstitution, type Tx } from '../db/client';
@@ -21,9 +32,11 @@ import {
   entityRelationships,
   evidenceObjects,
   movementTracks,
+  positions,
   relationshipEvidence,
   sources,
 } from '../db/schema';
+import { readPositions } from './portfolio';
 import { caseReadable } from './scope';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { toSource } from './mappers';
@@ -126,6 +139,97 @@ export async function graphRoutes(app: FastifyInstance, deps: AppDeps) {
       const rows = await tx.select().from(entities).orderBy(asc(entities.name));
       return { nodes: rows.map((e) => toNode(e)), edges: await loadEdges(tx), maxHops: MAX_HOPS };
     });
+  });
+
+  /** Entity explorer (slice E): every shared entity with its sector workspaces and dependency counts. */
+  app.get('/api/entities', guard, async (request): Promise<EntityListItem[]> => {
+    const ctx = ctxOf(request);
+    const q = z
+      .object({
+        sector: z.enum(SECTOR_KEYS).optional(),
+        type: z.enum(ENTITY_TYPES).optional(),
+        q: z.string().trim().max(80).optional(),
+      })
+      .safeParse(request.query);
+    const f = q.success ? q.data : {};
+    return withInstitution(deps.db, ctx.institutionId, async (tx) => {
+      const rows = await tx.select().from(entities).orderBy(asc(entities.name));
+      const edges = await loadEdges(tx);
+      const needle = f.q?.toLowerCase();
+      return rows
+        .map((e): EntityListItem => {
+          const own = edges.filter((x) => x.source === e.id || x.target === e.id);
+          const pairs = own.map(dependencyPair).filter((x) => x !== null);
+          return {
+            id: e.id,
+            key: e.key,
+            type: e.entityType as EntityType,
+            name: e.name,
+            claimClass: e.claimClass as ClaimClass,
+            sectors: sectorsOfEntity(e.key),
+            links: own.length,
+            dependsOn: pairs.filter((x) => x.dependent === e.id).length,
+            dependents: pairs.filter((x) => x.provider === e.id).length,
+            located: e.lon !== null,
+          };
+        })
+        .filter(
+          (e) =>
+            (!f.sector || e.sectors.includes(f.sector)) &&
+            (!f.type || e.type === f.type) &&
+            (!needle || e.name.toLowerCase().includes(needle) || e.key.includes(needle)),
+        );
+    });
+  });
+
+  app.get('/api/entities/:key', guard, async (request, reply) => {
+    const params = z.object({ key: z.string().regex(/^[a-z0-9-]{2,60}$/) }).safeParse(request.params);
+    if (!params.success) return reply.code(404).send({ error: 'not_found' });
+    const ctx = ctxOf(request);
+    const detail = await withInstitution(
+      deps.db,
+      ctx.institutionId,
+      async (tx): Promise<EntityDetail | null> => {
+        const [e] = await tx.select().from(entities).where(eq(entities.key, params.data.key));
+        if (!e) return null;
+        const all = await tx.select().from(entities);
+        const byId = new Map(all.map((x) => [x.id, x]));
+        const edges = await loadEdges(tx);
+        const edgeById = new Map(edges.map((x) => [x.id, x]));
+        const steps = (direction: 'upstream' | 'downstream'): DependencyStep[] =>
+          dependencyWalk(e.id, edges, direction, MAX_HOPS).map((r) => ({
+            node: toNode(byId.get(r.id)!, r.hop),
+            hop: r.hop,
+            viaKey: byId.get(r.via)!.key,
+            edge: edgeById.get(r.edgeId)!,
+          }));
+        const related = edges
+          .filter((x) => (x.source === e.id || x.target === e.id) && dependencyPair(x) === null)
+          .map((x) => ({ node: toNode(byId.get(x.source === e.id ? x.target : x.source)!), edge: x }));
+        const linkedCases = await tx
+          .select({ key: cases.key, title: cases.title, state: cases.state, role: caseEntities.role })
+          .from(caseEntities)
+          .innerJoin(cases, eq(cases.id, caseEntities.caseId))
+          .where(and(eq(caseEntities.entityId, e.id), caseReadable(ctx.scope)))
+          .orderBy(asc(cases.key));
+        return {
+          entity: toNode(e),
+          sectors: sectorsOfEntity(e.key),
+          maxHops: MAX_HOPS,
+          upstream: steps('upstream'),
+          downstream: steps('downstream'),
+          related,
+          positions: await readPositions(
+            tx,
+            ctx.scope,
+            or(eq(positions.holdingEntityId, e.id), eq(positions.portfolioEntityId, e.id)),
+          ),
+          cases: linkedCases.map((c) => ({ ...c, state: c.state as CaseState })),
+        };
+      },
+    );
+    if (!detail) return reply.code(404).send({ error: 'not_found' });
+    return detail;
   });
 
   app.get('/api/cases/:key/graph', guard, async (request, reply) => {

@@ -33,6 +33,9 @@ import type {
   PendingApprovals,
   SectorDetail,
   SectorKey,
+  EntityDetail,
+  EntityListItem,
+  EntityType,
   SectorSummary,
   IngestionJobItem,
   MapLayers,
@@ -191,11 +194,15 @@ export const api = {
     ),
   connectorRun: (key: string) =>
     request<ConnectorRunDetail>('GET', `/api/connector-runs/${encodeURIComponent(key)}`),
-  positions: (connector?: string) =>
-    request<PositionsPayload>(
-      'GET',
-      `/api/positions${connector ? `?connector=${encodeURIComponent(connector)}` : ''}`,
-    ),
+  positions: (filter: { connector?: string; sector?: SectorKey } = {}) => {
+    const q = new URLSearchParams(Object.entries(filter).filter((e): e is [string, string] => !!e[1]));
+    return request<PositionsPayload>('GET', `/api/positions${q.size ? `?${q}` : ''}`);
+  },
+  entities: (filter: { sector?: SectorKey; type?: EntityType; q?: string } = {}) => {
+    const q = new URLSearchParams(Object.entries(filter).filter((e): e is [string, string] => !!e[1]));
+    return request<EntityListItem[]>('GET', `/api/entities${q.size ? `?${q}` : ''}`);
+  },
+  entity: (key: string) => request<EntityDetail>('GET', `/api/entities/${encodeURIComponent(key)}`),
   managers: (connector?: string) =>
     request<ManagerItem[]>(
       'GET',

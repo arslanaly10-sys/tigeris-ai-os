@@ -102,9 +102,9 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.3 Entities, graph and exposure
 
 - **FR-14** Shared entity model with typed relationships (observed, sourced, inferred, assumed, synthetic). _Implemented._
-- **FR-15** Dependency paths to second and third order from a case origin. _Implemented._
+- **FR-15** Dependency paths to second and third order from a case origin, and from any entity in the entity explorer (what it relies on, what is exposed if it is disrupted). _Implemented (slice E)._
 - **FR-16** Every link opens its rationale, evidence and confidence. _Implemented._
-- **FR-17** Exposures from holdings and commitments to routes, assets and services. _Implemented (synthetic); canonical holdings model in slice B._
+- **FR-17** Exposures from holdings and commitments to routes, assets and services. _Implemented: positions link to holding and portfolio entities and are listed on each entity within the reader's scope (slices B, E)._
 - **FR-18** Scenarios with explicit assumptions, values, units, horizons, ranges and reproducible runs. _Implemented._
 - **FR-19** Signal inbox: triage (corroborate, challenge, monitor, dismiss, open case) with rationale. _Implemented._
 
@@ -194,7 +194,7 @@ labelled as such, never implying a live institution or the ability to move capit
 | AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                   |
 | AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                   |
 | AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                   |
-| AC-06 | Imported records appear in the right institution and sector workspace                                            | Planned                                       |
+| AC-06 | Imported records appear in the right institution and sector workspace                                            | Implemented                                   |
 | AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                   |
 | AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                   |
 | AC-09 | A permitted user submits an option; an authorized approver approves, rejects or requests changes                 | Implemented                                   |

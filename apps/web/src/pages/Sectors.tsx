@@ -1,9 +1,20 @@
 import type { SectorKey, SectorKpi } from '@tigeris/shared';
 import { SECTOR_BY_KEY, SECTOR_KEYS } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
-import { Activity, Bot, Brain, Compass, GitFork, Map as MapIcon, ShieldCheck, UserCheck } from 'lucide-react';
+import {
+  Activity,
+  Bot,
+  Brain,
+  Compass,
+  Database,
+  GitFork,
+  Map as MapIcon,
+  ShieldCheck,
+  UserCheck,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
+import { RecordModeBadge } from '@/components/data/badges';
 import { SectorBanner } from '@/components/illustrations/Scenes';
 import { SectorSubnav } from '@/components/layout/SectorSubnav';
 import { LineageDrawer, type LineageTarget } from '@/components/LineageDrawer';
@@ -67,6 +78,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
   const q = useQuery({ queryKey: ['sector', sectorKey], queryFn: () => api.sector(sectorKey) });
   const map = useQuery({ queryKey: ['map-layers'], queryFn: api.mapLayers });
   const mandates = useQuery({ queryKey: ['mandates'], queryFn: api.mandates });
+  const records = useQuery({
+    queryKey: ['positions', 'sector', sectorKey],
+    queryFn: () => api.positions({ sector: sectorKey }),
+  });
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
   const { stats: agentStats } = useAgentRunStats();
 
@@ -396,6 +411,61 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
               </Panel>
             </div>
           </div>
+
+          <Panel aria-labelledby="sc-records-heading" className="mt-6">
+            <PanelHeader
+              id="sc-records-heading"
+              icon={<Database className="h-4 w-4" aria-hidden />}
+              title="Records in this workspace"
+              description="Positions assigned to this sector workspace that you are cleared to read, seeded or imported, each with how it entered TIGERIS."
+            />
+            {records.data ? (
+              records.data.positions.length === 0 ? (
+                <p className="border-t border-line px-5 py-4 text-sm text-ink-muted">
+                  No positions in this workspace within your clearance.
+                </p>
+              ) : (
+                <ul className="divide-y divide-line border-t border-line">
+                  {records.data.positions.slice(0, 8).map((p) => (
+                    <li key={p.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium text-ink">{p.name}</span>
+                        <span className="text-xs text-ink-faint">
+                          {p.key} · {p.assetClass} · as of {p.asOf}
+                          {p.routeDependent ? ' · route-dependent' : ''}
+                        </span>
+                      </span>
+                      <span className="tabular text-sm text-ink">{p.navSharePct}% NAV</span>
+                      <RecordModeBadge value={p.provenance.recordMode} />
+                    </li>
+                  ))}
+                </ul>
+              )
+            ) : (
+              <LoadState isPending={records.isPending} error={records.error} />
+            )}
+            <PanelFooter grow={false}>
+              <span className="tabular">
+                {records.data
+                  ? `${records.data.totals.rows} positions · ${records.data.totals.navSharePct}% of NAV listed`
+                  : '—'}
+              </span>
+              <span className="flex flex-wrap gap-x-4">
+                <Link
+                  to={`/graph?view=entities&sector=${sectorKey}`}
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
+                  Entities and dependencies
+                </Link>
+                <Link
+                  to="/sources?tab=records"
+                  className="inline-flex min-h-6 items-center font-medium text-cyan hover:underline"
+                >
+                  All records
+                </Link>
+              </span>
+            </PanelFooter>
+          </Panel>
 
           <Panel aria-labelledby="sc-trend-heading" className="mt-6">
             <PanelHeader

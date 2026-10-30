@@ -8,3 +8,4 @@ export * from './scenario-options';
 export * from './governance';
 export * from './access';
 export * from './connectors';
+export * from './dependencies';

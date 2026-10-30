@@ -750,3 +750,42 @@ export interface DataQualitySummary {
   sources: { stale: SourceSummary[]; pending: SourceSummary[] };
   quarantinedPackageRecords: number;
 }
+
+/** Entity explorer row (slice E). Counts cover what the reader may see. */
+export interface EntityListItem {
+  id: string;
+  key: string;
+  type: EntityType;
+  name: string;
+  claimClass: ClaimClass;
+  sectors: SectorKey[];
+  links: number;
+  dependsOn: number;
+  dependents: number;
+  located: boolean;
+}
+
+/** One entity reached by a directed dependency walk, with the link that reached it. */
+export interface DependencyStep {
+  node: GraphNode;
+  hop: number;
+  /** Key of the entity one step nearer the origin. */
+  viaKey: string;
+  edge: GraphEdge;
+}
+
+export interface EntityDetail {
+  entity: GraphNode;
+  sectors: SectorKey[];
+  maxHops: number;
+  /** What this entity relies on (providers, then theirs). */
+  upstream: DependencyStep[];
+  /** What relies on this entity: exposed if it is disrupted. */
+  downstream: DependencyStep[];
+  /** Direct links that are context or alternatives, not dependencies. */
+  related: { node: GraphNode; edge: GraphEdge }[];
+  /** Positions held through this entity, within the reader's clearance and workspaces. */
+  positions: PositionsPayload;
+  /** Cases linked to this entity that the reader may open. */
+  cases: { key: string; title: string; state: CaseState; role: string }[];
+}

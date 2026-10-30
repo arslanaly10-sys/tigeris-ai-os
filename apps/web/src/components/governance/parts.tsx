@@ -941,6 +941,14 @@ export function MemoryCard({ m, showCase = true }: { m: MemoryItem; showCase?: b
           </dd>
         </div>
       </dl>
+      {m.expected.length ? (
+        <footer className="border-t border-line px-5 py-3 text-sm">
+          <Link to={`/memory/${m.key}`} className="font-medium text-cyan underline underline-offset-2">
+            Expected versus observed
+          </Link>
+          <span className="text-ink-muted"> · compare each figure with what actually happened</span>
+        </footer>
+      ) : null}
     </article>
   );
 }

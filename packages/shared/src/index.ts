@@ -11,3 +11,5 @@ export * from './connectors';
 export * from './dependencies';
 export * from './scenario-sensitivity';
 export * from './analysis';
+export * from './outcome-review';
+export * from './service-levels';

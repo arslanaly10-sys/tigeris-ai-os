@@ -106,6 +106,29 @@ test.describe('governance: recommendation to institutional memory (Phase 4)', ()
     const log = page.getByRole('table', { name: 'Recorded decisions' });
     await expect(log.getByText('First of two approvals')).toBeVisible();
     await expect(log.getByText('Pass')).toBeVisible();
+
+    // Outcome review (FR-31): an analyst compares what was expected with what was observed.
+    await page.context().clearCookies();
+    await signInAs(page, /Intelligence Analyst/);
+    await page.goto('/memory');
+    await page.getByLabel('Search memory').fill('hedge budgets');
+    await page
+      .getByRole('article')
+      .filter({ hasText: CASE })
+      .getByRole('link', { name: 'Expected versus observed' })
+      .click();
+    await expect(page).toHaveURL(/\/memory\/MEM-/);
+    const figure = page
+      .getByRole('region')
+      .filter({ has: page.getByRole('heading', { level: 2 }) })
+      .first();
+    await figure.getByLabel(/Observed value/).fill('99');
+    await figure.getByLabel(/^Source \(publisher/).fill('Quarterly valuation (synthetic)');
+    await figure.getByLabel(/^Note/).fill('One quarter after the corridor reopened.');
+    await figure.getByRole('button', { name: 'Record observation' }).click();
+    await expect(figure).toContainText('Analysis missed');
+    await expect(figure).toContainText('outside the expected range');
+    await expectAccessible(page);
   });
 
   test('memory, decisions and execution read well on any screen', async ({ page }) => {

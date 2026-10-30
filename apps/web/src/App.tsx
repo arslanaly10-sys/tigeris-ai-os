@@ -37,6 +37,10 @@ const SignalReviewPage = lazy(() =>
   import('@/pages/SignalReview').then((m) => ({ default: m.SignalReviewPage })),
 );
 const MemoryPage = lazy(() => import('@/pages/Memory').then((m) => ({ default: m.MemoryPage })));
+const OutcomeReviewPage = lazy(() =>
+  import('@/pages/OutcomeReview').then((m) => ({ default: m.OutcomeReviewPage })),
+);
+const OversightPage = lazy(() => import('@/pages/Oversight').then((m) => ({ default: m.OversightPage })));
 const SourcesPage = lazy(() => import('@/pages/Sources').then((m) => ({ default: m.SourcesPage })));
 
 const pageFallback = <p className="p-8 text-sm text-ink-muted">Loading…</p>;
@@ -75,6 +79,8 @@ function Protected() {
                 <Route path="decisions" element={<DecisionsPage ctx={ctx} />} />
                 <Route path="execution" element={<ExecutionPage ctx={ctx} />} />
                 <Route path="memory" element={<MemoryPage />} />
+                <Route path="memory/:key" element={<OutcomeReviewPage />} />
+                <Route path="oversight" element={<OversightPage ctx={ctx} />} />
                 <Route path="scenarios" element={<ScenariosPage />} />
                 <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
                 <Route path="scenarios/:key" element={<ScenarioRunPage />} />

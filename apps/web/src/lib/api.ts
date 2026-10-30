@@ -34,6 +34,11 @@ import type {
   SectorDetail,
   SectorKey,
   CaseAnalysisPayload,
+  OutcomeReviewPayload,
+  AuditPage,
+  AuditVerification,
+  AdminOverview,
+  Role,
   HorizonKey,
   ReviewNoteItem,
   SensitivityPayload,
@@ -146,6 +151,38 @@ export const api = {
       stance,
       body,
     }),
+  outcomes: (memoryKey: string) =>
+    request<OutcomeReviewPayload>('GET', `/api/memory/${encodeURIComponent(memoryKey)}/outcomes`),
+  reviewOutcome: (
+    memoryKey: string,
+    body: {
+      figureRef: string;
+      observedValue: number;
+      observedOn: string;
+      source: string;
+      sourceUrl?: string;
+      notComparable: boolean;
+      note: string;
+    },
+  ) => request<{ key: string }>('POST', `/api/memory/${encodeURIComponent(memoryKey)}/outcomes`, body),
+  audit: (filter: { before?: number; action?: string; caseKey?: string } = {}) => {
+    const q = new URLSearchParams(
+      Object.entries(filter)
+        .filter((e) => e[1] !== undefined && e[1] !== '')
+        .map(([k, v]) => [k, String(v)]),
+    );
+    return request<AuditPage>('GET', `/api/audit${q.size ? `?${q}` : ''}`);
+  },
+  verifyAudit: () => request<AuditVerification>('POST', '/api/audit/verify', {}),
+  admin: () => request<AdminOverview>('GET', '/api/admin'),
+  changeAccess: (
+    principalId: string,
+    body:
+      | { kind: 'role'; role: Role; grant: boolean; reason: string }
+      | { kind: 'workspace'; sectorKey: SectorKey; grant: boolean; reason: string },
+  ) => request<{ ok: true }>('POST', `/api/admin/principals/${encodeURIComponent(principalId)}/access`, body),
+  provision: (body: { displayName: string; title: string; idpSubject: string; role: Role; reason: string }) =>
+    request<{ id: string }>('POST', '/api/admin/principals', body),
   caseAnalysis: (caseKey: string) =>
     request<CaseAnalysisPayload>('GET', `/api/cases/${encodeURIComponent(caseKey)}/analysis`),
   runAnalysis: (caseKey: string) =>

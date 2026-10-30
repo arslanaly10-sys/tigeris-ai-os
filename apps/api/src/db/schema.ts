@@ -696,3 +696,31 @@ export const reviewNotes = pgTable('review_notes', {
   body: text('body').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Slice H: outcome reviews (migration 0010) ─────────────────────────────
+
+export const outcomeReviews = pgTable('outcome_reviews', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  memoryId: uuid('memory_id').notNull(),
+  caseId: uuid('case_id').notNull(),
+  figureRef: text('figure_ref').notNull(),
+  figureLabel: text('figure_label').notNull(),
+  unit: text('unit').notNull(),
+  expectedLow: numeric('expected_low').notNull(),
+  expectedCentral: numeric('expected_central').notNull(),
+  expectedHigh: numeric('expected_high').notNull(),
+  observedValue: numeric('observed_value').notNull(),
+  observedOn: date('observed_on').notNull(),
+  source: text('source').notNull(),
+  sourceUrl: text('source_url'),
+  variance: numeric('variance').notNull(),
+  variancePct: numeric('variance_pct'),
+  withinRange: boolean('within_range').notNull(),
+  verdict: text('verdict').notNull(),
+  note: text('note').notNull(),
+  version: text('version').notNull(),
+  reviewerId: uuid('reviewer_id').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

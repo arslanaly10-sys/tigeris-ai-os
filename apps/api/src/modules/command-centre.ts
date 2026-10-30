@@ -1,10 +1,23 @@
-import type { AttentionItem, CommandCentre, DataMode, PendingApprovals, Urgency } from '@tigeris/shared';
-import { desc, eq } from 'drizzle-orm';
+import {
+  SERVICE_LEVELS,
+  SERVICE_LEVELS_BASIS,
+  dueState,
+  holdsAuthority,
+  type AttentionItem,
+  type CommandCentre,
+  type DataMode,
+  type OverdueItem,
+  type PendingApprovals,
+  type ServiceLevelKey,
+  type Urgency,
+} from '@tigeris/shared';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { withInstitution, type Tx } from '../db/client';
-import { signals } from '../db/schema';
+import { cases, handoffs, recommendations, signals } from '../db/schema';
 import { listCases } from './cases';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
+import { caseReadable } from './scope';
 import { listSources } from './sources';
 
 const URGENCY_RANK: Record<Urgency, number> = { critical: 0, elevated: 1, routine: 2 };
@@ -23,6 +36,62 @@ const CASE_REASON: Record<string, string> = {
  * Attention queue (FR, App Flow step 2): what needs attention and why, scoped to the institution.
  * Items whose next step belongs to one of the caller's roles are marked `forYou` and ranked first.
  */
+/**
+ * Governed steps past their service level (slice I): reviews, decisions, handoff acknowledgement and completion.
+ * Case-scoped like every other read; operations owners see every handoff because the work is assigned to them (D-65).
+ */
+async function overdueSteps(tx: Tx, ctx: RequestContext, now = new Date()): Promise<OverdueItem[]> {
+  const recs = await tx
+    .select({ r: recommendations, caseKey: cases.key, title: cases.title })
+    .from(recommendations)
+    .innerJoin(cases, eq(cases.id, recommendations.caseId))
+    .where(
+      and(
+        inArray(recommendations.status, ['in_review', 'endorsed', 'awaiting_second_approval']),
+        caseReadable(ctx.scope),
+      ),
+    );
+  const assigned = ctx.roles.includes('operations_owner');
+  const hos = await tx
+    .select({ h: handoffs, caseKey: cases.key, title: cases.title })
+    .from(handoffs)
+    .innerJoin(cases, eq(cases.id, handoffs.caseId))
+    .where(
+      and(
+        inArray(handoffs.status, ['awaiting_acknowledgement', 'acknowledged', 'in_progress']),
+        assigned ? undefined : caseReadable(ctx.scope),
+      ),
+    );
+  const item = (kind: ServiceLevelKey, ref: string, caseKey: string, title: string, since: Date) => {
+    const d = dueState(kind, since, now);
+    if (!d.overdue) return [];
+    const sl = SERVICE_LEVELS[kind];
+    return [
+      {
+        kind,
+        label: sl.label,
+        ref,
+        caseKey,
+        title,
+        role: sl.role,
+        dueAt: d.dueAt.toISOString(),
+        overdueHours: d.overdueHours,
+        forYou: holdsAuthority(ctx.roles, sl.role),
+      },
+    ];
+  };
+  return [
+    ...recs.flatMap(({ r, caseKey, title }) =>
+      item(r.status === 'in_review' ? 'review' : 'decision', r.key, caseKey, title, r.updatedAt),
+    ),
+    ...hos.flatMap(({ h, caseKey, title }) =>
+      h.status === 'awaiting_acknowledgement'
+        ? item('acknowledge', h.key, caseKey, title, h.createdAt)
+        : item('complete', h.key, caseKey, title, h.acknowledgedAt ?? h.createdAt),
+    ),
+  ].sort((a, b) => Number(b.forYou) - Number(a.forYou) || b.overdueHours - a.overdueHours);
+}
+
 export async function buildCommandCentre(tx: Tx, ctx: RequestContext): Promise<CommandCentre> {
   const [caseList, sourceList, newSignals] = await Promise.all([
     listCases(tx, ctx.scope),
@@ -86,6 +155,8 @@ export async function buildCommandCentre(tx: Tx, ctx: RequestContext): Promise<C
 
   return {
     attention,
+    overdue: await overdueSteps(tx, ctx),
+    serviceLevelsBasis: SERVICE_LEVELS_BASIS,
     counts: {
       openCases: openCases.length,
       awaitingReview: openCases.filter((c) => c.state === 'review').length,

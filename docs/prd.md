@@ -124,7 +124,7 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-28** Versioned decision policy with reasons (pass, hold, block), previewed before deciding; blocked attempts audited. _Implemented._
 - **FR-29** Two-person approvals and synthetic numeric limits per delegated authority (D-52). _Two-person Implemented; limits Planned (slice B)._
 - **FR-30** Manual handoff to the operations owner: acknowledge, start, record outcome. _Implemented._
-- **FR-31** Expected-versus-observed outcome review per scenario figure, with variance and verdict (D-60). _Planned (slice H)._
+- **FR-31** Expected-versus-observed outcome review per scenario figure, with variance and verdict (D-60). _Implemented (slice H): observed value, date and source per figure; variance and range verdict computed on the server; append-only._
 - **FR-32** Institutional memory: only approved decisions with outcomes; searchable within the institution. _Implemented._
 
 ### 5.6 AI, agents and advanced analytics
@@ -155,9 +155,9 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.8 Audit, administration and isolation
 
 - **FR-40** Hash-chained, append-only audit of sensitive reads, exports, edits, approvals, rejections and configuration changes. _Implemented._
-- **FR-41** Audit log viewer with filters and chain verification. _Planned (slice H)._
+- **FR-41** Audit log viewer with filters and chain verification. _Implemented (slice H): Audit & Administration; case events outside the reader's clearance are withheld and counted; verification recomputes the chain from genesis and is itself audited._
 - **FR-42** Institution isolation under row-level security. _Implemented._
-- **FR-43** User, role and institution administration (demo directory; production from IdP groups). _Planned (slice H)._
+- **FR-43** User, role and institution administration (demo directory; production from IdP groups). _Implemented (slice H): provision people from the IdP (no passwords), grant and revoke roles and sector workspaces with a reason, never your own access; production group sync Planned with FR-02._
 - **FR-44** Model and analysis configuration screen (registry, templates, policy versions). _Partial (AI Command)._
 
 ### 5.9 Competitive intelligence (separate from institutional data)

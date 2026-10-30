@@ -121,11 +121,11 @@ test.describe('case workspace (AC-03, AC-04)', () => {
 });
 
 test.describe('shell', () => {
-  test('exposes the nine navigation items, every module built', async ({ page }) => {
+  test('exposes the ten navigation items, every module built', async ({ page }) => {
     await signInAs(page, /Executive/);
     await openNav(page);
     const nav = page.getByRole('navigation', { name: 'Primary navigation' }).filter({ visible: true });
-    await expect(nav.getByRole('link')).toHaveCount(9);
+    await expect(nav.getByRole('link')).toHaveCount(10);
     await nav.getByRole('link', { name: /Institutional Memory/ }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Institutional Memory' })).toBeVisible();
     await expect(page.getByText('Arrives in Phase')).toHaveCount(0);

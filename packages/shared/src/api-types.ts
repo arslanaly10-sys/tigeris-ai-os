@@ -1,3 +1,5 @@
+import type { ServiceLevelKey } from './service-levels';
+import type { OutcomeVerdict } from './outcome-review';
 import type { DriverDef, Drivers, EngineResult, HorizonKey, MetricDef } from './scenario-engine';
 import type { SensitivityResult } from './scenario-sensitivity';
 import type { AnalysisAgentKey } from './analysis';
@@ -140,8 +142,23 @@ export interface AttentionItem {
   forYou: boolean;
 }
 
+/** A governed step past its service level (slice I). Listed only; nothing is escalated automatically. */
+export interface OverdueItem {
+  kind: ServiceLevelKey;
+  label: string;
+  ref: string;
+  caseKey: string;
+  title: string;
+  role: Role;
+  dueAt: string;
+  overdueHours: number;
+  forYou: boolean;
+}
+
 export interface CommandCentre {
   attention: AttentionItem[];
+  overdue: OverdueItem[];
+  serviceLevelsBasis: string;
   counts: { openCases: number; awaitingReview: number; awaitingDecision: number; staleSources: number };
   sourceHealth: SourceSummary[];
 }
@@ -856,4 +873,120 @@ export interface ReviewNoteItem {
   author: string;
   authorRole: Role;
   createdAt: string;
+}
+
+// ───────────────────────────── Slice H: outcome review, audit, administration ─────────────────────────────
+
+export interface OutcomeReviewItem {
+  key: string;
+  observedValue: number;
+  observedDisplay: string;
+  observedOn: string;
+  source: string;
+  sourceUrl: string | null;
+  variance: number;
+  varianceDisplay: string;
+  variancePct: number | null;
+  withinRange: boolean;
+  verdict: OutcomeVerdict;
+  note: string;
+  version: string;
+  reviewer: string;
+  createdAt: string;
+}
+
+/** One figure a decision expected, with its range and every review of what was observed (latest first). */
+export interface OutcomeFigure {
+  ref: string;
+  label: string;
+  unit: string;
+  decimals: number;
+  expected: { low: number; central: number; high: number; display: string };
+  scenarioRunKey: string;
+  reviews: OutcomeReviewItem[];
+}
+
+export interface OutcomeReviewPayload {
+  memoryKey: string;
+  caseKey: string;
+  title: string;
+  figures: OutcomeFigure[];
+  canReview: GovernanceCheck;
+  summary: { reviewed: number; held: number; missed: number; notComparable: number; total: number };
+}
+
+export interface AuditEventItem {
+  seq: number;
+  occurredAt: string;
+  actor: string | null;
+  actorType: 'human' | 'service';
+  action: string;
+  objectType: string;
+  objectId: string | null;
+  caseKey: string | null;
+  payload: Record<string, unknown>;
+  hash: string;
+  prevHash: string | null;
+}
+
+export interface AuditPage {
+  events: AuditEventItem[];
+  /** Pass as `before` to load older events; null when there are none. */
+  nextBefore: number | null;
+  /** Events withheld from this page because they belong to cases outside the reader's scope. */
+  withheld: number;
+}
+
+export interface AuditVerification {
+  checked: number;
+  valid: boolean;
+  /** First sequence number whose link or hash does not verify, when the chain is broken. */
+  brokenAt: number | null;
+  reason: string | null;
+  headHash: string | null;
+  verifiedAt: string;
+}
+
+export interface AdminPrincipalItem {
+  id: string;
+  displayName: string;
+  title: string;
+  isDemo: boolean;
+  identity: string;
+  roles: Role[];
+  workspaces: SectorKey[];
+  createdAt: string;
+}
+
+export interface AdminOverview {
+  institution: { key: string; name: string; isSynthetic: boolean; createdAt: string };
+  principals: AdminPrincipalItem[];
+  canManage: GovernanceCheck;
+}
+
+// ───────────────────────────── Slice I: governance-ready case report ─────────────────────────────
+
+/**
+ * Case report and JSON evidence pack (FR-38, FR-39). Assembled from the same endpoints the screens use, with the
+ * reader's own session, so it never contains a record the reader could not open. Every export is audited.
+ */
+export interface CaseReport {
+  version: string;
+  label: string;
+  generatedAt: string;
+  generatedBy: { name: string; title: string; roles: Role[] };
+  institution: { name: string; isSynthetic: boolean };
+  case: CaseDetail;
+  graph: GraphPayload;
+  scenario: ScenarioRunDetail | null;
+  governance: Omit<
+    CaseGovernance,
+    'decisionPreview' | 'canRecommend' | 'canReview' | 'canNote' | 'candidateOptions'
+  > & {
+    candidateOptions: DraftOptionItem[];
+  };
+  analysis: AnalysisRunItem | null;
+  outcomes: OutcomeReviewPayload | null;
+  /** SHA-256 of the canonical JSON of every field above, so a recipient can check the pack is unaltered. */
+  contentHash: string;
 }

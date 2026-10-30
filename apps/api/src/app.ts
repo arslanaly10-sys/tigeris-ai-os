@@ -8,6 +8,8 @@ import { DemoIdentityProvider } from './modules/auth/identity';
 import { authRoutes } from './modules/auth/routes';
 import { caseRoutes } from './modules/cases';
 import { analysisRoutes } from './modules/analysis';
+import { oversightRoutes } from './modules/oversight';
+import { reportRoutes } from './modules/reports';
 import { connectorRoutes } from './modules/connectors';
 import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
@@ -68,5 +70,7 @@ export async function buildApp(opts: BuildOptions) {
   await portfolioRoutes(app, deps);
   await connectorRoutes(app, deps);
   await analysisRoutes(app, deps);
+  await oversightRoutes(app, deps);
+  await reportRoutes(app, deps);
   return app;
 }

@@ -58,7 +58,8 @@ async function get(fetcher: Fetcher, url: string): Promise<{ status: number; typ
       signal: AbortSignal.timeout(CRAWL_RULES.timeoutMs),
     });
   } catch (e) {
-    const via = process.env.HTTPS_PROXY || process.env.https_proxy ? ' through the configured network proxy' : '';
+    const via =
+      process.env.HTTPS_PROXY || process.env.https_proxy ? ' through the configured network proxy' : '';
     throw new FetchError(`Request to ${url} failed${via}: ${networkMessage(e)}`, true);
   }
   const len = Number(res.headers.get('content-length') ?? 0);

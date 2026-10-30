@@ -2,7 +2,7 @@
 
 Date: 30 October 2026. Branch: `main`. This report states what was built against the owner's brief (sections 1–15),
 how to run it, how it is configured, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to
-`docs/decisions.md` (D-01..D-97).
+`docs/decisions.md` (D-01..D-101).
 
 ## 1. What the platform does
 
@@ -87,21 +87,23 @@ Stated plainly, so nothing here is mistaken for a claim:
 
 - **Competitive-intelligence crawling is blocked.** The environment's network policy refuses `www.palantir.com`,
   `www.blackrock.com`, `www.alternativesoft.com`, `www.dasseti.com` and `www.v7labs.com`. Real crawl attempts are
-  recorded as "blocked" with the proxy's error and no vendor is shown as collected. Allowing those hosts in the
-  environment's network settings is all that is needed; nothing about vendors has been collected or invented.
+  recorded as "blocked" with the proxy's error and no vendor is shown as collected. The `www.eia.gov` feed is refused
+  the same way. Allowing those hosts in the environment's network settings (a change may only reach a new session) is
+  all that is needed; nothing about vendors has been collected or invented.
 - **No live data.** Every source is a dated snapshot, a synthetic fixture or an import. The seeded EIA feed connector
-  stays "configured" until its source is approved and a fetch succeeds. Public figures from secondary summaries are
+  source is approved by the owner (D-98) but the connector stays "configured" until a fetch succeeds. Public figures from secondary summaries are
   marked unverified until the primary page is captured.
 - **Identity is a demonstration directory.** Production sign-in through the institution's identity provider (FR-02)
-  is an adapter boundary, not built. People can be provisioned and given roles, but they cannot sign in until an
-  identity provider is connected.
+  is an adapter boundary, not built; the provider is chosen (D-100: OpenID Connect, Microsoft Entra ID by default).
+  People can be provisioned and given roles, but they cannot sign in until the identity provider is connected.
 - **Models.** Prose is drafted only by the internal deterministic stub; external model calls are disabled by policy
   and by a database constraint. Agent "analysis" is deterministic retrieval and templated drafting, not a language
-  model.
+  model. The production provider is chosen (D-101: Anthropic Claude in-region through the gateway; a self-hosted
+  open-weight model when air-gapped) but not connected.
 - **One scenario template.** The engine models a Hormuz disruption only; other sector scenarios are listed as "not yet
   modelled". The six sector datasets and models compute indicators from imported records; they are not scenario
-  engines and no sector data is seeded.
-- **Arabic** covers interface titles, tabs and buttons on new screens as a draft pending terminology review;
+  engines. Each sector shows labelled sample records (record mode "sample", D-98) until real data is imported.
+- **Arabic** covers interface titles, tabs and buttons on new screens as an owner-approved draft (D-99);
   explanatory text and several older case tabs remain English; English text inside the RTL layout shows its full stop
   on the left.
 - **Not built:** early-warning indicator rules (FR-36), case and source change views (FR-37, partial), a full model
@@ -110,11 +112,16 @@ Stated plainly, so nothing here is mistaken for a claim:
 - **No certification claims.** Nothing here is described as compliant, certified, air-gapped, tamper-proof or
   production-secure. The audit chain is tamper-evident (verification detects edits); it is not tamper-proof.
 
-## 7. Owner actions that unblock the next step
+## 7. Owner actions
 
-1. Allow the five vendor hosts in the environment's network access settings, then use "Crawl now" in Competitive
-   Intelligence.
-2. Approve the EIA feed source in Data & Sources to let the public-feed connector fetch (subject to network access).
-3. Provide or approve sector data files (or labelled samples) for the sectors you want populated.
-4. Review the drafted Arabic terminology and the synthetic delegated limits and service levels.
-5. Choose the production identity provider and model provider before any deployment beyond demonstration.
+Done (30 Oct 2026): the EIA feed source and labelled sector samples are approved (D-98); the drafted Arabic, the
+synthetic limits and the service levels are approved for the demonstration (D-99); the identity and model providers
+are chosen (D-100, D-101).
+
+Remaining:
+
+1. Allow the five vendor hosts and `www.eia.gov` in the environment's network access settings, start a new session,
+   then use "Crawl now" in Competitive Intelligence and "Sync" on the EIA connector.
+2. Replace the labelled samples with the institution's own sector files when available.
+3. Before any production use: replace the synthetic limits and service levels with real ones, have the Arabic
+   terminology reviewed, connect the identity provider (D-100) and, once policy allows, the model provider (D-101).

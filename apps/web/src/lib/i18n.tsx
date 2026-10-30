@@ -1,6 +1,6 @@
 /**
  * Interface language (D-08, revised): English and a drafted Arabic interface with full RTL layout.
- * The Arabic strings are a first draft pending the client's terminology review and say so on screen.
+ * The Arabic strings are a draft the owner approved for the demonstration (D-99); the label says so on screen.
  * Data content (evidence, case text, source titles) stays in its source language.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -22,7 +22,8 @@ const en = {
   'nav.data': 'Data & Integrations',
   'overdue.title': 'Overdue actions',
   'overdue.none': 'No governed step is past its service level.',
-  'overdue.basis': 'Synthetic demonstration service levels. Listed only; nothing is escalated automatically.',
+  'overdue.basis':
+    'Synthetic demonstration service levels, approved by the owner. Listed only; nothing is escalated automatically.',
   'overdue.late': 'overdue',
   'report.open': 'Case report',
   'report.title': 'Governance case report',
@@ -65,7 +66,7 @@ const en = {
   'demo.banner':
     'Demonstration: fictional institution, synthetic and dated public snapshot data. No live feeds.',
   'demo.label': 'Demonstration',
-  'ar.draft': 'Arabic interface draft, pending terminology review',
+  'ar.draft': 'Arabic interface draft, approved by the owner for the demonstration',
   'common.lastUpdated': 'Last updated',
   'common.sourceNotConnected': 'Source not connected',
   'common.connectData': 'Connect authorised data',
@@ -154,7 +155,7 @@ const ar: Record<MessageKey, string> = {
   'nav.data': 'البيانات والتكاملات',
   'overdue.title': 'إجراءات متأخرة',
   'overdue.none': 'لا توجد خطوة حوكمة تجاوزت مستوى الخدمة المحدد.',
-  'overdue.basis': 'مستويات خدمة توضيحية اصطناعية. للعرض فقط؛ لا يُصعَّد أي شيء تلقائياً.',
+  'overdue.basis': 'مستويات خدمة توضيحية اصطناعية معتمدة من المالك. للعرض فقط؛ لا يُصعَّد أي شيء تلقائياً.',
   'overdue.late': 'متأخر',
   'report.open': 'تقرير الحالة',
   'report.title': 'تقرير الحوكمة للحالة',
@@ -196,7 +197,7 @@ const ar: Record<MessageKey, string> = {
   'top.language': 'لغة الواجهة',
   'demo.banner': 'عرض توضيحي، مؤسسة افتراضية؛ بيانات اصطناعية ولقطات عامة مؤرخة. لا توجد تغذيات مباشرة.',
   'demo.label': 'عرض توضيحي',
-  'ar.draft': 'مسودة الواجهة العربية، بانتظار مراجعة المصطلحات',
+  'ar.draft': 'مسودة الواجهة العربية، معتمدة من المالك للعرض التوضيحي',
   'common.lastUpdated': 'آخر تحديث',
   'common.sourceNotConnected': 'المصدر غير متصل',
   'common.connectData': 'اربط بيانات معتمدة',

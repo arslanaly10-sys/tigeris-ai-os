@@ -69,14 +69,19 @@ afterAll(async () => {
 });
 
 describe('sector datasets and models (slice K)', () => {
-  it('offers a template per sector dataset and shows models as not connected before any import', async () => {
+  it('offers a template per sector dataset and computes the labelled samples, marked as samples (D-98)', async () => {
     const tpl = await get('administrator', '/api/templates/supplier_tiers');
     expect(tpl.statusCode).toBe(200);
     expect(tpl.body.split('\n')[0]).toBe('key,supplier,tier,critical_input,single_source,share_pct,as_of');
     const s: SectorDetail = (await get('analyst', '/api/sectors/manufacturing')).json();
     const m = s.models.find((x) => x.dataset === 'supplier_tiers')!;
     expect(m.version).toBe('sector-models 1.0.0');
-    expect(m.indicators.every((i) => i.value === null)).toBe(true);
+    expect(m.modes).toEqual(['sample']);
+    expect(indicator(s, 'single_source_inputs')).toMatchObject({
+      value: 2,
+      drivingKeys: ['SUP-S01', 'SUP-S03'],
+    });
+    expect(indicator(s, 'tier1_concentration')).toMatchObject({ value: 72, drivingKeys: ['SUP-S01'] });
   });
 
   it('imports sector records with provenance and computes indicators naming their records', async () => {

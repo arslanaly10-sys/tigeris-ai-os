@@ -7,15 +7,13 @@ const shot = async (page: Page, name: string, project: string) => {
 };
 
 test.describe('sector datasets and models (slice K)', () => {
-  test('a sector without imported records says so and offers the template', async ({ page }) => {
+  test('labelled sample records drive the sector models and are marked as samples', async ({ page }) => {
     await signInAs(page, /Executive \/ Governor/);
     await page.goto('/sectors/insurance');
     const panel = page.getByRole('region', { name: 'Sector models' });
-    await expect(panel).toContainText('Source not connected: no insured exposures imported yet');
-    await expect(panel.getByRole('link', { name: 'insured exposures template' })).toHaveAttribute(
-      'href',
-      '/api/templates/insured_exposures',
-    );
+    await expect(panel).toContainText('Largest peril and region accumulation');
+    await expect(panel).toContainText('USD 480,000,000');
+    await expect(panel).toContainText('Sample');
     await expectAccessible(page);
   });
 

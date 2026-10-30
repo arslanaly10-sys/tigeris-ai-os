@@ -84,7 +84,9 @@ describe('connector registry (FR-06)', () => {
     expect(analyst.map((c) => c.key)).toEqual(expect.arrayContaining(['CON-SAMPLE-01', 'CON-EIA-RSS']));
     const feed = analyst.find((c) => c.key === 'CON-EIA-RSS')!;
     expect(feed.status).not.toBe('connected');
-    expect(feed.source.approvalStatus).toBe('pending');
+    // The owner approved the feed's source (D-98); it still never shows as connected until a fetch succeeds.
+    expect(feed.source.approvalStatus).toBe('approved');
+    expect(feed.status).toBe('configured');
     const ops = await get<ConnectorItem[]>('operations_owner', '/api/connectors');
     expect(ops.map((c) => c.key)).not.toContain('CON-SAMPLE-01');
   });
@@ -318,7 +320,7 @@ describe('data quality view (slice D)', () => {
     expect(pos.byMode.imported ?? 0).toBeGreaterThan(0);
     expect(q.runs.partial + q.runs.failed).toBeGreaterThan(0);
     expect(q.recentProblemRuns.length).toBeGreaterThan(0);
-    expect(q.sources.pending.map((s) => s.key)).toContain('con-eia-rss');
+    expect(q.sources.pending.map((s) => s.key)).not.toContain('con-eia-rss');
     const ops = await get<DataQualitySummary>('operations_owner', '/api/data-quality');
     expect(ops.datasets.find((d) => d.dataset === 'positions')!.byMode.synthetic ?? 0).toBe(0);
   });

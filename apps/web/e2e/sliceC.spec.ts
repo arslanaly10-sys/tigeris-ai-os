@@ -15,10 +15,10 @@ test.describe('data & integrations (FR-06, FR-10, AC-02, AC-05)', () => {
     await signInAs(page, /Governance Administrator/);
     await page.goto('/sources');
     await expect(page.getByRole('heading', { name: 'Connector registry' })).toBeVisible();
-    // The seeded public feed is configured, never connected, and its source awaits approval.
+    // The seeded public feed is configured, never connected; the owner approved its source (D-98).
     const feed = page.getByRole('listitem').filter({ hasText: 'CON-EIA-RSS' });
     await expect(feed).toContainText('Configured');
-    await expect(feed).toContainText('Source pending approval');
+    await expect(feed).toContainText('Source approved');
     await expectAccessible(page);
 
     await page.getByRole('button', { name: 'Register connector' }).click();

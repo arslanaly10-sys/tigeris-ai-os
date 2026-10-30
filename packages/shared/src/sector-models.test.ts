@@ -84,3 +84,40 @@ describe('sector indicators (sector-models 1.0.0)', () => {
     );
   });
 });
+
+describe('sector dataset validation', () => {
+  it('accepts planned and forecast dates in the future but never a future as_of', async () => {
+    const { validateRows } = await import('./connectors');
+    const headers = [
+      'key',
+      'project',
+      'milestone',
+      'planned_date',
+      'forecast_date',
+      'budget_usd',
+      'spent_usd',
+      'as_of',
+    ];
+    const row = {
+      key: 'PM-1',
+      project: 'P',
+      milestone: 'M',
+      planned_date: '2099-01-01',
+      forecast_date: '2099-03-01',
+      budget_usd: '1',
+      spent_usd: '1',
+    };
+    expect(
+      validateRows('project_milestones', headers, [{ ...row, as_of: '2026-01-01' }], '2026-10-30').rows[0]!
+        .issues,
+    ).toEqual([]);
+    expect(
+      validateRows(
+        'project_milestones',
+        headers,
+        [{ ...row, as_of: '2099-01-01' }],
+        '2026-10-30',
+      ).rows[0]!.issues.map((i) => i.code),
+    ).toContain('future_date');
+  });
+});

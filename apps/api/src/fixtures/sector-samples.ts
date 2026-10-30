@@ -1,0 +1,221 @@
+/**
+ * Labelled sample sector records (D-98): synthetic, owner-approved demonstration rows for the six sector datasets so
+ * each Sector Command Centre can show its models. Every name ends in "(Sample)", every record has record mode
+ * `sample`, and the source is the synthetic "TIGERIS sector samples" register. None describes a real asset, company,
+ * shipment or policy.
+ */
+import type { SectorDataset } from '@tigeris/shared';
+
+type Row = Record<string, string | number | boolean>;
+
+export const SECTOR_SAMPLES: Record<SectorDataset, Row[]> = {
+  utility_assets: [
+    {
+      key: 'UA-S01',
+      name: 'Coastal power station (Sample)',
+      asset_type: 'power',
+      capacity_mw: 1200,
+      fuel_buffer_days: 9,
+      gas_dependent: true,
+    },
+    {
+      key: 'UA-S02',
+      name: 'Desalination plant A (Sample)',
+      asset_type: 'desalination',
+      capacity_mw: 400,
+      fuel_buffer_days: 9,
+      gas_dependent: true,
+    },
+    {
+      key: 'UA-S03',
+      name: 'Desalination plant B (Sample)',
+      asset_type: 'desalination',
+      capacity_mw: 350,
+      fuel_buffer_days: 12,
+      gas_dependent: true,
+    },
+    {
+      key: 'UA-S04',
+      name: 'Solar park (Sample)',
+      asset_type: 'power',
+      capacity_mw: 900,
+      fuel_buffer_days: 0,
+      gas_dependent: false,
+    },
+    {
+      key: 'UA-S05',
+      name: 'Transmission ring (Sample)',
+      asset_type: 'grid',
+      capacity_mw: 0,
+      fuel_buffer_days: 0,
+      gas_dependent: false,
+    },
+  ],
+  shipments: [
+    {
+      key: 'SH-S01',
+      lane: 'Jebel Ali to Mumbai (Sample)',
+      origin_port: 'Jebel Ali',
+      destination_port: 'Nhava Sheva',
+      delay_days: 4,
+      route_via_hormuz: true,
+      value_usd: 18000000,
+    },
+    {
+      key: 'SH-S02',
+      lane: 'Jebel Ali to Rotterdam (Sample)',
+      origin_port: 'Jebel Ali',
+      destination_port: 'Rotterdam',
+      delay_days: 1,
+      route_via_hormuz: true,
+      value_usd: 26000000,
+    },
+    {
+      key: 'SH-S03',
+      lane: 'Sohar to Singapore (Sample)',
+      origin_port: 'Sohar',
+      destination_port: 'Singapore',
+      delay_days: 0,
+      route_via_hormuz: false,
+      value_usd: 14000000,
+    },
+    {
+      key: 'SH-S04',
+      lane: 'Fujairah to Mombasa (Sample)',
+      origin_port: 'Fujairah',
+      destination_port: 'Mombasa',
+      delay_days: 3,
+      route_via_hormuz: false,
+      value_usd: 6000000,
+    },
+  ],
+  counterparty_exposures: [
+    {
+      key: 'CP-S01',
+      counterparty: 'Regional bank A (Sample)',
+      country: 'AE',
+      exposure_usd: 420000000,
+      limit_usd: 400000000,
+    },
+    {
+      key: 'CP-S02',
+      counterparty: 'Regional bank B (Sample)',
+      country: 'SA',
+      exposure_usd: 260000000,
+      limit_usd: 350000000,
+    },
+    {
+      key: 'CP-S03',
+      counterparty: 'Trade finance house (Sample)',
+      country: 'SG',
+      exposure_usd: 120000000,
+      limit_usd: 200000000,
+    },
+    {
+      key: 'CP-S04',
+      counterparty: 'Shipping lender (Sample)',
+      country: 'GB',
+      exposure_usd: 90000000,
+      limit_usd: 150000000,
+    },
+  ],
+  supplier_tiers: [
+    {
+      key: 'SUP-S01',
+      supplier: 'Specialty resins supplier (Sample)',
+      tier: 1,
+      critical_input: 'Polymer resin',
+      single_source: true,
+      share_pct: 72,
+    },
+    {
+      key: 'SUP-S02',
+      supplier: 'Aluminium extruder (Sample)',
+      tier: 1,
+      critical_input: 'Aluminium profiles',
+      single_source: false,
+      share_pct: 45,
+    },
+    {
+      key: 'SUP-S03',
+      supplier: 'Catalyst producer (Sample)',
+      tier: 2,
+      critical_input: 'Catalyst',
+      single_source: true,
+      share_pct: 100,
+    },
+    {
+      key: 'SUP-S04',
+      supplier: 'Packaging mill (Sample)',
+      tier: 3,
+      critical_input: 'Packaging board',
+      single_source: false,
+      share_pct: 30,
+    },
+  ],
+  project_milestones: [
+    {
+      key: 'PM-S01',
+      project: 'Waterfront district phase 2 (Sample)',
+      milestone: 'Structural completion',
+      planned_date: '2026-12-31',
+      forecast_date: '2027-03-31',
+      budget_usd: 90000000,
+      spent_usd: 71000000,
+    },
+    {
+      key: 'PM-S02',
+      project: 'Logistics park (Sample)',
+      milestone: 'Warehouse handover',
+      planned_date: '2026-11-30',
+      forecast_date: '2026-11-30',
+      budget_usd: 40000000,
+      spent_usd: 36000000,
+    },
+    {
+      key: 'PM-S03',
+      project: 'Residential tower (Sample)',
+      milestone: 'Facade complete',
+      planned_date: '2027-02-28',
+      forecast_date: '2027-04-15',
+      budget_usd: 55000000,
+      spent_usd: 30000000,
+    },
+  ],
+  insured_exposures: [
+    {
+      key: 'IE-S01',
+      policy: 'Marine cargo programme (Sample)',
+      peril: 'Marine war',
+      region: 'Arabian Gulf',
+      sum_insured_usd: 300000000,
+      retention_usd: 45000000,
+    },
+    {
+      key: 'IE-S02',
+      policy: 'Hull and machinery (Sample)',
+      peril: 'Marine war',
+      region: 'Arabian Gulf',
+      sum_insured_usd: 180000000,
+      retention_usd: 25000000,
+    },
+    {
+      key: 'IE-S03',
+      policy: 'Property all risks (Sample)',
+      peril: 'Flood',
+      region: 'Arabian Gulf',
+      sum_insured_usd: 220000000,
+      retention_usd: 30000000,
+    },
+    {
+      key: 'IE-S04',
+      policy: 'Energy onshore (Sample)',
+      peril: 'Fire',
+      region: 'Gulf of Oman',
+      sum_insured_usd: 150000000,
+      retention_usd: 20000000,
+    },
+  ],
+};
+
+export const SECTOR_SAMPLE_AS_OF = '2026-09-30';

@@ -12,7 +12,8 @@ export const SERVICE_LEVELS = {
 } as const satisfies Record<string, { hours: number; role: Role; label: string }>;
 
 export type ServiceLevelKey = keyof typeof SERVICE_LEVELS;
-export const SERVICE_LEVELS_BASIS = 'Synthetic demonstration service levels (D-89)';
+export const SERVICE_LEVELS_BASIS =
+  'Synthetic demonstration service levels, approved by the owner (D-89, D-99)';
 
 /** When the step is due and how many whole hours it is past due (0 when not yet due). */
 export function dueState(kind: ServiceLevelKey, since: Date, now: Date = new Date()) {

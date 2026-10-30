@@ -83,7 +83,7 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.1 Entry, identity and context
 
 - **FR-01** Institution identification first (code or work-email domain); unknown institutions are refused. _Implemented._
-- **FR-02** Production identity through the institution's IdP (OIDC/SAML, MFA enforced by the IdP). _Planned — integration capability, adapter boundary exists._
+- **FR-02** Production identity through the institution's IdP (OIDC/SAML, MFA enforced by the IdP). _Planned — provider chosen (D-100: OIDC, Microsoft Entra ID by default); adapter boundary exists._
 - **FR-03** Workspace (sector) selection and a persistent context bar: institution, role, environment, data modes. _Implemented._
 - **FR-04** Labelled demonstration roles, no password fields. _Implemented._
 - **FR-05** Demonstration disclosure always visible. _Implemented (D-42)._
@@ -143,7 +143,7 @@ labelled as such, never implying a live institution or the ability to move capit
   | Red-team critic    | Argues against the leading option; lists what would change the conclusion   | All of the above, read-only                         |
   | Memory scout       | Finds similar past decisions and their outcomes as precedent                | Institutional memory (same institution only)        |
 
-- **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Implemented as a boundary: `MODEL_PROVIDER_URL` is shown as configured and never called while D-14 holds._
+- **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Implemented as a boundary; provider chosen (D-101): `MODEL_PROVIDER_URL` is shown as configured and never called while D-14 holds._
 - **FR-36** Early-warning indicators: deterministic, versioned indicator rules (e.g. transit restriction duration, war-risk premium multiple, freshness of corroboration) that raise a signal's urgency with the rule shown. _Planned._
 - **FR-37** Change detection: "what changed since the last review" for a case, a source or a vendor page, from stored versions. _Partial: vendor page versions and change feed (slice J); case and source change views Planned._
 

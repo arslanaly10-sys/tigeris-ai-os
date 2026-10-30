@@ -109,9 +109,9 @@ describe('command centre', () => {
     ).json();
     expect(cc.counts.staleSources).toBe(1);
     const sources = cc.attention.filter((a) => a.kind === 'source');
-    // Seeded stale/pending sources, including the public feed awaiting approval; other test files may add more.
+    // Seeded stale or pending sources; other test files may add more. The EIA feed source is approved (D-98).
     expect(sources.map((s) => s.ref)).toEqual(
-      expect.arrayContaining(['gcc-stat', 'ofac-sls', 'synthetic-movement', 'con-eia-rss']),
+      expect.arrayContaining(['gcc-stat', 'ofac-sls', 'synthetic-movement']),
     );
     expect(sources.every((s) => s.forYou)).toBe(true);
   });

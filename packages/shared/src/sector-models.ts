@@ -143,6 +143,7 @@ export const SECTOR_DATASET_DEFS: Record<
       {
         name: 'planned_date',
         type: 'date',
+        allowFuture: true,
         required: true,
         description: 'Planned date.',
         example: '2026-12-31',
@@ -150,6 +151,7 @@ export const SECTOR_DATASET_DEFS: Record<
       {
         name: 'forecast_date',
         type: 'date',
+        allowFuture: true,
         required: true,
         description: 'Current forecast.',
         example: '2027-02-28',

@@ -5,6 +5,7 @@ import { config } from '../config';
 import { ALL_INSTITUTIONS, type InstitutionFixture } from '../fixtures/demo';
 import { seedCanonical } from './seed-canonical';
 import { seedCi } from './seed-ci';
+import { seedSectorSamples } from './seed-sector-samples';
 import { seedMandates } from './seed-mandates';
 import { seedPhase2 } from './seed-phase2';
 import { createDb, withInstitution, type Db } from './client';
@@ -195,6 +196,7 @@ export async function seedAll(url = config.DATABASE_OWNER_URL) {
         await seedMandates(db, ids.institutionId);
         await seedCanonical(db, ids.institutionId);
         await seedCi(db, ids.institutionId);
+        await seedSectorSamples(db, ids.institutionId);
       }
     }
   } finally {

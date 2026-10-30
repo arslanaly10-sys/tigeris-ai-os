@@ -104,8 +104,8 @@ export async function seedCanonical(db: Db, institutionId: string) {
       })),
     );
 
-    // Connectors: the synthetic register as a sample connector, and a public feed that stays `configured` (its
-    // source pending approval) until an administrator approves it and a fetch actually succeeds.
+    // Connectors: the synthetic register as a sample connector, and a public feed whose source the owner approved
+    // (D-98) and which stays `configured` until a fetch actually succeeds.
     const [admin] = await tx
       .select({ id: principalRoles.principalId })
       .from(principalRoles)
@@ -144,7 +144,8 @@ export async function seedCanonical(db: Db, institutionId: string) {
         allowedPurpose: 'Institutional analysis (registered connector)',
         cadence: 'On sync',
         freshnessLimitHours: null,
-        approvalStatus: 'pending',
+        // Approved by the owner (D-98). The connector stays "configured" until a fetch actually succeeds.
+        approvalStatus: 'approved',
       })
       .returning({ id: sources.id });
     await tx.insert(connectors).values({

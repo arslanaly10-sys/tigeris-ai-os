@@ -102,6 +102,8 @@ export interface FieldSpec {
   min?: number;
   max?: number;
   example: string;
+  /** Dates are past or present unless the field describes a plan or forecast. */
+  allowFuture?: boolean;
 }
 
 const KEY_RE = /^[A-Z0-9][A-Z0-9-]{1,39}$/;
@@ -370,7 +372,7 @@ function cleanField(
           value: null,
           issue: issue('invalid_date', `${spec.name} "${v}" must be a date as YYYY-MM-DD.`),
         };
-      if (v > today)
+      if (v > today && !spec.allowFuture)
         return { value: null, issue: issue('future_date', `${spec.name} ${v} is in the future.`) };
       return { value: v };
     }

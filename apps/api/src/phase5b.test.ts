@@ -120,7 +120,7 @@ describe('watch rules', () => {
   it('lists the seeded rules and enforces drafting, parameters and second-person approval', async () => {
     const list = (await get('analyst', '/api/watch-rules')).json();
     expect(list.rules.map((r: { key: string }) => r.key)).toEqual(
-      expect.arrayContaining(['W-RULES', 'W-SIGNALS', 'W-CONNECTORS', 'W-DRIFT']),
+      expect.arrayContaining(['W-RULES', 'W-SIGNALS', 'W-CONNECTORS', 'W-DRIFT', 'W-MONITOR']),
     );
     const body = {
       key: 'W-SIGNALS',
@@ -156,6 +156,6 @@ describe('watch rules', () => {
     const r = (await post('analyst', '/api/interventions/sweep')).json();
     const signalsLive = (await inbox('analyst')).items.filter((i) => i.ruleKey === 'W-SIGNALS');
     expect(new Set(signalsLive.map((i) => i.subjectRef)).size).toBe(signalsLive.length);
-    expect(r.rules).toBe(4);
+    expect(r.rules).toBe(5);
   });
 });

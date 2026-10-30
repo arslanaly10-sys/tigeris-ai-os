@@ -57,6 +57,7 @@ import type {
   SignalDetail,
   SignalSummary,
   SourceSummary,
+  GuardrailItem,
   InterventionInbox,
   RuleOperator,
   SemanticRegistry,
@@ -212,6 +213,25 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  guardrails: () => request<{ canLift: boolean; guardrails: GuardrailItem[] }>('GET', '/api/guardrails'),
+  recordGuardrail: (
+    decisionKey: string,
+    body: {
+      effect: 'block' | 'require_role';
+      requiredRole?: Role;
+      thresholdValue?: number;
+      thresholdUnit?: string;
+      statement: string;
+      expiresOn?: string;
+    },
+  ) =>
+    request<{ key: string; actionClass: string }>(
+      'POST',
+      `/api/decisions/${encodeURIComponent(decisionKey)}/guardrails`,
+      body,
+    ),
+  liftGuardrail: (key: string, reason: string) =>
+    request<{ status: string }>('POST', `/api/guardrails/${encodeURIComponent(key)}/lift`, { reason }),
   actOnWatchRule: (key: string, version: number, action: 'approve' | 'retire') =>
     request<{ status: string }>(
       'POST',

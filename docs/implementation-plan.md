@@ -32,7 +32,7 @@ Status words: Implemented · Simulated · Planned · Blocked.
 | ----- | ------------------------------------------------------------------------------------------------------------------------- | ---------- | ----------- |
 | 5A    | Semantic registry: metric definitions, codified mandate and business rules, jurisdiction variants, JSON-LD export (FR-52) | —          | Implemented |
 | 5B    | Intervention engine and inbox (FR-53, FR-36)                                                                              | 5A         | Implemented |
-| 5C    | Decision guardrails and post-decision monitoring (FR-54)                                                                  | 5A, 5B     | Planned     |
+| 5C    | Decision guardrails and post-decision monitoring (FR-54)                                                                  | 5A, 5B     | Implemented |
 | 5D    | Learning loop: assumption calibration proposals (FR-55)                                                                   | —          | Planned     |
 | 5E    | Validation tasking, asset-class desks, roll-up (FR-56)                                                                    | —          | Planned     |
 | 5F    | Oil-price-shock template and scenario room (FR-57)                                                                        | 5A         | Planned     |

@@ -7,6 +7,7 @@
 import {
   INTERVENTION_ENGINE,
   INTERVENTION_STATUSES,
+  METRICS,
   LIVE_STATUSES,
   ROLES,
   SENSITIVITY_ORDER,
@@ -16,7 +17,9 @@ import {
   evaluateRule,
   evaluateWatchRule,
   type ClaimClass,
+  type ExpectedFigure,
   type Finding,
+  type MonitorObservation,
   type InterventionInput,
   type InterventionItem,
   type InterventionInbox,
@@ -42,8 +45,10 @@ import {
   cases,
   connectors,
   interventions,
+  memoryEntries,
   outcomeReviews,
   principals,
+  scenarioRuns,
   semanticRules,
   signals,
   watchRules,
@@ -72,6 +77,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
       .innerJoin(cases, eq(cases.id, outcomeReviews.caseId)),
   ]);
   const read = await observer(tx, FULL_SCOPE);
+  const monitored = await monitoredFigures(tx);
   const semantic: Observations['semantic'] = [];
   for (const r of rules) {
     const o = await read(r.subject);
@@ -100,6 +106,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
   }
   return {
     now: now.toISOString(),
+    monitored,
     semantic,
     signals: sigs.map((s) => ({
       key: s.key,
@@ -134,6 +141,68 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
       sectorKey,
     })),
   };
+}
+
+const REF = /^scenario:(.+):metric:([a-z_]+):(\w+)$/;
+type RunValues = {
+  metrics: { key: string; values: Record<string, { low: number; central: number; high: number }> }[];
+};
+
+/**
+ * Post-decision monitoring (5C): each approved decision's expected figures (kept on its memory entry) with the
+ * range from the run it was decided on, and the central value of the same figure in the latest run on that case.
+ */
+async function monitoredFigures(tx: Tx): Promise<MonitorObservation[]> {
+  const entries = await tx
+    .select({
+      m: memoryEntries,
+      caseKey: cases.key,
+      sensitivity: cases.sensitivity,
+      sectorKey: cases.sectorKey,
+    })
+    .from(memoryEntries)
+    .innerJoin(cases, eq(cases.id, memoryEntries.caseId));
+  if (!entries.length) return [];
+  const runs = await tx
+    .select({
+      key: scenarioRuns.key,
+      caseId: scenarioRuns.caseId,
+      outputs: scenarioRuns.outputs,
+      at: scenarioRuns.createdAt,
+    })
+    .from(scenarioRuns)
+    .where(inArray(scenarioRuns.caseId, [...new Set(entries.map((e) => e.m.caseId))]))
+    .orderBy(desc(scenarioRuns.createdAt));
+  const value = (outputs: unknown, metric: string, horizon: string) =>
+    (outputs as { result?: RunValues }).result?.metrics.find((x) => x.key === metric)?.values[horizon];
+  const out: MonitorObservation[] = [];
+  for (const { m, caseKey, sensitivity, sectorKey } of entries) {
+    const latest = runs.find((r) => r.caseId === m.caseId);
+    for (const e of m.expected as ExpectedFigure[]) {
+      const ref = e.ref.match(REF);
+      const decided = runs.find((r) => r.key === e.scenarioRunKey);
+      if (!ref || !decided || !latest) continue;
+      const expected = value(decided.outputs, ref[2]!, ref[3]!);
+      const now = value(latest.outputs, ref[2]!, ref[3]!);
+      if (!expected || !now) continue;
+      out.push({
+        memoryKey: m.key,
+        caseId: m.caseId,
+        caseKey,
+        figureRef: e.ref,
+        figureLabel: e.label,
+        unit: METRICS.find((x) => x.key === ref[2])?.unit ?? '',
+        expectedLow: expected.low,
+        expectedHigh: expected.high,
+        decisionRunKey: decided.key,
+        latestRunKey: latest.key,
+        latestCentral: now.central,
+        classification: sensitivity as Sensitivity,
+        sectorKey,
+      });
+    }
+  }
+  return out;
 }
 
 async function nextKey(tx: Tx, now: Date, offset: number): Promise<string> {
@@ -310,6 +379,7 @@ const PARAMS: Record<WatchKind, z.ZodType> = {
     .strict(),
   connector_stale: z.object({ maxDays: z.number().int().min(1).max(365).optional() }).strict(),
   decision_drift: z.object({}).strict(),
+  decision_monitor: z.object({ breachWidths: z.number().positive().max(10).optional() }).strict(),
 };
 
 /** Background sweep every 15 minutes per institution, when jobs are on (D-116). */

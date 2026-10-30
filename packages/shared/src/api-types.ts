@@ -1224,3 +1224,25 @@ export interface WatchRuleList {
   canApprove: boolean;
   rules: WatchRuleItem[];
 }
+
+// ───────────────────────────── Phase 5C: guardrails ─────────────────────────────
+
+export interface GuardrailItem {
+  key: string;
+  actionClass: string;
+  effect: 'block' | 'require_role';
+  requiredRole: Role | null;
+  threshold: { value: number; unit: string } | null;
+  statement: string;
+  expiresOn: string | null;
+  expired: boolean;
+  status: 'active' | 'lifted';
+  /** Shown only to readers who may read the case the guardrail came from. */
+  decisionKey: string | null;
+  caseKey: string | null;
+  createdBy: string;
+  createdAt: string;
+  liftedBy: string | null;
+  liftedAt: string | null;
+  liftReason: string | null;
+}

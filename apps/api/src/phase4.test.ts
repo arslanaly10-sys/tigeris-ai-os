@@ -278,7 +278,7 @@ describe('decision (two-person rule)', () => {
     ).json();
     const mine = log.filter((d) => d.recommendationKey === recKey);
     expect(mine.map((d) => d.policyResult).sort()).toEqual(['hold', 'pass']);
-    expect(mine.every((d) => d.policyVersion === 'decision-policy 1.1.0')).toBe(true);
+    expect(mine.every((d) => d.policyVersion.startsWith('decision-policy 1.'))).toBe(true);
   });
 });
 

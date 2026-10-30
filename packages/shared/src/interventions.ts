@@ -8,7 +8,13 @@ import type { Role, Sensitivity, Urgency } from './vocabulary';
 
 export const INTERVENTION_ENGINE = 'intervention-engine 1.0.0';
 
-export const WATCH_KINDS = ['semantic', 'signal_untriaged', 'connector_stale', 'decision_drift'] as const;
+export const WATCH_KINDS = [
+  'semantic',
+  'signal_untriaged',
+  'connector_stale',
+  'decision_drift',
+  'decision_monitor',
+] as const;
 export type WatchKind = (typeof WATCH_KINDS)[number];
 
 export const WATCH_KIND_LABEL: Record<WatchKind, string> = {
@@ -16,6 +22,7 @@ export const WATCH_KIND_LABEL: Record<WatchKind, string> = {
   signal_untriaged: 'Urgent signal not triaged in time',
   connector_stale: 'Data connector failing or out of date',
   decision_drift: 'Decision outcome outside its expected range',
+  decision_monitor: 'Approved decision drifting from its expected figures',
 };
 
 export const INTERVENTION_STATUSES = ['open', 'acknowledged', 'resolved', 'dismissed'] as const;
@@ -96,8 +103,26 @@ export interface OutcomeObservation {
   sectorKey: string | null;
 }
 
+/** An approved decision's expected figure, compared with the latest scenario run on the same case. */
+export interface MonitorObservation {
+  memoryKey: string;
+  caseId: string;
+  caseKey: string;
+  figureRef: string;
+  figureLabel: string;
+  unit: string;
+  expectedLow: number;
+  expectedHigh: number;
+  decisionRunKey: string;
+  latestRunKey: string;
+  latestCentral: number;
+  classification: Sensitivity;
+  sectorKey: string | null;
+}
+
 export interface Observations {
   now: string;
+  monitored?: MonitorObservation[];
   semantic: SemanticObservation[];
   signals: SignalObservation[];
   connectors: ConnectorObservation[];
@@ -210,6 +235,42 @@ export function evaluateWatchRule(rule: WatchRuleSpec, obs: Observations): Findi
               caseId: null,
             },
           ];
+        });
+    }
+    case 'decision_monitor': {
+      // Drift is measured against the width of the expected range; within the range is not drift.
+      const breachWidths = asNumber(rule.params.breachWidths, 1);
+      return (obs.monitored ?? [])
+        .filter((m) => m.latestRunKey !== m.decisionRunKey)
+        .filter((m) => m.latestCentral < m.expectedLow || m.latestCentral > m.expectedHigh)
+        .map((m) => {
+          const width = Math.max(m.expectedHigh - m.expectedLow, Number.EPSILON);
+          const outside =
+            m.latestCentral > m.expectedHigh
+              ? m.latestCentral - m.expectedHigh
+              : m.expectedLow - m.latestCentral;
+          return {
+            subjectRef: `monitor:${m.memoryKey}:${m.figureRef}`,
+            severity: outside / width >= breachWidths ? 'breach' : rule.severity,
+            title: `Decision on ${m.caseKey} drifting: ${m.figureLabel}`,
+            detail: `The latest scenario run ${m.latestRunKey} gives ${num(m.latestCentral)} ${m.unit} (central), outside the range of ${num(m.expectedLow)}–${num(m.expectedHigh)} ${m.unit} expected when the decision was taken (run ${m.decisionRunKey}). Check whether the decision still holds before the outcome is reviewed.`,
+            inputs: [
+              { label: 'Memory entry', value: m.memoryKey, ref: `memory:${m.memoryKey}` },
+              {
+                label: 'Expected',
+                value: `${num(m.expectedLow)}–${num(m.expectedHigh)} ${m.unit}`,
+                ref: m.figureRef,
+              },
+              {
+                label: 'Latest run',
+                value: `${num(m.latestCentral)} ${m.unit} (central)`,
+                ref: `scenario:${m.latestRunKey}`,
+              },
+            ],
+            classification: m.classification,
+            sectorKey: m.sectorKey,
+            caseId: m.caseId,
+          } satisfies Finding;
         });
     }
     case 'decision_drift':

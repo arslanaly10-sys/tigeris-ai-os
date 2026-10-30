@@ -28,7 +28,7 @@ describe('decision policy', () => {
     const e = evaluatePolicy(base);
     expect(e.result).toBe('pass');
     expect(e.completes).toBe(true);
-    expect(e.version).toBe('decision-policy 1.1.0');
+    expect(e.version).toBe('decision-policy 1.2.0');
   });
 
   it('blocks any decision without an endorsing expert review', () => {
@@ -182,5 +182,54 @@ describe('recorded disagreement (FR-24)', () => {
     expect(
       evaluatePolicy({ ...base, dissent: { count: 0, acknowledged: false } }).reasons.map((r) => r.code),
     ).not.toContain('dissent');
+  });
+});
+
+describe('guardrails (decision-policy 1.2.0)', () => {
+  const g = (over: Partial<NonNullable<PolicyInput['guardrails']>[number]> = {}) => ({
+    key: 'GR-20261030-01',
+    effect: 'require_role' as const,
+    requiredRole: 'executive' as const,
+    threshold: null,
+    statement: 'No reallocation without the Executive',
+    ...over,
+  });
+  const magnitude = { value: 500, unit: 'USD m', label: 'Hedge notional' };
+
+  it('blocks an approval that lacks the role a guardrail requires, naming the guardrail', () => {
+    const e = evaluatePolicy({ ...base, guardrails: [g()] });
+    expect(e.result).toBe('block');
+    const r = e.reasons.find((x) => x.code === 'guardrail')!;
+    expect(r.text).toContain('GR-20261030-01');
+    expect(r.text).toContain('Executive / Governor');
+  });
+
+  it('passes when the decider holds the required role', () => {
+    const e = evaluatePolicy({ ...base, actor: { id: 'exec-1', roles: ['executive'] }, guardrails: [g()] });
+    expect(e.reasons.find((x) => x.code === 'guardrail')!.result).toBe('pass');
+  });
+
+  it('applies a threshold only above it, and fails closed when the size is unknown or in another unit', () => {
+    const t = g({ effect: 'block', requiredRole: null, threshold: { value: 1000, unit: 'USD m' } });
+    expect(
+      evaluatePolicy({ ...base, magnitude, guardrails: [t] }).reasons.find((x) => x.code === 'guardrail')!
+        .result,
+    ).toBe('pass');
+    expect(
+      evaluatePolicy({ ...base, magnitude: { ...magnitude, value: 1500 }, guardrails: [t] }).result,
+    ).toBe('block');
+    expect(evaluatePolicy({ ...base, magnitude: null, guardrails: [t] }).result).toBe('block');
+    expect(
+      evaluatePolicy({ ...base, magnitude: { ...magnitude, unit: '% of NAV' }, guardrails: [t] }).result,
+    ).toBe('block');
+  });
+
+  it('never applies guardrails to rejections or deferrals', () => {
+    const e = evaluatePolicy({
+      ...base,
+      outcome: 'reject',
+      guardrails: [g({ effect: 'block', requiredRole: null })],
+    });
+    expect(e.reasons.some((x) => x.code === 'guardrail')).toBe(false);
   });
 });

@@ -9,7 +9,7 @@ import type { CaseState, PolicyResult, Role } from './vocabulary';
  *   → handoff (operations owner: acknowledge, progress, outcome) → memory (approved and outcome recorded)
  */
 
-export const POLICY_VERSION = 'decision-policy 1.1.0';
+export const POLICY_VERSION = 'decision-policy 1.2.0';
 
 export const REVIEW_VERDICTS = ['endorse', 'request_changes'] as const;
 export type ReviewVerdict = (typeof REVIEW_VERDICTS)[number];
@@ -96,7 +96,8 @@ export interface PolicyReason {
     | 'two_person_same'
     | 'duplicate'
     | 'limit'
-    | 'dissent';
+    | 'dissent'
+    | 'guardrail';
   result: PolicyResult;
   text: string;
 }
@@ -122,6 +123,17 @@ export interface PolicyInput {
    * A disagreement never blocks a decision outright; approving over one must be done knowingly.
    */
   dissent?: { count: number; acknowledged: boolean };
+  /** Active guardrails on this action class (FR-54, D-105), recorded from earlier decisions. */
+  guardrails?: readonly GuardrailInput[];
+}
+
+/** A standing guardrail as the policy reads it: block, or require a named role, optionally above a threshold. */
+export interface GuardrailInput {
+  key: string;
+  effect: 'block' | 'require_role';
+  requiredRole: Role | null;
+  threshold: { value: number; unit: string } | null;
+  statement: string;
 }
 
 export interface PolicyEvaluation {
@@ -241,6 +253,10 @@ export function evaluatePolicy(input: PolicyInput): PolicyEvaluation {
     );
   }
 
+  if (approving)
+    for (const g of input.guardrails ?? [])
+      reasons.push(guardrailReason(g, actor.roles, input.magnitude ?? null));
+
   if (approving && authority?.twoPerson) {
     reasons.push(
       second
@@ -292,6 +308,35 @@ function limitReason(
         code: 'limit',
         result: 'pass',
         text: `${what} is within your delegated limit of ${num(limit.value)} ${limit.unit} (${limit.basis}).`,
+      };
+}
+
+/**
+ * A guardrail applies unless the option is sized in the guardrail's unit and at or below its threshold. An option
+ * with no size, or a size in another unit, cannot be shown to be below it, so the guardrail applies (fail closed).
+ */
+function guardrailReason(
+  g: GuardrailInput,
+  roles: readonly Role[],
+  magnitude: { value: number; unit: string; label: string } | null,
+): PolicyReason {
+  const name = `Guardrail ${g.key} ("${g.statement}")`;
+  if (g.threshold && magnitude && magnitude.unit === g.threshold.unit && magnitude.value <= g.threshold.value)
+    return {
+      code: 'guardrail',
+      result: 'pass',
+      text: `${name} applies above ${num(g.threshold.value)} ${g.threshold.unit}; this option is ${num(magnitude.value)} ${magnitude.unit}.`,
+    };
+  const above = g.threshold ? ` above ${num(g.threshold.value)} ${g.threshold.unit}` : '';
+  if (g.effect === 'block')
+    return { code: 'guardrail', result: 'block', text: `${name} blocks approval of this action${above}.` };
+  const role = g.requiredRole!;
+  return roles.includes(role)
+    ? { code: 'guardrail', result: 'pass', text: `${name}: approved by the required ${ROLE_NAME[role]}.` }
+    : {
+        code: 'guardrail',
+        result: 'block',
+        text: `${name} requires the ${ROLE_NAME[role]} to approve this action${above}.`,
       };
 }
 

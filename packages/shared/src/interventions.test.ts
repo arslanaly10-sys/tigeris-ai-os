@@ -144,3 +144,46 @@ describe('intervention engine', () => {
     expect(evaluateWatchRule(r, obs)).toEqual(evaluateWatchRule(r, obs));
   });
 });
+
+describe('post-decision monitoring', () => {
+  const m = (over: object) => ({
+    memoryKey: 'MEM-1',
+    caseId: 'c1',
+    caseKey: 'HMZ-2024-0413',
+    figureRef: 'scenario:SCN-1:metric:nav_at_risk_peak:d90',
+    figureLabel: 'NAV at risk',
+    unit: '% of NAV',
+    expectedLow: 1,
+    expectedHigh: 2,
+    decisionRunKey: 'SCN-1',
+    latestRunKey: 'SCN-2',
+    latestCentral: 1.5,
+    classification: 'confidential' as const,
+    sectorKey: null,
+    ...over,
+  });
+  const r = {
+    key: 'W-MONITOR',
+    version: 1,
+    kind: 'decision_monitor' as const,
+    params: { breachWidths: 1 },
+    severity: 'attention' as const,
+  };
+
+  it('raises drift only when a newer run falls outside the expected range, breach beyond one range width', () => {
+    const f = evaluateWatchRule(r, {
+      ...empty,
+      monitored: [
+        m({ memoryKey: 'IN' }),
+        m({ memoryKey: 'SAME-RUN', latestRunKey: 'SCN-1', latestCentral: 9 }),
+        m({ memoryKey: 'NEAR', latestCentral: 2.5 }),
+        m({ memoryKey: 'FAR', latestCentral: 3.5 }),
+      ],
+    });
+    expect(f.map((x) => [x.subjectRef.split(':')[1], x.severity])).toEqual([
+      ['NEAR', 'attention'],
+      ['FAR', 'breach'],
+    ]);
+    expect(f[0]!.detail).toContain('SCN-2');
+  });
+});

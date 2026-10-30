@@ -1,5 +1,5 @@
 /**
- * Seeded watch rules for the demonstration (Phase 5B, D-106, D-116): one per kind the owner chose. Thresholds are
+ * Seeded watch rules for the demonstration (Phase 5B, D-106, D-116): one per kind the owner chose, plus post-decision monitoring (5C, D-117). Thresholds are
  * synthetic, owner-approved for the demonstration only.
  */
 export const WATCH_BASIS = 'Synthetic watch rule; owner-approved for the demonstration (D-116)';
@@ -42,5 +42,15 @@ export const WATCH_RULES = [
     severity: 'breach',
     routeRoles: ['executive', 'domain_expert'],
     rationale: 'When an outcome misses its expected range the assumptions behind the decision need review.',
+  },
+  {
+    key: 'W-MONITOR',
+    label: 'Approved decisions drifting from their expected figures',
+    kind: 'decision_monitor',
+    params: { breachWidths: 1 },
+    severity: 'attention',
+    routeRoles: ['executive', 'approver', 'domain_expert'],
+    rationale:
+      'A newer scenario run outside the range a decision expected is a reason to check the decision before its outcome arrives.',
   },
 ] as const;

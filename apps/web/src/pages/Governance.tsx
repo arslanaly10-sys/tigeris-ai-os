@@ -23,6 +23,7 @@ import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 import { AttentionRow } from '@/pages/Overview';
+import { GuardrailsView } from '@/components/governance/Guardrails';
 import { DefinitionsView, ExportView, RulesView } from '@/components/governance/SemanticRegistry';
 import { HandoffCard, OUTCOME_LABEL, PolicyResultBadge, RecStatusPill } from '@/components/governance/parts';
 
@@ -264,6 +265,7 @@ const MANDATE_VIEWS = [
   { value: 'register', label: 'mandates.view.register' },
   { value: 'rules', label: 'mandates.view.rules' },
   { value: 'definitions', label: 'mandates.view.definitions' },
+  { value: 'guardrails', label: 'mandates.view.guardrails' },
   { value: 'export', label: 'mandates.view.export' },
 ] as const;
 type MandateView = (typeof MANDATE_VIEWS)[number]['value'];
@@ -307,6 +309,9 @@ export function MandatesPage() {
         </Tabs.Content>
         <Tabs.Content value="definitions" className="outline-none">
           <DefinitionsView />
+        </Tabs.Content>
+        <Tabs.Content value="guardrails" className="outline-none">
+          <GuardrailsView />
         </Tabs.Content>
         <Tabs.Content value="export" className="outline-none">
           <ExportView />
@@ -468,7 +473,7 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
         description="Recommendations awaiting expert review or a decision, the decision log, and what is waiting on your role."
       />
       <Note icon={<Gavel className="h-4 w-4" aria-hidden />}>
-        Every decision is checked by decision-policy 1.1.0: expert review comes first, the author of a
+        Every decision is checked by decision-policy 1.2.0: expert review comes first, the author of a
         recommendation never decides on it, the reviewer never approves it, the authority matrix sets the
         role, and two-person actions need a second, different approver.
       </Note>

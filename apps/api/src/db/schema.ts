@@ -387,6 +387,7 @@ export const agentRuns = pgTable('agent_runs', {
   triggeredBy: uuid('triggered_by').notNull(),
   startedAt: ts('started_at').notNull(),
   finishedAt: ts('finished_at').notNull(),
+  analysisRunId: uuid('analysis_run_id'),
 });
 
 export const draftOptions = pgTable('draft_options', {
@@ -665,4 +666,33 @@ export const documents = pgTable('documents', {
   connectorId: uuid('connector_id'),
   runId: uuid('run_id'),
   ...provenance,
+});
+
+// ───────────────────────────── Slices F/G: case analysis and reviewer notes (migration 0009) ─────────────────────────────
+
+export const analysisRuns = pgTable('analysis_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  caseId: uuid('case_id').notNull(),
+  version: text('version').notNull(),
+  question: text('question').notNull(),
+  scenarioRunId: uuid('scenario_run_id'),
+  steps: jsonb('steps').notNull(),
+  gapCount: integer('gap_count').notNull(),
+  inputHash: text('input_hash').notNull(),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const reviewNotes = pgTable('review_notes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  recommendationId: uuid('recommendation_id').notNull(),
+  caseId: uuid('case_id').notNull(),
+  authorId: uuid('author_id').notNull(),
+  authorRole: text('author_role').notNull(),
+  stance: text('stance').notNull(),
+  body: text('body').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
 });

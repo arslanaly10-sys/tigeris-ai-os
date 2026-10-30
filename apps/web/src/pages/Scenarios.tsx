@@ -45,6 +45,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/data';
 import { FadeSwap, INDICATOR_SPRING, StaggerItem, StaggerList } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
+import { SensitivityPanel } from '@/components/scenario/SensitivityPanel';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
@@ -53,6 +54,7 @@ import { useI18n } from '@/lib/i18n';
 const RUN_TABS = [
   { value: 'results', label: 'Results' },
   { value: 'compare', label: 'Compare horizons' },
+  { value: 'sensitivity', label: 'Sensitivity' },
   { value: 'options', label: 'Draft options' },
   { value: 'drafts', label: 'Specialist drafts' },
 ];
@@ -772,6 +774,11 @@ export function ScenarioRunPage() {
           </FadeSwap>
         </Tabs.Content>
 
+        <Tabs.Content value="sensitivity" className="outline-none">
+          <FadeSwap>
+            <SensitivityPanel scenarioKey={r.key} />
+          </FadeSwap>
+        </Tabs.Content>
         <Tabs.Content value="drafts" className="outline-none">
           <FadeSwap>
             <Panel aria-labelledby="drafts-heading">

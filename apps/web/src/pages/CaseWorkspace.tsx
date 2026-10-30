@@ -9,6 +9,7 @@ import {
 } from '@tigeris/shared';
 import * as Tabs from '@radix-ui/react-tabs';
 import { useQuery } from '@tanstack/react-query';
+import { CaseAnalysisTab } from '@/components/analysis/CaseAnalysisTab';
 import { CaseGovernanceTab } from '@/components/governance/CaseGovernanceTab';
 import { AlertTriangle, ChevronLeft, FileText, GitCommitVertical, Lock, Radar } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -53,7 +54,16 @@ const FACTOR_LABEL: Record<ConfidenceFactor, string> = {
   scenario_stability: 'Scenario stability',
 };
 
-const CASE_TABS = ['overview', 'evidence', 'graph', 'timeline', 'scenarios', 'options', 'decision'];
+const CASE_TABS = [
+  'overview',
+  'evidence',
+  'graph',
+  'timeline',
+  'scenarios',
+  'options',
+  'analysis',
+  'decision',
+];
 
 const tabClass =
   'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
@@ -536,6 +546,10 @@ export function CaseWorkspacePage() {
             Draft options
             <TabIndicator active={tab === 'options'} />
           </Tabs.Trigger>
+          <Tabs.Trigger value="analysis" className={tabClass}>
+            Analysis
+            <TabIndicator active={tab === 'analysis'} />
+          </Tabs.Trigger>
           <Tabs.Trigger value="decision" className={tabClass}>
             Decision & memory
             <TabIndicator active={tab === 'decision'} />
@@ -587,6 +601,11 @@ export function CaseWorkspacePage() {
         <Tabs.Content value="options" className="outline-none">
           <FadeSwap>
             <CaseOptionsTab caseKey={c.key} />
+          </FadeSwap>
+        </Tabs.Content>
+        <Tabs.Content value="analysis" className="outline-none">
+          <FadeSwap>
+            <CaseAnalysisTab caseKey={c.key} />
           </FadeSwap>
         </Tabs.Content>
         <Tabs.Content value="decision" className="outline-none">

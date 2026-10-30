@@ -1,4 +1,6 @@
-import type { DriverDef, Drivers, EngineResult, MetricDef } from './scenario-engine';
+import type { DriverDef, Drivers, EngineResult, HorizonKey, MetricDef } from './scenario-engine';
+import type { SensitivityResult } from './scenario-sensitivity';
+import type { AnalysisAgentKey } from './analysis';
 import type { MandateCheck, OptionMagnitude } from './scenario-options';
 import type { AuthType, ConnectionType, ConnectorStatus, Dataset } from './connectors';
 import type {
@@ -573,6 +575,9 @@ export interface CaseGovernance {
   decisionPreview: Record<DecisionOutcome, PolicyEvaluation> | null;
   handoff: HandoffItem | null;
   memory: MemoryItem | null;
+  /** Reviewer notes, agreements and recorded disagreements on this case's recommendations (FR-24). */
+  notes: ReviewNoteItem[];
+  canNote: GovernanceCheck;
 }
 
 /** A recorded decision in the institution-wide log (Decisions & Approvals). */
@@ -788,4 +793,67 @@ export interface EntityDetail {
   positions: PositionsPayload;
   /** Cases linked to this entity that the reader may open. */
   cases: { key: string; title: string; state: CaseState; role: string }[];
+}
+
+/** One specialist's step in a case analysis run (slice F). */
+export interface AnalysisStepItem {
+  agentKey: AnalysisAgentKey;
+  agentName: string;
+  /** 'gap' when the authorized records were too thin to answer; the text says what is missing. */
+  status: 'completed' | 'gap';
+  text: string;
+  /** Short, structured findings the prose summarizes (entity names, counts, option titles…). */
+  findings: string[];
+  gaps: string[];
+  citations: { ref: string; label: string; display: string }[];
+  grounding: { passed: boolean; numbers: { value: string; cited: boolean }[] };
+  modelId: string;
+  modelVersion: string;
+  templateKey: string;
+  templateVersion: string;
+}
+
+export interface AnalysisRunItem {
+  key: string;
+  caseKey: string;
+  version: string;
+  question: string;
+  scenarioKey: string | null;
+  inputHash: string;
+  createdAt: string;
+  createdBy: string;
+  steps: AnalysisStepItem[];
+  gapCount: number;
+}
+
+export interface CaseAnalysisPayload {
+  caseKey: string;
+  canRun: boolean;
+  agents: readonly { key: AnalysisAgentKey; name: string; does: string; tools: readonly string[] }[];
+  gateway: {
+    active: 'tigeris-stub';
+    external: { configured: boolean; endpointHost: string | null; enabled: false; reason: string };
+  };
+  runs: AnalysisRunItem[];
+}
+
+export interface SensitivityPayload {
+  scenarioKey: string;
+  engineVersion: string;
+  inputHash: string;
+  metric: { key: string; label: string; unit: string; decimals: number };
+  horizon: { key: HorizonKey; label: string };
+  result: SensitivityResult;
+  /** Metrics a reviewer may choose. */
+  metrics: { key: string; label: string }[];
+}
+
+export interface ReviewNoteItem {
+  id: string;
+  recommendationKey: string;
+  stance: 'agree' | 'disagree' | 'note';
+  body: string;
+  author: string;
+  authorRole: Role;
+  createdAt: string;
 }

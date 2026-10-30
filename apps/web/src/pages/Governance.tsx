@@ -413,7 +413,7 @@ export function DecisionsPage({ ctx }: { ctx: AuthContext }) {
         description="Recommendations awaiting expert review or a decision, the decision log, and what is waiting on your role."
       />
       <Note icon={<Gavel className="h-4 w-4" aria-hidden />}>
-        Every decision is checked by decision-policy 1.0.0: expert review comes first, the author of a
+        Every decision is checked by decision-policy 1.1.0: expert review comes first, the author of a
         recommendation never decides on it, the reviewer never approves it, the authority matrix sets the
         role, and two-person actions need a second, different approver.
       </Note>

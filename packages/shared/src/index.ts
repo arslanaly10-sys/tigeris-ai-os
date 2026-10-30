@@ -9,3 +9,5 @@ export * from './governance';
 export * from './access';
 export * from './connectors';
 export * from './dependencies';
+export * from './scenario-sensitivity';
+export * from './analysis';

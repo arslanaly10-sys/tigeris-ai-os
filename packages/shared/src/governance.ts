@@ -9,7 +9,7 @@ import type { CaseState, PolicyResult, Role } from './vocabulary';
  *   → handoff (operations owner: acknowledge, progress, outcome) → memory (approved and outcome recorded)
  */
 
-export const POLICY_VERSION = 'decision-policy 1.0.0';
+export const POLICY_VERSION = 'decision-policy 1.1.0';
 
 export const REVIEW_VERDICTS = ['endorse', 'request_changes'] as const;
 export type ReviewVerdict = (typeof REVIEW_VERDICTS)[number];
@@ -95,7 +95,8 @@ export interface PolicyReason {
     | 'two_person'
     | 'two_person_same'
     | 'duplicate'
-    | 'limit';
+    | 'limit'
+    | 'dissent';
   result: PolicyResult;
   text: string;
 }
@@ -116,6 +117,11 @@ export interface PolicyInput {
    * roles. Leave undefined to skip the limit rule (no limits register loaded).
    */
   limit?: { value: number; unit: string; basis: string } | null;
+  /**
+   * Disagreements recorded against the recommendation (FR-24) and whether the decider has acknowledged them.
+   * A disagreement never blocks a decision outright; approving over one must be done knowingly.
+   */
+  dissent?: { count: number; acknowledged: boolean };
 }
 
 export interface PolicyEvaluation {
@@ -220,6 +226,20 @@ export function evaluatePolicy(input: PolicyInput): PolicyEvaluation {
   }
 
   if (approving && input.limit !== undefined) reasons.push(limitReason(input.magnitude ?? null, input.limit));
+
+  if (approving && input.dissent && input.dissent.count > 0) {
+    const n = input.dissent.count;
+    const what = `${n} recorded ${n === 1 ? 'disagreement' : 'disagreements'}`;
+    reasons.push(
+      input.dissent.acknowledged
+        ? { code: 'dissent', result: 'pass', text: `Approving over ${what}, acknowledged by the decider.` }
+        : {
+            code: 'dissent',
+            result: 'block',
+            text: `There ${n === 1 ? 'is' : 'are'} ${what}. Read and acknowledge ${n === 1 ? 'it' : 'them'} before approving.`,
+          },
+    );
+  }
 
   if (approving && authority?.twoPerson) {
     reasons.push(

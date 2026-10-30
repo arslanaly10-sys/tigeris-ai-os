@@ -28,7 +28,7 @@ describe('decision policy', () => {
     const e = evaluatePolicy(base);
     expect(e.result).toBe('pass');
     expect(e.completes).toBe(true);
-    expect(e.version).toBe('decision-policy 1.0.0');
+    expect(e.version).toBe('decision-policy 1.1.0');
   });
 
   it('blocks any decision without an endorsing expert review', () => {
@@ -161,5 +161,26 @@ describe('delegated limits (D-52)', () => {
   it('passes with a note when the role has no numeric limit for the action', () => {
     const e = evaluatePolicy({ ...hedge, limit: null });
     expect(e.reasons.find((r) => r.code === 'limit')?.text).toContain('No numeric limit');
+  });
+});
+
+describe('recorded disagreement (FR-24)', () => {
+  it('blocks approval over an unacknowledged disagreement and passes once acknowledged', () => {
+    const open = evaluatePolicy({ ...base, dissent: { count: 2, acknowledged: false } });
+    expect(open.result).toBe('block');
+    expect(open.reasons.find((r) => r.code === 'dissent')?.text).toContain('2 recorded disagreements');
+    const known = evaluatePolicy({ ...base, dissent: { count: 2, acknowledged: true } });
+    expect(known.result).toBe('pass');
+    expect(codes(known, 'pass')).toContain('dissent');
+  });
+
+  it('does not stand in the way of rejecting, deferring or asking for evidence', () => {
+    for (const outcome of ['reject', 'defer', 'request_evidence'] as const)
+      expect(evaluatePolicy({ ...base, outcome, dissent: { count: 1, acknowledged: false } }).result).toBe(
+        'pass',
+      );
+    expect(
+      evaluatePolicy({ ...base, dissent: { count: 0, acknowledged: false } }).reasons.map((r) => r.code),
+    ).not.toContain('dissent');
   });
 });

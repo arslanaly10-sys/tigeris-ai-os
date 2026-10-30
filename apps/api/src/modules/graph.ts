@@ -45,7 +45,7 @@ export const MAX_HOPS = 4;
 
 type EntityRow = typeof entities.$inferSelect;
 
-function toNode(e: EntityRow, hop?: number): GraphNode {
+export function toNode(e: EntityRow, hop?: number): GraphNode {
   return {
     id: e.id,
     key: e.key,
@@ -60,7 +60,7 @@ function toNode(e: EntityRow, hop?: number): GraphNode {
   };
 }
 
-async function loadEdges(tx: Tx): Promise<GraphEdge[]> {
+export async function loadEdges(tx: Tx): Promise<GraphEdge[]> {
   const rels = await tx.select().from(entityRelationships).where(ne(entityRelationships.status, 'retired'));
   const ev = await tx
     .select({

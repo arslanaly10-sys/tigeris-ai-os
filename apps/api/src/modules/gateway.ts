@@ -85,7 +85,92 @@ export const TEMPLATES: Record<string, Template> = {
     version: '1.0.0',
     render: (c) => `Checked against the mandate register: ${v(c, 'mandates:summary')}.`,
   },
+  // Case analysis (slice F). Each agent's prose quotes only what it was given; lists arrive as cited displays.
+  'analysis-plan': {
+    version: '1.0.0',
+    render: (c) =>
+      `Question: ${v(c, 'case:question')} The case is at the ${v(c, 'case:state')} stage. ` +
+      `Plan: ${v(c, 'plan:steps')}. Each step reads only records this case may use; a step without enough of them reports a gap instead of an answer.`,
+  },
+  'evidence-brief': {
+    version: '1.0.0',
+    render: (c) =>
+      `${v(c, 'evidence:count')} linked to the case: ${v(c, 'evidence:verified')}, ${v(c, 'evidence:unverified')} and ${v(c, 'evidence:disputed')}. ` +
+      `${v(c, 'evidence:freshness')}. Unverified and disputed items cannot be the sole basis of a decision.`,
+  },
+  'impact-trace': {
+    version: '1.0.0',
+    render: (c) =>
+      `Traced from ${v(c, 'impact:origin')}. ${v(c, 'impact:exposed')} exposed within ${v(c, 'impact:hops')}; directly: ${v(c, 'impact:first')}. ` +
+      `It relies on ${v(c, 'impact:relies')}. ${v(c, 'impact:weakest')}.`,
+  },
+  'scenario-brief': {
+    version: '1.0.0',
+    render: (c) =>
+      `The latest scenario run, ${v(c, 'scenario:key')}, assumes ${v(c, 'driver:capacityLostPct')} of transit capacity lost for ${v(c, 'driver:durationDays')}. ` +
+      `Central NAV at risk while disrupted is ${v(c, 'metric:nav_at_risk_peak:central')} (range ${v(c, 'metric:nav_at_risk_peak:low')} to ${v(c, 'metric:nav_at_risk_peak:high')}) over ${v(c, 'horizon:d90')}. ` +
+      `The range comes from the assumption register, not from observed data.`,
+  },
+  'option-brief': {
+    version: '1.0.0',
+    render: (c) =>
+      `${v(c, 'options:ranker')} drafted ${v(c, 'options:count')} for review. Leading: ${v(c, 'options:leading')}. ${v(c, 'options:basis')}. ` +
+      `None is a recommendation until an analyst proposes it and a domain expert reviews it.`,
+  },
+  'mandate-brief': {
+    version: '1.0.0',
+    render: (c) =>
+      `For ${v(c, 'options:leading')}: ${v(c, 'mandates:summary')}. Authority needed: ${v(c, 'options:authority')}.`,
+  },
+  'red-team': {
+    version: '1.0.0',
+    render: (c) =>
+      `Against ${v(c, 'options:leading')}: the estimate it rests on, ${v(c, 'sensitivity:central')}, is most sensitive to ${v(c, 'sensitivity:top')}. ` +
+      `Across that input's range (${v(c, 'sensitivity:top_low_input')} to ${v(c, 'sensitivity:top_high_input')}) the estimate moves from ${v(c, 'sensitivity:top_low')} to ${v(c, 'sensitivity:top_high')}. ` +
+      `Next most sensitive: ${v(c, 'sensitivity:second')}. ${v(c, 'evidence:weakness')}. ` +
+      `What would change the conclusion: evidence that pins ${v(c, 'sensitivity:top')} near either end of its range.`,
+  },
+  'memory-brief': {
+    version: '1.0.0',
+    render: (c) =>
+      `${v(c, 'memory:count')} in this institution's memory concern this case's workspace. Closest: ${v(c, 'memory:closest')}. ` +
+      `Precedent informs the decision; it does not make it.`,
+  },
+  'analysis-gap': {
+    version: '1.0.0',
+    render: (c) => `Gap: ${v(c, 'gap:missing')}. This step gives no answer until that is in place.`,
+  },
 };
+
+/**
+ * Model-provider boundary (FR-35, D-53). A local OpenAI-compatible endpoint or a hosted provider can be named in
+ * configuration, but no request is ever sent while D-14 holds: the provider is reported as configured and refused.
+ * Turning it on needs a decision entry, a policy change and the migration that lifts `agent_runs CHECK (NOT external)`.
+ */
+export interface ProviderStatus {
+  active: 'tigeris-stub';
+  external: { configured: boolean; endpointHost: string | null; enabled: false; reason: string };
+}
+
+export function providerStatus(endpoint: string | undefined): ProviderStatus {
+  let host: string | null = null;
+  try {
+    host = endpoint ? new URL(endpoint).host : null;
+  } catch {
+    host = null;
+  }
+  return {
+    active: 'tigeris-stub',
+    external: {
+      configured: host !== null,
+      endpointHost: host,
+      enabled: false,
+      reason: MODEL_POLICY.allowExternal
+        ? 'Allowed by policy'
+        : 'External model calls are disabled by policy (D-14); drafts use the internal deterministic stub.',
+    },
+  };
+}
 
 /** Number tokens not glued to letters or hyphens, so identifiers such as M-RISK-02 are not counted. */
 const NUMBER = /(?<![\w.-])\d+(?:[.,]\d+)*(?![\w-])/g;

@@ -1,4 +1,4 @@
-import { DECIDING_ROLES, HANDOFF_ROLES } from '@tigeris/shared';
+import { DECIDING_ROLES, HANDOFF_ROLES, type RecommendationItem } from '@tigeris/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Gavel, Info } from 'lucide-react';
 import { LoadState } from '@/components/PageHeader';
@@ -13,6 +13,7 @@ import {
   RecommendationCard,
   RecommendForm,
   ReviewForm,
+  ReviewNotes,
 } from './parts';
 
 function Notice({ children }: { children: string }) {
@@ -35,6 +36,14 @@ export function CaseGovernanceTab({ caseKey }: { caseKey: string }) {
   const operates = HANDOFF_ROLES.some((r) => roles.includes(r));
   const past = g.recommendations.filter((r) => r.id !== g.open?.id && r.key !== g.handoff?.recommendationKey);
   const approved = g.recommendations.find((r) => r.key === g.handoff?.recommendationKey);
+  const notesFor = (rec: RecommendationItem) => (
+    <ReviewNotes
+      rec={rec}
+      notes={g.notes.filter((n) => n.recommendationKey === rec.key)}
+      canNote={g.canNote.allowed}
+      isAuthor={rec.createdBy.id === auth.data!.principal.id}
+    />
+  );
 
   return (
     <div className="space-y-6">
@@ -65,6 +74,7 @@ export function CaseGovernanceTab({ caseKey }: { caseKey: string }) {
             {g.open.status === 'in_review' ? 'Awaiting expert review' : 'Awaiting decision'}
           </h2>
           <RecommendationCard rec={g.open}>
+            {notesFor(g.open)}
             {g.open.status === 'in_review' ? (
               g.canReview.allowed ? (
                 <ReviewForm rec={g.open} />
@@ -86,7 +96,7 @@ export function CaseGovernanceTab({ caseKey }: { caseKey: string }) {
       {approved && !g.open ? (
         <section aria-label="Approved recommendation" className="space-y-2">
           <h2 className="text-lg text-ink">Approved recommendation</h2>
-          <RecommendationCard rec={approved} />
+          <RecommendationCard rec={approved}>{notesFor(approved)}</RecommendationCard>
         </section>
       ) : null}
 
@@ -112,7 +122,9 @@ export function CaseGovernanceTab({ caseKey }: { caseKey: string }) {
         <section aria-label="Earlier recommendations" className="space-y-2">
           <h2 className="text-lg text-ink">Earlier recommendations</h2>
           {past.map((r) => (
-            <RecommendationCard key={r.id} rec={r} />
+            <RecommendationCard key={r.id} rec={r}>
+              {notesFor(r)}
+            </RecommendationCard>
           ))}
         </section>
       ) : null}

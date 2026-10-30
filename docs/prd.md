@@ -75,7 +75,7 @@ labelled as such, never implying a live institution or the ability to move capit
 | 2    | Affected routes, assets, sectors and investment exposures on the Gulf map and the impact graph (2nd and 3rd order)      | Implemented (synthetic exposures)                        |
 | 3    | Modelled impacts over 72 h, 90 d, 1 y and 5 y with low / central / high ranges and every assumption visible             | Implemented (hormuz-disruption 1.0.0, illustrative)      |
 | 4    | Ranked response options checked against the mandate register and authority matrix                                       | Implemented (options-ranker 1.0.0)                       |
-| 5    | Recommendation, mandatory expert review, policy-checked approval (two-person where required)                            | Implemented (decision-policy 1.0.0)                      |
+| 5    | Recommendation, mandatory expert review, policy-checked approval (two-person where required)                            | Implemented (decision-policy 1.1.0)                      |
 | 6    | Recorded decision, handoff and outcome; expected-versus-observed review kept as institutional memory                    | Implemented (narrative); figure-by-figure Planned (D-60) |
 
 ## 5. Functional requirements
@@ -114,7 +114,7 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-21** Evidence linked to cases, with disputed and unverified values flagged. _Implemented._
 - **FR-22** Timeline of case events and decisions. _Implemented._
 - **FR-23** Unresolved questions, assumptions and data gaps listed per case. _Implemented._
-- **FR-24** Sensitivity comparison across assumptions; reviewer notes and recorded disagreement. _Planned (slice F/G)._
+- **FR-24** Sensitivity comparison across assumptions; reviewer notes and recorded disagreement. _Implemented (slice G): one-at-a-time sensitivity per metric and horizon on every scenario run; append-only notes, agreement and disagreement on recommendations; approving over a recorded disagreement requires the decider's acknowledgement (decision-policy 1.1.0)._
 
 ### 5.5 Governance, decisions and outcomes
 
@@ -130,7 +130,7 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.6 AI, agents and advanced analytics
 
 - **FR-33** Model gateway with policy: approved models only, external calls off unless policy allows; every run records model and version, template version, inputs, citations, grounding result. _Implemented (deterministic stub)._
-- **FR-34** Agentic case analysis (D-53): a planner decomposes the question, then specialist agents run with scoped tools and the case's authorized evidence only. Each agent's output cites evidence; a grounding check rejects any number that is not in a cited display; thin evidence produces a stated gap, not an answer. _Planned (slice F)._ Agent roster:
+- **FR-34** Agentic case analysis (D-53): a planner decomposes the question, then specialist agents run with scoped tools and the case's authorized evidence only. Each agent's output cites evidence; a grounding check rejects any number that is not in a cited display; thin evidence produces a stated gap, not an answer. _Implemented (slice F) on the deterministic stub._ Agent roster:
 
   | Agent              | Does                                                                        | Tools (read-only)                                   |
   | ------------------ | --------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -143,7 +143,7 @@ labelled as such, never implying a live institution or the ability to move capit
   | Red-team critic    | Argues against the leading option; lists what would change the conclusion   | All of the above, read-only                         |
   | Memory scout       | Finds similar past decisions and their outcomes as precedent                | Institutional memory (same institution only)        |
 
-- **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Planned._
+- **FR-35** Model-provider adapter (local OpenAI-compatible endpoint or hosted provider) configured per institution, off by default. _Implemented as a boundary: `MODEL_PROVIDER_URL` is shown as configured and never called while D-14 holds._
 - **FR-36** Early-warning indicators: deterministic, versioned indicator rules (e.g. transit restriction duration, war-risk premium multiple, freshness of corroboration) that raise a signal's urgency with the rule shown. _Planned._
 - **FR-37** Change detection: "what changed since the last review" for a case, a source or a vendor page, from stored versions. _Planned._
 

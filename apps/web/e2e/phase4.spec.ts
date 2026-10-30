@@ -36,9 +36,23 @@ test.describe('governance: recommendation to institutional memory (Phase 4)', ()
     await page.getByRole('button', { name: 'Record review' }).click();
     await expect(page.getByRole('heading', { name: 'Awaiting decision' })).toBeVisible();
 
-    // Approver: the policy holds the first of two approvals.
+    // Auditor: records a disagreement. It stays on the record and every approver must acknowledge it (FR-24).
+    await switchTo(page, /Auditor/);
+    const notes = page.getByRole('region', { name: /Review notes/ });
+    await notes.getByRole('radio', { name: 'Disagree' }).check();
+    await notes
+      .getByLabel(/Why you disagree/)
+      .fill('The valuation elasticity is assumed, not observed; the hedge size rests on it.');
+    await notes.getByRole('button', { name: 'Record disagreement' }).click();
+    await expect(notes).toContainText('1 recorded disagreement');
+    await expectAccessible(page);
+
+    // Approver: blocked until the disagreement is acknowledged, then the policy holds the first of two approvals.
     await switchTo(page, /Expert Approver/);
     const check = page.getByRole('region', { name: 'Policy check' });
+    await expect(check).toContainText('Read and acknowledge it before approving');
+    await expect(page.getByRole('button', { name: 'Blocked by policy' })).toBeDisabled();
+    await page.getByRole('checkbox', { name: /I have read the recorded disagreement/ }).check();
     await expect(check).toContainText('Hold');
     await expect(check).toContainText('waits for a second, different approver');
     await expectAccessible(page);
@@ -50,6 +64,7 @@ test.describe('governance: recommendation to institutional memory (Phase 4)', ()
 
     // Executive: the second, different approver completes it and creates the handoff.
     await switchTo(page, /Executive \/ Governor/);
+    await page.getByRole('checkbox', { name: /I have read the recorded disagreement/ }).check();
     await expect(page.getByRole('region', { name: 'Policy check' })).toContainText('Pass');
     await page.getByLabel(/^Rationale/).fill('Second approval: proportionate response under the mandate.');
     await page.getByRole('button', { name: 'Record: Approve' }).click();

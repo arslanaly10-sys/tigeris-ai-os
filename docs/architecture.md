@@ -132,11 +132,16 @@ the same path.
 
 - **Gateway** (`modules/gateway.ts`): approved-model policy, versioned templates, grounding check that rejects any
   number not present in a cited display string. Today only `tigeris-stub 1.0.0` (deterministic) is permitted (D-14).
-- **Agents** (planned, slice F): a planner and specialist agents (PRD FR-34) run as recorded `agent_runs` with model,
-  template, inputs, citations, grounding and policy decision. Tools are read-only functions over the institution's
-  authorized data; calculations always go through deterministic engines; thin evidence returns a stated gap.
-- **Provider adapter** (planned): `ModelProvider` interface with a local OpenAI-compatible endpoint and a hosted
-  provider; selected per institution, off until policy allows and a decision entry lifts D-14 for that use.
+- **Agents** (slice F, `modules/analysis.ts`): `POST /api/cases/:key/analysis` runs a fixed plan of eight read-only
+  agents (roster in `packages/shared/src/analysis.ts`). Each reads the case's records through the same scope filters as
+  the rest of the API, gathers citations and drafts through the gateway; a step without enough records drafts a stated
+  gap. The run is stored in `analysis_runs` and each step as an `agent_runs` row with model, template, citations and
+  grounding. Agents never write to a case. `/api/agent-runs` lists only runs on cases the reader may open.
+- **Sensitivity** (slice G): `GET /api/scenarios/:key/sensitivity` recomputes a stored run one input at a time
+  (`packages/shared/src/scenario-sensitivity.ts`); the red-team agent cites its top row.
+- **Provider adapter**: `MODEL_PROVIDER_URL` names a local OpenAI-compatible endpoint or hosted provider.
+  `GET /api/model-gateway` reports it as configured and switched off; nothing calls it until a decision entry lifts
+  D-14 and a migration lifts `agent_runs CHECK (NOT external)`.
 
 ## 7. Competitive intelligence (planned, slice J)
 

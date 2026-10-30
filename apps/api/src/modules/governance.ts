@@ -40,6 +40,7 @@ import {
   type RecommendationStatus,
   type ReviewVerdict,
   type Role,
+  type ReviewNoteItem,
 } from '@tigeris/shared';
 import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
@@ -55,6 +56,7 @@ import {
   expertReviews,
   handoffs,
   memoryEntries,
+  reviewNotes,
   principals,
   recommendations,
   scenarioRuns,
@@ -263,6 +265,7 @@ function policyFor(
   ctx: RequestContext,
   outcome: DecisionOutcome,
   limit: Limit,
+  dissent: { count: number; acknowledged: boolean },
 ): PolicyEvaluation {
   return evaluatePolicy({
     outcome,
@@ -278,7 +281,45 @@ function policyFor(
     mandateChecks: rec.option.mandateChecks,
     magnitude: rec.option.magnitude,
     limit,
+    dissent,
   });
+}
+
+/** Roles that may add a reviewer note or record agreement or disagreement on a recommendation (FR-24). */
+export const NOTE_ROLES: readonly Role[] = ['analyst', 'domain_expert', 'approver', 'executive', 'auditor'];
+
+async function loadNotes(tx: Tx, recIds: string[]): Promise<ReviewNoteItem[]> {
+  if (!recIds.length) return [];
+  const rows = await tx
+    .select({ n: reviewNotes, recKey: recommendations.key, by: principals.displayName })
+    .from(reviewNotes)
+    .innerJoin(recommendations, eq(recommendations.id, reviewNotes.recommendationId))
+    .innerJoin(principals, eq(principals.id, reviewNotes.authorId))
+    .where(inArray(reviewNotes.recommendationId, recIds))
+    .orderBy(reviewNotes.createdAt);
+  return rows.map(({ n, recKey, by }) => ({
+    id: n.id,
+    recommendationKey: recKey,
+    stance: n.stance as ReviewNoteItem['stance'],
+    body: n.body,
+    author: by,
+    authorRole: n.authorRole as Role,
+    createdAt: n.createdAt.toISOString(),
+  }));
+}
+
+const dissentOf = (notes: ReviewNoteItem[], recKey: string, acknowledged: boolean) => ({
+  count: notes.filter((n) => n.recommendationKey === recKey && n.stance === 'disagree').length,
+  acknowledged,
+});
+
+function noteCheck(ctx: RequestContext): GovernanceCheck {
+  return NOTE_ROLES.some((r) => ctx.roles.includes(r))
+    ? { allowed: true, reason: 'Notes and disagreements are kept on the record and cannot be edited.' }
+    : {
+        allowed: false,
+        reason: 'Analysts, domain experts, approvers, executives and auditors add review notes.',
+      };
 }
 
 function recommendCheck(
@@ -399,6 +440,10 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         const openLimit = decidable ? await limitFor(tx, open.option.actionClass, ctx.roles) : null;
         const [handoff] = await loadHandoffs(tx, eq(handoffs.caseId, kase.id));
         const [memory] = await loadMemory(tx, eq(memoryEntries.caseId, kase.id));
+        const notes = await loadNotes(
+          tx,
+          recs.map((r) => r.id),
+        );
         return {
           caseKey: kase.key,
           caseState: kase.state as CaseState,
@@ -415,11 +460,16 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
             : { allowed: false, reason: 'No recommendation is awaiting review.' },
           decisionPreview: decidable
             ? (Object.fromEntries(
-                DECISION_OUTCOMES.map((o) => [o, policyFor(open, ctx, o, openLimit)]),
+                DECISION_OUTCOMES.map((o) => [
+                  o,
+                  policyFor(open, ctx, o, openLimit, dissentOf(notes, open.key, false)),
+                ]),
               ) as Record<DecisionOutcome, PolicyEvaluation>)
             : null,
           handoff: handoff ?? null,
           memory: memory ?? null,
+          notes,
+          canNote: noteCheck(ctx),
         };
       },
     );
@@ -594,10 +644,80 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
     return reply.code(201).send({ ok: true });
   });
 
+  /** Reviewer note, agreement or recorded disagreement. Append-only: a disagreement stays on the record (FR-24). */
+  app.post('/api/recommendations/:key/notes', guard, async (request, reply) => {
+    const params = keyParam.safeParse(request.params);
+    const body = z
+      .object({ stance: z.enum(['agree', 'disagree', 'note']), body: z.string().trim().min(20).max(2000) })
+      .safeParse(request.body);
+    if (!params.success) return reply.code(404).send({ error: 'not_found' });
+    if (!body.success) return reply.code(400).send({ error: 'note_required' });
+    const ctx = ctxOf(request);
+    const result = await withInstitution(deps.db, ctx.institutionId, async (tx) => {
+      const [row] = await tx.select().from(recommendations).where(eq(recommendations.key, params.data.key));
+      if (!row || !(await readableCase(tx, row.caseId, ctx)))
+        return { status: 404 as const, error: 'not_found' };
+      const role = NOTE_ROLES.find((r) => ctx.roles.includes(r));
+      if (!role) return { status: 403 as const, error: 'not_permitted' };
+      if (body.data.stance !== 'note' && row.createdBy === ctx.principalId)
+        return {
+          status: 409 as const,
+          error: 'not_permitted',
+          reason: 'The author of a recommendation adds notes, not agreement or disagreement with it.',
+        };
+      const now = new Date();
+      const [note] = await tx
+        .insert(reviewNotes)
+        .values({
+          institutionId: ctx.institutionId,
+          recommendationId: row.id,
+          caseId: row.caseId,
+          authorId: ctx.principalId,
+          authorRole: role,
+          stance: body.data.stance,
+          body: body.data.body,
+          createdAt: now,
+        })
+        .returning({ id: reviewNotes.id });
+      await tx.insert(caseEvents).values({
+        institutionId: ctx.institutionId,
+        caseId: row.caseId,
+        actorPrincipalId: ctx.principalId,
+        eventType: `review.note_${body.data.stance}`,
+        fromState: null,
+        toState: null,
+        rationale: `${row.key}: ${body.data.body}`,
+        occurredAt: now,
+      });
+      await appendAudit(tx, {
+        institutionId: ctx.institutionId,
+        actorPrincipalId: ctx.principalId,
+        actorType: 'human',
+        action: `review.note_${body.data.stance}`,
+        objectType: 'review_note',
+        objectId: note!.id,
+        caseId: row.caseId,
+        payload: { recommendation: row.key, stance: body.data.stance },
+      });
+      return { status: 201 as const };
+    });
+    if (result.status !== 201)
+      return reply
+        .code(result.status)
+        .send({ error: result.error, ...('reason' in result ? { reason: result.reason } : {}) });
+    return reply.code(201).send({ ok: true });
+  });
+
   /** A decision by a named authority, checked by the versioned policy. Blocked attempts are audited, not stored. */
   app.post('/api/recommendations/:key/decisions', guard, async (request, reply) => {
     const params = keyParam.safeParse(request.params);
-    const body = z.object({ outcome: z.enum(DECISION_OUTCOMES), rationale }).safeParse(request.body);
+    const body = z
+      .object({
+        outcome: z.enum(DECISION_OUTCOMES),
+        rationale,
+        acknowledgeDissent: z.boolean().default(false),
+      })
+      .safeParse(request.body);
     if (!params.success) return reply.code(404).send({ error: 'not_found' });
     if (!body.success) return reply.code(400).send({ error: 'rationale_required' });
     const ctx = ctxOf(request);
@@ -614,7 +734,14 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         return { status: 404 as const, error: 'not_found' };
       const [rec] = await loadRecommendations(tx, eq(recommendations.id, row.id));
       const limit = await limitFor(tx, rec!.option.actionClass, ctx.roles);
-      const evaluation = policyFor(rec!, ctx, body.data.outcome, limit);
+      const notes = await loadNotes(tx, [row.id]);
+      const evaluation = policyFor(
+        rec!,
+        ctx,
+        body.data.outcome,
+        limit,
+        dissentOf(notes, row.key, body.data.acknowledgeDissent),
+      );
       const now = new Date();
       if (evaluation.result === 'block') {
         await appendAudit(tx, {

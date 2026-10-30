@@ -7,6 +7,7 @@ import { disabledJobs, type JobScheduler } from './jobs';
 import { DemoIdentityProvider } from './modules/auth/identity';
 import { authRoutes } from './modules/auth/routes';
 import { caseRoutes } from './modules/cases';
+import { analysisRoutes } from './modules/analysis';
 import { connectorRoutes } from './modules/connectors';
 import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
@@ -66,5 +67,6 @@ export async function buildApp(opts: BuildOptions) {
   await governanceRoutes(app, deps);
   await portfolioRoutes(app, deps);
   await connectorRoutes(app, deps);
+  await analysisRoutes(app, deps);
   return app;
 }

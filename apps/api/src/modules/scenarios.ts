@@ -15,6 +15,8 @@ import {
   METRICS,
   RANKER,
   SECTORS,
+  ANALYSIS_AGENTS,
+  type ReadScope,
   checkMandates,
   formatScenarioValue,
   rankOptions,
@@ -40,7 +42,7 @@ import {
   type Severity,
   type ValidationStatus,
 } from '@tigeris/shared';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, or, sql, type SQL } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { appendAudit, canonicalJson } from '../audit/audit';
@@ -222,19 +224,22 @@ async function nextRunKey(tx: Tx, now: Date): Promise<string> {
   return `SCN-${day}-${String((row?.n ?? 0) + 1).padStart(2, '0')}`;
 }
 
-const AGENT_NAME = new Map(SECTORS.flatMap((s) => s.agents.map((a) => [a.key, a.name] as const)));
+const AGENT_NAME = new Map([
+  ...SECTORS.flatMap((s) => s.agents.map((a) => [a.key, a.name] as const)),
+  ...ANALYSIS_AGENTS.map((a) => [a.key, a.name] as const),
+]);
 
-interface StoredOutputs {
+export interface StoredOutputs {
   result: EngineResult;
   metricDefs: typeof METRICS;
   ranking: { severity: Severity; navCentral: number; rankerVersion: string };
   confidence: ConfidenceBasis;
 }
 
-const metricDef = (key: string) => METRICS.find((m) => m.key === key)!;
+export const metricDef = (key: string) => METRICS.find((m) => m.key === key)!;
 
 /** Citations every specialist draft may quote. Display strings are the only numbers prose can contain. */
-function buildCitations(
+export function buildCitations(
   drivers: Drivers,
   inputs: ScenarioInputRef[],
   result: EngineResult,
@@ -344,7 +349,7 @@ const SPECIALIST_DRAFTS: {
 const ROLE_PHRASE = (role: Role, twoPerson: boolean) =>
   `the ${ROLE_LABEL_API[role]}'s authority${twoPerson ? ', with two-person approval' : ''}, after expert review`;
 
-async function recordAgentRun(
+export async function recordAgentRun(
   tx: Tx,
   base: { institutionId: string; caseId: string; scenarioRunId: string; triggeredBy: string; at: Date },
   spec: { agentKey: string; sectorKey: string; task: string; templateKey: string; citations: Citation[] },
@@ -702,7 +707,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
           .innerJoin(principals, eq(principals.id, draftOptions.createdBy))
           .where(eq(draftOptions.scenarioRunId, row.r.id))
           .orderBy(draftOptions.rank);
-        const runs = await listAgentRuns(tx, eq(agentRuns.scenarioRunId, row.r.id));
+        const runs = await listAgentRuns(tx, ctx.scope, eq(agentRuns.scenarioRunId, row.r.id));
         let reproducible = false;
         try {
           reproducible =
@@ -731,7 +736,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
 
   app.get('/api/agent-runs', guard, async (request): Promise<AgentRunItem[]> => {
     const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, (tx) => listAgentRuns(tx, undefined, 200));
+    return withInstitution(deps.db, ctx.institutionId, (tx) => listAgentRuns(tx, ctx.scope, undefined, 200));
   });
 }
 
@@ -781,9 +786,11 @@ function toSummary(
   };
 }
 
+/** Agent runs the reader may see: runs on cases outside their read scope are left out (TR-050). */
 async function listAgentRuns(
   tx: Tx,
-  where: ReturnType<typeof eq> | undefined,
+  scope: ReadScope,
+  where: SQL | undefined,
   limit = 500,
 ): Promise<AgentRunItem[]> {
   const rows = await tx
@@ -792,7 +799,7 @@ async function listAgentRuns(
     .innerJoin(principals, eq(principals.id, agentRuns.triggeredBy))
     .leftJoin(cases, eq(cases.id, agentRuns.caseId))
     .leftJoin(scenarioRuns, eq(scenarioRuns.id, agentRuns.scenarioRunId))
-    .where(where ? and(where) : undefined)
+    .where(and(or(isNull(agentRuns.caseId), caseReadable(scope)), where))
     .orderBy(desc(agentRuns.startedAt), agentRuns.task)
     .limit(limit);
   return rows.map((x) => ({

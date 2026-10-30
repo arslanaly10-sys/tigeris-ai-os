@@ -13,6 +13,7 @@ import type {
   PolicyResult,
   RecommendationItem,
   RecommendationStatus,
+  ReviewNoteItem,
   ReviewVerdict,
 } from '@tigeris/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +25,9 @@ import {
   Clock,
   Gavel,
   Library,
+  MessageSquareWarning,
+  MessageSquare,
+  ThumbsUp,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -492,6 +496,31 @@ function Choice({
   );
 }
 
+/**
+ * The decider's view of the policy once they have acknowledged recorded disagreement. The server re-evaluates on
+ * submit with the acknowledgement, so this only mirrors what it will decide.
+ */
+function withAcknowledgement(e: PolicyEvaluation, acknowledged: boolean): PolicyEvaluation {
+  const dissent = e.reasons.find((r) => r.code === 'dissent' && r.result === 'block');
+  if (!dissent || !acknowledged) return e;
+  const n = dissent.text.match(/(\d+) recorded/)?.[1] ?? '';
+  const reasons = e.reasons.map((r) =>
+    r === dissent
+      ? {
+          ...r,
+          result: 'pass' as const,
+          text: `Approving over ${n} recorded ${n === '1' ? 'disagreement' : 'disagreements'}, acknowledged by the decider.`,
+        }
+      : r,
+  );
+  const result: PolicyResult = reasons.some((r) => r.result === 'block')
+    ? 'block'
+    : reasons.some((r) => r.result === 'hold')
+      ? 'hold'
+      : 'pass';
+  return { ...e, reasons, result, completes: result === 'pass' };
+}
+
 export function DecisionForm({
   rec,
   preview,
@@ -501,11 +530,14 @@ export function DecisionForm({
 }) {
   const [outcome, setOutcome] = useState<DecisionOutcome>('approve');
   const [rationale, setRationale] = useState('');
+  const [acknowledged, setAcknowledged] = useState(false);
   const m = useGovernanceMutation(
-    () => api.decide(rec.key, outcome, rationale),
+    () => api.decide(rec.key, outcome, rationale, acknowledged),
     () => setRationale(''),
   );
-  const evaluation = preview[outcome];
+  const raw = preview[outcome];
+  const dissent = raw.reasons.find((r) => r.code === 'dissent');
+  const evaluation = withAcknowledgement(raw, acknowledged);
   const legend = useId();
   const blocked = evaluation.result === 'block';
   return (
@@ -536,6 +568,20 @@ export function DecisionForm({
         </p>
         <PolicyReasons evaluation={evaluation} />
       </section>
+      {dissent ? (
+        <label className="flex items-start gap-2 rounded-lg border border-amber/50 bg-amber-soft px-4 py-3 text-sm text-ink">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-[var(--color-brand)]"
+            checked={acknowledged}
+            onChange={(e) => setAcknowledged(e.target.checked)}
+          />
+          <span>
+            I have read the recorded disagreement on {rec.key} and decide knowing it. My acknowledgement is
+            kept with the decision.
+          </span>
+        </label>
+      ) : null}
       {!blocked ? <RationaleField value={rationale} onChange={setRationale} /> : null}
       <ErrorLine
         error={m.error}
@@ -556,6 +602,126 @@ export function DecisionForm({
             : `Record: ${OUTCOME_LABEL[outcome]}`}
       </Button>
     </form>
+  );
+}
+
+// ───────────────────────────── Reviewer notes (FR-24) ─────────────────────────────
+
+const STANCE: Record<
+  ReviewNoteItem['stance'],
+  { label: string; icon: typeof MessageSquare; className: string }
+> = {
+  agree: { label: 'Agrees', icon: ThumbsUp, className: 'border-emerald/40 bg-emerald-soft text-emerald' },
+  disagree: {
+    label: 'Disagrees',
+    icon: MessageSquareWarning,
+    className: 'border-amber/50 bg-amber-soft text-amber',
+  },
+  note: { label: 'Note', icon: MessageSquare, className: 'border-line-strong bg-raised text-ink-muted' },
+};
+
+/** Notes, agreement and recorded disagreement on one recommendation. Append-only, so nothing here is editable. */
+export function ReviewNotes({
+  rec,
+  notes,
+  canNote,
+  isAuthor,
+}: {
+  rec: RecommendationItem;
+  notes: ReviewNoteItem[];
+  canNote: boolean;
+  isAuthor: boolean;
+}) {
+  const [stance, setStance] = useState<ReviewNoteItem['stance']>('note');
+  const [body, setBody] = useState('');
+  const m = useGovernanceMutation(
+    () => api.addNote(rec.key, stance, body),
+    () => {
+      setBody('');
+      setStance('note');
+    },
+  );
+  const legend = useId();
+  const dissent = notes.filter((n) => n.stance === 'disagree').length;
+  const stances: ReviewNoteItem['stance'][] = isAuthor ? ['note'] : ['note', 'agree', 'disagree'];
+  return (
+    <section aria-labelledby={`notes-${rec.key}`} className="border-t border-line px-5 py-4">
+      <h4 id={`notes-${rec.key}`} className="flex flex-wrap items-center gap-2 text-base text-ink">
+        Review notes
+        <span className="tabular text-sm font-normal text-ink-muted">
+          {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+          {dissent ? ` · ${dissent} recorded ${dissent === 1 ? 'disagreement' : 'disagreements'}` : ''}
+        </span>
+      </h4>
+      {notes.length ? (
+        <ul className="mt-2 space-y-2">
+          {notes.map((n) => {
+            const st = STANCE[n.stance];
+            const Icon = st.icon;
+            return (
+              <li key={n.id} className="rounded-lg border border-line bg-raised/40 px-3 py-2">
+                <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-medium',
+                      st.className,
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden />
+                    {st.label}
+                  </span>
+                  {n.author} · {ROLE_LABEL[n.authorRole]} · {formatDateTime(n.createdAt)}
+                </p>
+                <p className="mt-1 text-sm text-ink">{n.body}</p>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="mt-1 text-sm text-ink-muted">No notes yet.</p>
+      )}
+      {canNote ? (
+        <form
+          className="mt-3 space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (body.trim().length >= 20) m.mutate();
+          }}
+        >
+          <fieldset aria-labelledby={legend}>
+            <legend id={legend} className="mb-1 text-sm font-medium text-ink">
+              Add to the record
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {stances.map((x) => (
+                <Choice
+                  key={x}
+                  name={`stance-${rec.key}`}
+                  checked={stance === x}
+                  onChange={() => setStance(x)}
+                >
+                  {x === 'note' ? 'Note' : x === 'agree' ? 'Agree' : 'Disagree'}
+                </Choice>
+              ))}
+            </div>
+          </fieldset>
+          <RationaleField
+            value={body}
+            onChange={setBody}
+            label={stance === 'disagree' ? 'Why you disagree' : stance === 'agree' ? 'Why you agree' : 'Note'}
+            hint="at least 20 characters; kept on the record and cannot be edited"
+          />
+          <ErrorLine error={m.error} />
+          <Button type="submit" disabled={body.trim().length < 20 || m.isPending}>
+            {stance === 'disagree'
+              ? 'Record disagreement'
+              : stance === 'agree'
+                ? 'Record agreement'
+                : 'Add note'}
+          </Button>
+        </form>
+      ) : null}
+    </section>
   );
 }
 

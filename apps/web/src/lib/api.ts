@@ -33,6 +33,10 @@ import type {
   PendingApprovals,
   SectorDetail,
   SectorKey,
+  CaseAnalysisPayload,
+  HorizonKey,
+  ReviewNoteItem,
+  SensitivityPayload,
   EntityDetail,
   EntityListItem,
   EntityType,
@@ -131,11 +135,25 @@ export const api = {
       verdict,
       rationale,
     }),
-  decide: (recKey: string, outcome: DecisionOutcome, rationale: string) =>
+  decide: (recKey: string, outcome: DecisionOutcome, rationale: string, acknowledgeDissent = false) =>
     request<{ key: string; evaluation: PolicyEvaluation; handoffKey: string | null }>(
       'POST',
       `/api/recommendations/${encodeURIComponent(recKey)}/decisions`,
-      { outcome, rationale },
+      { outcome, rationale, acknowledgeDissent },
+    ),
+  addNote: (recKey: string, stance: ReviewNoteItem['stance'], body: string) =>
+    request<{ ok: true }>('POST', `/api/recommendations/${encodeURIComponent(recKey)}/notes`, {
+      stance,
+      body,
+    }),
+  caseAnalysis: (caseKey: string) =>
+    request<CaseAnalysisPayload>('GET', `/api/cases/${encodeURIComponent(caseKey)}/analysis`),
+  runAnalysis: (caseKey: string) =>
+    request<{ key: string }>('POST', `/api/cases/${encodeURIComponent(caseKey)}/analysis`, {}),
+  sensitivity: (scenarioKey: string, metric: string, horizon: HorizonKey) =>
+    request<SensitivityPayload>(
+      'GET',
+      `/api/scenarios/${encodeURIComponent(scenarioKey)}/sensitivity?metric=${encodeURIComponent(metric)}&horizon=${horizon}`,
     ),
   openRecommendations: () => request<RecommendationItem[]>('GET', '/api/recommendations'),
   decisions: () => request<DecisionLogItem[]>('GET', '/api/decisions'),

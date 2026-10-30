@@ -19,6 +19,11 @@ const schema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+  /**
+   * Optional model-provider endpoint (local OpenAI-compatible server or hosted provider). Recorded and shown as
+   * configured, never called while external model calls are disabled by policy (D-14).
+   */
+  MODEL_PROVIDER_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 
 export const config = schema.parse(process.env);

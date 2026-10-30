@@ -5,6 +5,9 @@
  */
 import { createHash } from 'node:crypto';
 import {
+  type OptionMagnitude,
+  type OptionAction,
+  optionMagnitude,
   ASSUMPTION_KEYS,
   ENGINE,
   HORMUZ_DRIVERS,
@@ -58,6 +61,7 @@ import {
 } from '../db/schema';
 import { ROLE_LABEL_API } from './roles';
 import { ctxOf, requireSession, type AppDeps } from './context';
+import { caseReadable } from './scope';
 import { draft, type Citation } from './gateway';
 
 export const SCENARIO_ROLES: readonly Role[] = ['analyst'];
@@ -386,7 +390,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
     return withInstitution(deps.db, ctx.institutionId, async (tx) => {
       const [register, caseRows] = await Promise.all([
         latestAssumptions(tx),
-        tx.select().from(cases).orderBy(desc(cases.updatedAt)),
+        tx.select().from(cases).where(caseReadable(ctx.scope)).orderBy(desc(cases.updatedAt)),
       ]);
       return {
         template: TEMPLATE_INFO,
@@ -422,7 +426,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
         .from(scenarioRuns)
         .innerJoin(cases, eq(cases.id, scenarioRuns.caseId))
         .innerJoin(principals, eq(principals.id, scenarioRuns.createdBy))
-        .where(caseKey ? eq(cases.key, caseKey) : undefined)
+        .where(and(caseKey ? eq(cases.key, caseKey) : undefined, caseReadable(ctx.scope)))
         .orderBy(desc(scenarioRuns.createdAt));
       return rows.map((x) => toSummary(x.r, x.caseKey, x.caseTitle, x.by));
     });
@@ -438,7 +442,10 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
     if (!drivers) return reply.code(400).send({ error: 'invalid_drivers' });
 
     const result = await withInstitution(deps.db, ctx.institutionId, async (tx) => {
-      const [kase] = await tx.select().from(cases).where(eq(cases.key, body.data.caseKey));
+      const [kase] = await tx
+        .select()
+        .from(cases)
+        .where(and(eq(cases.key, body.data.caseKey), caseReadable(ctx.scope)));
       if (!kase) return { status: 404 as const, error: 'not_found' };
       if (kase.state === 'closed') return { status: 409 as const, error: 'case_closed' };
 
@@ -606,6 +613,10 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
           draftedByRunId: drafted.id,
           createdBy: ctx.principalId,
           createdAt: now,
+          magnitude: optionMagnitude(o.actionClass as OptionAction, situation, {
+            durationDays: 'driver:durationDays',
+            exposedNavSharePct: INPUT_REFS.exposedNavSharePct,
+          }),
         });
       }
 
@@ -681,7 +692,7 @@ export async function scenarioRoutes(app: FastifyInstance, deps: AppDeps) {
           .from(scenarioRuns)
           .innerJoin(cases, eq(cases.id, scenarioRuns.caseId))
           .innerJoin(principals, eq(principals.id, scenarioRuns.createdBy))
-          .where(eq(scenarioRuns.key, params.data.key));
+          .where(and(eq(scenarioRuns.key, params.data.key), caseReadable(ctx.scope)));
         if (!row) return null;
         const outputs = row.r.outputs as StoredOutputs;
         const inputs = row.r.inputs as ScenarioInputRef[];
@@ -741,6 +752,7 @@ export function toDraftOption(o: typeof draftOptions.$inferSelect, createdBy: st
     rankerVersion: o.rankerVersion,
     status: 'draft',
     draftedByRunId: o.draftedByRunId,
+    magnitude: (o.magnitude as OptionMagnitude | null) ?? null,
     createdBy,
     createdAt: o.createdAt.toISOString(),
   };

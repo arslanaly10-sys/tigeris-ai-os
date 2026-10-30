@@ -1,4 +1,5 @@
 import {
+  sectorForDomain,
   ACTION_RESULT,
   canTriage,
   OPEN_DISPOSITIONS,
@@ -186,6 +187,7 @@ export async function signalRoutes(app: FastifyInstance, deps: AppDeps) {
             state: 'triaged',
             domain: row.domain,
             sensitivity: 'restricted',
+            sectorKey: sectorForDomain(row.domain),
             urgency: row.urgency,
             dataMode: row.dataMode,
             ownerPrincipalId: ctx.principalId,

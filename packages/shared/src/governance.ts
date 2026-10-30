@@ -94,7 +94,8 @@ export interface PolicyReason {
     | 'mandate'
     | 'two_person'
     | 'two_person_same'
-    | 'duplicate';
+    | 'duplicate'
+    | 'limit';
   result: PolicyResult;
   text: string;
 }
@@ -108,6 +109,13 @@ export interface PolicyInput {
   priorApprovals: readonly { approverId: string }[];
   authority: { requiredRole: Role; twoPerson: boolean } | null;
   mandateChecks: readonly MandateCheck[];
+  /** The option's size, when it has one (scenario-options `optionMagnitude`). */
+  magnitude?: { value: number; unit: string; label: string } | null;
+  /**
+   * The actor's delegated numeric limit for this action class (D-52), null when none is configured for their
+   * roles. Leave undefined to skip the limit rule (no limits register loaded).
+   */
+  limit?: { value: number; unit: string; basis: string } | null;
 }
 
 export interface PolicyEvaluation {
@@ -211,6 +219,8 @@ export function evaluatePolicy(input: PolicyInput): PolicyEvaluation {
       });
   }
 
+  if (approving && input.limit !== undefined) reasons.push(limitReason(input.magnitude ?? null, input.limit));
+
   if (approving && authority?.twoPerson) {
     reasons.push(
       second
@@ -229,6 +239,40 @@ export function evaluatePolicy(input: PolicyInput): PolicyEvaluation {
       ? 'hold'
       : 'pass';
   return { version: POLICY_VERSION, result, completes: result === 'pass', reasons };
+}
+
+const num = (v: number) => Number(v.toFixed(2)).toString();
+
+function limitReason(
+  magnitude: { value: number; unit: string; label: string } | null,
+  limit: { value: number; unit: string; basis: string } | null,
+): PolicyReason {
+  if (!limit)
+    return { code: 'limit', result: 'pass', text: 'No numeric limit applies to your role for this action.' };
+  if (!magnitude)
+    return {
+      code: 'limit',
+      result: 'block',
+      text: 'This option has no recorded size, so it cannot be checked against your delegated limit. Re-run the scenario.',
+    };
+  if (magnitude.unit !== limit.unit)
+    return {
+      code: 'limit',
+      result: 'block',
+      text: `The option is sized in ${magnitude.unit} but your limit is in ${limit.unit}; it cannot be checked.`,
+    };
+  const what = `${magnitude.label}: ${num(magnitude.value)} ${magnitude.unit}`;
+  return magnitude.value > limit.value
+    ? {
+        code: 'limit',
+        result: 'block',
+        text: `${what} exceeds your delegated limit of ${num(limit.value)} ${limit.unit} (${limit.basis}). Escalate to a higher authority.`,
+      }
+    : {
+        code: 'limit',
+        result: 'pass',
+        text: `${what} is within your delegated limit of ${num(limit.value)} ${limit.unit} (${limit.basis}).`,
+      };
 }
 
 export interface ReviewCheck {

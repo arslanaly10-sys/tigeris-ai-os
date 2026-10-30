@@ -25,7 +25,7 @@ const CASE_REASON: Record<string, string> = {
  */
 export async function buildCommandCentre(tx: Tx, ctx: RequestContext): Promise<CommandCentre> {
   const [caseList, sourceList, newSignals] = await Promise.all([
-    listCases(tx),
+    listCases(tx, ctx.scope),
     listSources(tx),
     tx.select().from(signals).where(eq(signals.disposition, 'new')).orderBy(desc(signals.detectedAt)),
   ]);

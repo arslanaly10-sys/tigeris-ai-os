@@ -6,3 +6,4 @@ export * from './sectors';
 export * from './scenario-engine';
 export * from './scenario-options';
 export * from './governance';
+export * from './access';

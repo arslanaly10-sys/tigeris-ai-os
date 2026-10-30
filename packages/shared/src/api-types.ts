@@ -1,5 +1,5 @@
 import type { DriverDef, Drivers, EngineResult, MetricDef } from './scenario-engine';
-import type { MandateCheck } from './scenario-options';
+import type { MandateCheck, OptionMagnitude } from './scenario-options';
 import type {
   DecisionOutcome,
   HandoffStatus,
@@ -18,6 +18,8 @@ import type {
   EntityType,
   RelationshipClass,
   Role,
+  QualityStatus,
+  RecordMode,
   Sensitivity,
   SignalAction,
   SignalDisposition,
@@ -319,6 +321,8 @@ export interface AuthorityRuleItem {
   twoPerson: boolean;
   selfApprovalBlocked: boolean;
   claimClass: ClaimClass;
+  /** Delegated numeric limits for this action class, by role (D-52). Empty: no numeric limit. */
+  limits: { role: Role; value: number; unit: string; basis: string; claimClass: ClaimClass }[];
 }
 
 export interface PendingApprovals {
@@ -416,6 +420,8 @@ export interface DraftOptionItem {
   rankerVersion: string;
   status: 'draft';
   draftedByRunId: string | null;
+  /** The option's size for delegated-limit checks; null for options with no size or drafted before sizing. */
+  magnitude: OptionMagnitude | null;
   createdBy: string;
   createdAt: string;
 }
@@ -574,4 +580,61 @@ export interface DecisionLogItem extends DecisionItem {
   caseTitle: string;
   recommendationKey: string;
   actionClass: string;
+}
+
+// ───────────────────────────── Slice B: canonical records with provenance ─────────────────────────────
+
+export interface RecordProvenance {
+  sourceKey: string;
+  sourcePublisher: string;
+  sourceRecordId: string;
+  recordMode: RecordMode;
+  classification: Sensitivity;
+  mappingVersion: string;
+  qualityStatus: QualityStatus;
+  ingestedAt: string;
+}
+
+export interface PositionItem {
+  id: string;
+  key: string;
+  name: string;
+  assetClass: string;
+  sectorKey: SectorKey | null;
+  country: string | null;
+  currency: string;
+  marketValue: number;
+  navSharePct: number;
+  routeDependent: boolean;
+  asOf: string;
+  provenance: RecordProvenance;
+}
+
+export interface PositionsPayload {
+  positions: PositionItem[];
+  /** Totals computed from the listed rows only (the user's readable slice), with what they cover. */
+  totals: {
+    navSharePct: number;
+    routeDependentNavSharePct: number;
+    routeDependentCount: number;
+    rows: number;
+  };
+}
+
+export interface ManagerItem {
+  id: string;
+  key: string;
+  name: string;
+  strategy: string;
+  domicile: string | null;
+  sectorKey: SectorKey | null;
+  dueDiligence: {
+    key: string;
+    reviewType: string;
+    status: 'not_started' | 'in_progress' | 'completed' | 'escalated';
+    openIssues: number;
+    summary: string;
+    reviewedOn: string | null;
+  }[];
+  provenance: RecordProvenance;
 }

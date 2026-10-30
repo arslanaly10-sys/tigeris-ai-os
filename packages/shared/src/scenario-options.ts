@@ -204,3 +204,43 @@ export function rankOptions(result: EngineResult): {
   }));
   return { severity, navCentral, options };
 }
+
+/** The size of an option, compared against delegated approval limits (D-52). Null when no size applies. */
+export interface OptionMagnitude {
+  value: number;
+  unit: string;
+  label: string;
+  /** Lineage reference of the input the size comes from (driver or evidence fact). */
+  ref: string;
+}
+
+/**
+ * Deterministic option sizing from the scenario situation: a deferral lasts the modelled disruption, a hedge or a
+ * reallocation covers the route-dependent share of NAV. Monitoring has no size.
+ */
+export function optionMagnitude(
+  action: OptionAction,
+  s: Pick<SituationInputs, 'durationDays' | 'exposedNavSharePct'>,
+  refs: { durationDays: string; exposedNavSharePct: string },
+): OptionMagnitude | null {
+  switch (action) {
+    case 'Monitor / watchlist':
+      return null;
+    case 'Defer commitment':
+      return { value: s.durationDays, unit: 'days', label: 'Deferral period', ref: refs.durationDays };
+    case 'Hedge exposure':
+      return {
+        value: s.exposedNavSharePct,
+        unit: '% of NAV',
+        label: 'Notional to hedge (route-dependent share of NAV)',
+        ref: refs.exposedNavSharePct,
+      };
+    case 'Reallocate':
+      return {
+        value: s.exposedNavSharePct,
+        unit: '% of NAV',
+        label: 'Holdings to reallocate (route-dependent share of NAV)',
+        ref: refs.exposedNavSharePct,
+      };
+  }
+}

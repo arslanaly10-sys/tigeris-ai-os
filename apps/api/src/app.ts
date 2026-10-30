@@ -10,6 +10,7 @@ import { graphRoutes } from './modules/graph';
 import { ingestionRoutes } from './modules/ingestion';
 import { scenarioRoutes } from './modules/scenarios';
 import { governanceRoutes } from './modules/governance';
+import { portfolioRoutes } from './modules/portfolio';
 import { searchRoutes } from './modules/search';
 import { sectorRoutes } from './modules/sectors';
 import { signalRoutes } from './modules/signals';
@@ -55,5 +56,6 @@ export async function buildApp(opts: BuildOptions) {
   await sectorRoutes(app, deps);
   await scenarioRoutes(app, deps);
   await governanceRoutes(app, deps);
+  await portfolioRoutes(app, deps);
   return app;
 }

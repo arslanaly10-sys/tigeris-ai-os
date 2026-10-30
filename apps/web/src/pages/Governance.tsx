@@ -310,7 +310,7 @@ export function MandatesPage() {
               description="Expert review and the self-approval block are enforced in the database for every action class."
             />
             <div className="overflow-x-auto border-t border-line">
-              <table className="w-full min-w-[44rem] text-sm">
+              <table className="w-full min-w-[52rem] text-sm">
                 <thead>
                   <tr className="bg-raised text-start text-xs text-ink-muted">
                     <th scope="col" className="px-5 py-2 text-start font-semibold">
@@ -321,6 +321,9 @@ export function MandatesPage() {
                     </th>
                     <th scope="col" className="px-3 py-2 text-start font-semibold">
                       Threshold
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-start font-semibold">
+                      Delegated limit
                     </th>
                     <th scope="col" className="px-3 py-2 text-start font-semibold">
                       Expert review
@@ -342,6 +345,25 @@ export function MandatesPage() {
                       </th>
                       <td className="px-3 py-3 align-top text-ink">{ROLE_LABEL[r.requiredRole]}</td>
                       <td className="px-3 py-3 align-top text-ink-muted">{r.thresholdText}</td>
+                      <td className="px-3 py-3 align-top">
+                        {r.limits.length ? (
+                          <ul className="space-y-0.5">
+                            {r.limits.map((l) => (
+                              <li key={l.role} className="text-ink">
+                                <span className="tabular">
+                                  {l.unit === 'days' ? `${l.value} days` : `${l.value} ${l.unit}`}
+                                </span>{' '}
+                                <span className="text-xs text-ink-muted">· {ROLE_LABEL[l.role]}</span>
+                              </li>
+                            ))}
+                            <li>
+                              <ClaimBadge value={r.limits[0]!.claimClass} />
+                            </li>
+                          </ul>
+                        ) : (
+                          <span className="text-ink-muted">No numeric limit</span>
+                        )}
+                      </td>
                       <td className="px-3 py-3 align-top">
                         <YesNo value={r.requiresExpertReview} yes="Mandatory" no="Not required" />
                       </td>

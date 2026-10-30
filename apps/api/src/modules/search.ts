@@ -1,10 +1,11 @@
 import type { SearchResult } from '@tigeris/shared';
-import { ilike, or } from 'drizzle-orm';
+import { and, ilike, or } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withInstitution } from '../db/client';
 import { cases, entities, signals } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps } from './context';
+import { caseReadable } from './scope';
 
 const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
 
@@ -20,7 +21,7 @@ export async function searchRoutes(app: FastifyInstance, deps: AppDeps) {
         tx
           .select()
           .from(cases)
-          .where(or(ilike(cases.title, pattern), ilike(cases.key, pattern)))
+          .where(and(or(ilike(cases.title, pattern), ilike(cases.key, pattern)), caseReadable(ctx.scope)))
           .limit(5),
         tx
           .select()

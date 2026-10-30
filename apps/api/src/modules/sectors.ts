@@ -5,6 +5,7 @@ import {
   type AuthorityRuleItem,
   type ClaimClass,
   type MandateItem,
+  type ReadScope,
   type Role,
   type SectorDef,
   type SectorDetail,
@@ -17,7 +18,14 @@ import { asc, eq, inArray } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withInstitution, type Tx } from '../db/client';
-import { authorityRules, evidenceFacts, evidenceObjects, mandates, sources } from '../db/schema';
+import {
+  authorityLimits,
+  authorityRules,
+  evidenceFacts,
+  evidenceObjects,
+  mandates,
+  sources,
+} from '../db/schema';
 import { listCases } from './cases';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { listSignals } from './signals';
@@ -67,8 +75,8 @@ async function resolveKpis(tx: Tx, def: SectorDef): Promise<SectorKpi[]> {
   });
 }
 
-async function summaries(tx: Tx): Promise<SectorSummary[]> {
-  const [cases, signals] = await Promise.all([listCases(tx), listSignals(tx)]);
+async function summaries(tx: Tx, scope: ReadScope): Promise<SectorSummary[]> {
+  const [cases, signals] = await Promise.all([listCases(tx, scope), listSignals(tx)]);
   return SECTORS.map((def) => ({
     key: def.key,
     label: def.label,
@@ -85,7 +93,7 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
 
   app.get('/api/sectors', guard, async (request) => {
     const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, summaries);
+    return withInstitution(deps.db, ctx.institutionId, (tx) => summaries(tx, ctx.scope));
   });
 
   app.get('/api/sectors/:key', guard, async (request, reply) => {
@@ -95,9 +103,9 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
     const ctx = ctxOf(request);
     return withInstitution(deps.db, ctx.institutionId, async (tx): Promise<SectorDetail> => {
       const [all, kpis, cases, signals] = await Promise.all([
-        summaries(tx),
+        summaries(tx, ctx.scope),
         resolveKpis(tx, def),
-        listCases(tx),
+        listCases(tx, ctx.scope),
         listSignals(tx),
       ]);
       const mine = cases.filter((c) => inSector(def, c.domain));
@@ -122,9 +130,10 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
   app.get('/api/mandates', guard, async (request) => {
     const ctx = ctxOf(request);
     return withInstitution(deps.db, ctx.institutionId, async (tx) => {
-      const [m, r] = await Promise.all([
+      const [m, r, l] = await Promise.all([
         tx.select().from(mandates).orderBy(asc(mandates.key)),
         tx.select().from(authorityRules).orderBy(asc(authorityRules.sortOrder)),
+        tx.select().from(authorityLimits),
       ]);
       return {
         mandates: m.map((x): MandateItem => ({
@@ -147,6 +156,15 @@ export async function sectorRoutes(app: FastifyInstance, deps: AppDeps) {
           twoPerson: x.twoPerson,
           selfApprovalBlocked: x.selfApprovalBlocked,
           claimClass: x.claimClass as ClaimClass,
+          limits: l
+            .filter((y) => y.actionClass === x.actionClass)
+            .map((y) => ({
+              role: y.role as Role,
+              value: Number(y.limitValue),
+              unit: y.limitUnit,
+              basis: y.basis,
+              claimClass: y.claimClass as ClaimClass,
+            })),
         })),
       };
     });

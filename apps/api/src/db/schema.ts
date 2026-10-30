@@ -2,6 +2,7 @@
 // (they also hold RLS policies, CHECK constraints and grants); keep these in step with them.
 import {
   bigint,
+  date,
   doublePrecision,
   boolean,
   integer,
@@ -115,6 +116,7 @@ export const cases = pgTable('cases', {
   version: integer('version').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
+  sectorKey: text('sector_key'),
 });
 
 export const signals = pgTable('signals', {
@@ -407,6 +409,7 @@ export const draftOptions = pgTable('draft_options', {
   draftedByRunId: uuid('drafted_by_run_id'),
   createdBy: uuid('created_by').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
+  magnitude: jsonb('magnitude'),
 });
 
 // ───────────────────────────── Phase 4: governance and memory (migration 0005) ─────────────────────────────
@@ -489,4 +492,78 @@ export const memoryEntries = pgTable('memory_entries', {
   approvedBy: jsonb('approved_by').notNull(),
   recordedBy: uuid('recorded_by').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// ───────────────────────────── Slice B: scope, limits, canonical records (migration 0006) ─────────────────────────────
+
+export const principalWorkspaces = pgTable('principal_workspaces', {
+  institutionId: uuid('institution_id').notNull(),
+  principalId: uuid('principal_id').notNull(),
+  sectorKey: text('sector_key').notNull(),
+  grantedAt: ts('granted_at').notNull().defaultNow(),
+});
+
+export const authorityLimits = pgTable('authority_limits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  actionClass: text('action_class').notNull(),
+  role: text('role').notNull(),
+  limitValue: numeric('limit_value').notNull(),
+  limitUnit: text('limit_unit').notNull(),
+  basis: text('basis').notNull(),
+  claimClass: text('claim_class').notNull(),
+});
+
+/** Provenance shared by every canonical record (FR-12). */
+const provenance = {
+  sourceId: uuid('source_id').notNull(),
+  sourceRecordId: text('source_record_id').notNull(),
+  recordMode: text('record_mode').notNull(),
+  classification: text('classification').notNull(),
+  mappingVersion: text('mapping_version').notNull(),
+  qualityStatus: text('quality_status').notNull().default('valid'),
+  ingestedAt: ts('ingested_at').notNull().defaultNow(),
+};
+
+export const positions = pgTable('positions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  portfolioEntityId: uuid('portfolio_entity_id'),
+  holdingEntityId: uuid('holding_entity_id'),
+  name: text('name').notNull(),
+  assetClass: text('asset_class').notNull(),
+  sectorKey: text('sector_key'),
+  country: text('country'),
+  currency: text('currency').notNull(),
+  marketValue: numeric('market_value').notNull(),
+  navSharePct: numeric('nav_share_pct').notNull(),
+  routeDependent: boolean('route_dependent').notNull().default(false),
+  asOf: date('as_of').notNull(),
+  qualityNotes: jsonb('quality_notes').notNull().default([]),
+  ...provenance,
+});
+
+export const managers = pgTable('managers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  name: text('name').notNull(),
+  strategy: text('strategy').notNull(),
+  domicile: text('domicile'),
+  sectorKey: text('sector_key'),
+  ...provenance,
+});
+
+export const ddRecords = pgTable('dd_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  managerId: uuid('manager_id').notNull(),
+  reviewType: text('review_type').notNull(),
+  status: text('status').notNull(),
+  openIssues: integer('open_issues').notNull().default(0),
+  summary: text('summary').notNull(),
+  reviewedOn: date('reviewed_on'),
+  ...provenance,
 });

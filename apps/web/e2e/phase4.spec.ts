@@ -74,7 +74,10 @@ test.describe('governance: recommendation to institutional memory (Phase 4)', ()
     await expect(page.getByRole('heading', { name: 'Completed' })).toBeVisible();
     await expectAccessible(page);
 
-    // Memory: the lesson is searchable, with what the scenario expected and who decided.
+    // Memory: the lesson is searchable, with what the scenario expected and who decided. The capital case is
+    // confidential, above the operations owner's clearance, so an executive reads it.
+    await page.context().clearCookies();
+    await signInAs(page, /Executive \/ Governor/);
     await page.goto('/memory');
     await page.getByLabel('Search memory').fill('hedge budgets');
     const entry = page.getByRole('article').filter({ hasText: CASE });

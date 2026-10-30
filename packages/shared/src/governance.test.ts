@@ -126,3 +126,40 @@ describe('expert review and handoff rules', () => {
     expect(HANDOFF_TRANSITIONS.record_outcome.to).toBe('completed');
   });
 });
+
+describe('delegated limits (D-52)', () => {
+  const hedge = {
+    ...base,
+    magnitude: { value: 18, unit: '% of NAV', label: 'Notional to hedge' },
+    limit: { value: 20, unit: '% of NAV', basis: 'synthetic delegation' },
+  };
+  it('passes within the limit and names both figures', () => {
+    const e = evaluatePolicy(hedge);
+    expect(e.result).toBe('pass');
+    expect(e.reasons.find((r) => r.code === 'limit')?.text).toContain(
+      'within your delegated limit of 20 % of NAV',
+    );
+  });
+
+  it('blocks above the limit and asks to escalate', () => {
+    const e = evaluatePolicy({
+      ...hedge,
+      limit: { value: 10, unit: '% of NAV', basis: 'synthetic delegation' },
+    });
+    expect(e.result).toBe('block');
+    expect(e.reasons.find((r) => r.code === 'limit')?.text).toContain('Escalate');
+  });
+
+  it('blocks when a limit exists but the option has no size, and never checks other outcomes', () => {
+    expect(evaluatePolicy({ ...hedge, magnitude: null }).result).toBe('block');
+    expect(
+      evaluatePolicy({ ...hedge, outcome: 'reject', limit: { value: 1, unit: '% of NAV', basis: 'x' } })
+        .result,
+    ).toBe('pass');
+  });
+
+  it('passes with a note when the role has no numeric limit for the action', () => {
+    const e = evaluatePolicy({ ...hedge, limit: null });
+    expect(e.reasons.find((r) => r.code === 'limit')?.text).toContain('No numeric limit');
+  });
+});

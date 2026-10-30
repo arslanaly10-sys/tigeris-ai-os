@@ -125,6 +125,21 @@ export function OptionCard({ option }: { option: DraftOptionItem }) {
             </dd>
           </div>
         ) : null}
+        <div className="flex items-start gap-2">
+          <dt className="text-ink-muted">Size</dt>
+          <dd className="text-ink">
+            {option.magnitude ? (
+              <>
+                <span className="tabular font-medium">
+                  {option.magnitude.value} {option.magnitude.unit}
+                </span>{' '}
+                <span className="text-ink-muted">· {option.magnitude.label}</span>
+              </>
+            ) : (
+              <span className="text-ink-muted">No size: no numeric limit applies</span>
+            )}
+          </dd>
+        </div>
         <div className="flex items-center gap-2">
           <dt className="text-ink-muted">Confidence</dt>
           <dd>

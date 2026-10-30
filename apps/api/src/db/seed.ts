@@ -3,6 +3,7 @@
 import { appendAudit } from '../audit/audit';
 import { config } from '../config';
 import { ALL_INSTITUTIONS, type InstitutionFixture } from '../fixtures/demo';
+import { seedCanonical } from './seed-canonical';
 import { seedMandates } from './seed-mandates';
 import { seedPhase2 } from './seed-phase2';
 import { createDb, withInstitution, type Db } from './client';
@@ -191,6 +192,7 @@ export async function seedAll(url = config.DATABASE_OWNER_URL) {
       if (f.key === 'gsia-demo') {
         await seedPhase2(db, ids);
         await seedMandates(db, ids.institutionId);
+        await seedCanonical(db, ids.institutionId);
       }
     }
   } finally {

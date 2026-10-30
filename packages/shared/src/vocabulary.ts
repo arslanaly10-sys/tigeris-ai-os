@@ -117,3 +117,10 @@ export type RelationshipClass = (typeof RELATIONSHIP_CLASSES)[number];
 
 export const VALIDATION_OUTCOMES = ['accepted', 'warned', 'quarantined', 'rejected', 'duplicate'] as const;
 export type ValidationOutcome = (typeof VALIDATION_OUTCOMES)[number];
+
+/** How a record entered TIGERIS (FR-12). Only `live` may ever be described as live, and only after a fetch succeeds. */
+export const RECORD_MODES = ['live', 'imported', 'synthetic', 'sample', 'manual'] as const;
+export type RecordMode = (typeof RECORD_MODES)[number];
+
+export const QUALITY_STATUSES = ['valid', 'warning', 'quarantined'] as const;
+export type QualityStatus = (typeof QUALITY_STATUSES)[number];

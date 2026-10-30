@@ -47,6 +47,7 @@ import { z } from 'zod';
 import { appendAudit } from '../audit/audit';
 import { withInstitution, type Tx } from '../db/client';
 import {
+  authorityLimits,
   caseEvents,
   cases,
   decisions,
@@ -59,6 +60,7 @@ import {
   scenarioRuns,
 } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
+import { caseReadable } from './scope';
 import { toDraftOption } from './scenarios';
 
 type CaseRow = typeof cases.$inferSelect;
@@ -243,7 +245,25 @@ function toMemory(
 
 // ───────────────────────────── Rules applied to stored records ─────────────────────────────
 
-function policyFor(rec: RecommendationItem, ctx: RequestContext, outcome: DecisionOutcome): PolicyEvaluation {
+type Limit = { value: number; unit: string; basis: string } | null;
+
+/** The actor's delegated limit for an action class: the highest limit among their roles, or null when none. */
+async function limitFor(tx: Tx, actionClass: string, roles: readonly Role[]): Promise<Limit> {
+  const rows = await tx
+    .select()
+    .from(authorityLimits)
+    .where(and(eq(authorityLimits.actionClass, actionClass), inArray(authorityLimits.role, [...roles])));
+  if (!rows.length) return null;
+  const best = rows.reduce((a, b) => (Number(b.limitValue) > Number(a.limitValue) ? b : a));
+  return { value: Number(best.limitValue), unit: best.limitUnit, basis: best.basis };
+}
+
+function policyFor(
+  rec: RecommendationItem,
+  ctx: RequestContext,
+  outcome: DecisionOutcome,
+  limit: Limit,
+): PolicyEvaluation {
   return evaluatePolicy({
     outcome,
     actor: { id: ctx.principalId, roles: ctx.roles },
@@ -256,6 +276,8 @@ function policyFor(rec: RecommendationItem, ctx: RequestContext, outcome: Decisi
       ? { requiredRole: rec.option.authority.requiredRole, twoPerson: rec.option.authority.twoPerson }
       : null,
     mandateChecks: rec.option.mandateChecks,
+    magnitude: rec.option.magnitude,
+    limit,
   });
 }
 
@@ -276,6 +298,15 @@ function recommendCheck(
   if (!candidates.length)
     return { allowed: false, reason: 'Run a scenario first; options come from a recorded run.' };
   return { allowed: true, reason: 'Choose one option from the latest scenario run.' };
+}
+
+/** Whether the case a governance record belongs to is within the person's read scope. */
+async function readableCase(tx: Tx, caseId: string, ctx: RequestContext): Promise<boolean> {
+  const [row] = await tx
+    .select({ id: cases.id })
+    .from(cases)
+    .where(and(eq(cases.id, caseId), caseReadable(ctx.scope)));
+  return !!row;
 }
 
 async function moveCase(
@@ -342,7 +373,10 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
       deps.db,
       ctx.institutionId,
       async (tx): Promise<CaseGovernance | null> => {
-        const [kase] = await tx.select().from(cases).where(eq(cases.key, params.data.key));
+        const [kase] = await tx
+          .select()
+          .from(cases)
+          .where(and(eq(cases.key, params.data.key), caseReadable(ctx.scope)));
         if (!kase) return null;
         const [latest] = await tx
           .select()
@@ -362,6 +396,7 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         const recs = await loadRecommendations(tx, eq(recommendations.caseId, kase.id));
         const open = recs.find((r) => OPEN_RECOMMENDATION_STATUSES.includes(r.status)) ?? null;
         const decidable = open && (open.status === 'endorsed' || open.status === 'awaiting_second_approval');
+        const openLimit = decidable ? await limitFor(tx, open.option.actionClass, ctx.roles) : null;
         const [handoff] = await loadHandoffs(tx, eq(handoffs.caseId, kase.id));
         const [memory] = await loadMemory(tx, eq(memoryEntries.caseId, kase.id));
         return {
@@ -379,10 +414,9 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
               )
             : { allowed: false, reason: 'No recommendation is awaiting review.' },
           decisionPreview: decidable
-            ? (Object.fromEntries(DECISION_OUTCOMES.map((o) => [o, policyFor(open, ctx, o)])) as Record<
-                DecisionOutcome,
-                PolicyEvaluation
-              >)
+            ? (Object.fromEntries(
+                DECISION_OUTCOMES.map((o) => [o, policyFor(open, ctx, o, openLimit)]),
+              ) as Record<DecisionOutcome, PolicyEvaluation>)
             : null,
           handoff: handoff ?? null,
           memory: memory ?? null,
@@ -404,7 +438,11 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
       return reply.code(403).send({ error: 'not_permitted' });
 
     const result = await withInstitution(deps.db, ctx.institutionId, async (tx) => {
-      const [kase] = await tx.select().from(cases).where(eq(cases.key, params.data.key)).for('update');
+      const [kase] = await tx
+        .select()
+        .from(cases)
+        .where(and(eq(cases.key, params.data.key), caseReadable(ctx.scope)))
+        .for('update');
       if (!kase) return { status: 404 as const, error: 'not_found' };
       const [option] = await tx
         .select()
@@ -498,7 +536,8 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         .from(recommendations)
         .where(eq(recommendations.key, params.data.key))
         .for('update');
-      if (!row) return { status: 404 as const, error: 'not_found' };
+      if (!row || !(await readableCase(tx, row.caseId, ctx)))
+        return { status: 404 as const, error: 'not_found' };
       const check = checkReview(
         { id: ctx.principalId, roles: ctx.roles },
         { createdBy: row.createdBy, status: row.status as RecommendationStatus },
@@ -571,9 +610,11 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         .from(recommendations)
         .where(eq(recommendations.key, params.data.key))
         .for('update');
-      if (!row) return { status: 404 as const, error: 'not_found' };
+      if (!row || !(await readableCase(tx, row.caseId, ctx)))
+        return { status: 404 as const, error: 'not_found' };
       const [rec] = await loadRecommendations(tx, eq(recommendations.id, row.id));
-      const evaluation = policyFor(rec!, ctx, body.data.outcome);
+      const limit = await limitFor(tx, rec!.option.actionClass, ctx.roles);
+      const evaluation = policyFor(rec!, ctx, body.data.outcome, limit);
       const now = new Date();
       if (evaluation.result === 'block') {
         await appendAudit(tx, {
@@ -704,6 +745,7 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
         .innerJoin(cases, eq(cases.id, decisions.caseId))
         .innerJoin(recommendations, eq(recommendations.id, decisions.recommendationId))
         .innerJoin(draftOptions, eq(draftOptions.id, recommendations.optionId))
+        .where(caseReadable(ctx.scope))
         .orderBy(desc(decisions.createdAt))
         .limit(50);
       const who = await people(
@@ -724,13 +766,20 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
   app.get('/api/recommendations', guard, async (request): Promise<RecommendationItem[]> => {
     const ctx = ctxOf(request);
     return withInstitution(deps.db, ctx.institutionId, (tx) =>
-      loadRecommendations(tx, inArray(recommendations.status, [...OPEN_RECOMMENDATION_STATUSES])),
+      loadRecommendations(
+        tx,
+        and(inArray(recommendations.status, [...OPEN_RECOMMENDATION_STATUSES]), caseReadable(ctx.scope)),
+      ),
     );
   });
 
   app.get('/api/handoffs', guard, async (request): Promise<HandoffItem[]> => {
     const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, (tx) => loadHandoffs(tx, undefined));
+    // Assigned work is need-to-know: operations owners see every handoff; others only within their read scope.
+    const assigned = HANDOFF_ROLES.some((r) => ctx.roles.includes(r));
+    return withInstitution(deps.db, ctx.institutionId, (tx) =>
+      loadHandoffs(tx, assigned ? undefined : caseReadable(ctx.scope)),
+    );
   });
 
   /** The operations owner's record of a manual handoff. Nothing here acts on an external system. */
@@ -833,9 +882,12 @@ export async function governanceRoutes(app: FastifyInstance, deps: AppDeps) {
     return withInstitution(deps.db, ctx.institutionId, (tx) =>
       loadMemory(
         tx,
-        term.length >= 2
-          ? sql`(memory_entries.search @@ plainto_tsquery('simple', ${term}) or ${memoryEntries.title} ilike ${'%' + term + '%'})`
-          : undefined,
+        and(
+          caseReadable(ctx.scope),
+          term.length >= 2
+            ? sql`(memory_entries.search @@ plainto_tsquery('simple', ${term}) or ${memoryEntries.title} ilike ${'%' + term + '%'})`
+            : undefined,
+        ),
       ),
     );
   });

@@ -1,4 +1,5 @@
 import type {
+  ReadScope,
   ClaimClass,
   ConfidenceBand,
   EntityType,
@@ -9,7 +10,7 @@ import type {
   MovementTrack,
   RelationshipClass,
 } from '@tigeris/shared';
-import { asc, eq, inArray, ne } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withInstitution, type Tx } from '../db/client';
@@ -23,6 +24,7 @@ import {
   relationshipEvidence,
   sources,
 } from '../db/schema';
+import { caseReadable } from './scope';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { toSource } from './mappers';
 
@@ -100,8 +102,11 @@ export function traverse(originIds: string[], edges: GraphEdge[], maxHops = MAX_
   return { hop, edges: included };
 }
 
-export async function caseGraph(tx: Tx, caseKey: string): Promise<GraphPayload | null> {
-  const [c] = await tx.select({ id: cases.id }).from(cases).where(eq(cases.key, caseKey));
+export async function caseGraph(tx: Tx, caseKey: string, scope: ReadScope): Promise<GraphPayload | null> {
+  const [c] = await tx
+    .select({ id: cases.id })
+    .from(cases)
+    .where(and(eq(cases.key, caseKey), caseReadable(scope)));
   if (!c) return null;
   const linked = await tx.select().from(caseEntities).where(eq(caseEntities.caseId, c.id));
   const origins = linked.filter((r) => r.role === 'origin').map((r) => r.entityId);
@@ -127,7 +132,9 @@ export async function graphRoutes(app: FastifyInstance, deps: AppDeps) {
     const params = z.object({ key: z.string().regex(/^[A-Z0-9-]{3,40}$/) }).safeParse(request.params);
     if (!params.success) return reply.code(404).send({ error: 'not_found' });
     const ctx = ctxOf(request);
-    const g = await withInstitution(deps.db, ctx.institutionId, (tx) => caseGraph(tx, params.data.key));
+    const g = await withInstitution(deps.db, ctx.institutionId, (tx) =>
+      caseGraph(tx, params.data.key, ctx.scope),
+    );
     if (!g) return reply.code(404).send({ error: 'not_found' });
     return g;
   });

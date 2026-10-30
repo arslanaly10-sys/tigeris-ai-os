@@ -1,8 +1,8 @@
-import type { Role } from '@tigeris/shared';
+import { readScope, type ReadScope, type Role, type SectorKey } from '@tigeris/shared';
 import { and, eq } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { withInstitution, type Db, type Tx } from '../db/client';
-import { principalRoles, principals } from '../db/schema';
+import { principalRoles, principals, principalWorkspaces } from '../db/schema';
 import type { IdentityProvider } from './auth/identity';
 
 export interface RequestContext {
@@ -11,6 +11,10 @@ export interface RequestContext {
   displayName: string;
   title: string;
   roles: Role[];
+  /** Assigned sector workspaces; empty means every workspace. */
+  workspaces: SectorKey[];
+  /** What this person may read (clearance by classification, workspaces). Enforced in every read query. */
+  scope: ReadScope;
 }
 
 export interface AppDeps {
@@ -37,7 +41,15 @@ export async function loadPrincipal(tx: Tx, institutionId: string, principalId: 
     .select({ role: principalRoles.role })
     .from(principalRoles)
     .where(eq(principalRoles.principalId, principalId));
-  return { principal: p, roles: roles.map((r) => r.role as Role) };
+  const workspaces = await tx
+    .select({ sectorKey: principalWorkspaces.sectorKey })
+    .from(principalWorkspaces)
+    .where(eq(principalWorkspaces.principalId, principalId));
+  return {
+    principal: p,
+    roles: roles.map((r) => r.role as Role),
+    workspaces: workspaces.map((w) => w.sectorKey as SectorKey),
+  };
 }
 
 /**
@@ -61,6 +73,8 @@ export function requireSession(deps: AppDeps) {
       displayName: loaded.principal.displayName,
       title: loaded.principal.title,
       roles: loaded.roles,
+      workspaces: loaded.workspaces,
+      scope: readScope(loaded.roles, loaded.workspaces),
     };
   };
 }

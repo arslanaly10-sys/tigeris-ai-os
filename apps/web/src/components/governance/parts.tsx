@@ -394,6 +394,7 @@ export function RecommendForm({ g }: { g: CaseGovernance }) {
                   {o.actionClass}
                   {o.authority ? ` · ${ROLE_LABEL[o.authority.requiredRole]}` : ''}
                   {o.authority?.twoPerson ? ' · two-person approval' : ''}
+                  {o.magnitude ? ` · ${o.magnitude.value} ${o.magnitude.unit}` : ''}
                 </span>
               </span>
             </label>

@@ -1,5 +1,12 @@
-import type { CaseDetail, CaseEventItem, CaseState, CaseSummary, EvidenceItem } from '@tigeris/shared';
-import { asc, desc, eq, inArray } from 'drizzle-orm';
+import type {
+  CaseDetail,
+  CaseEventItem,
+  CaseState,
+  CaseSummary,
+  EvidenceItem,
+  ReadScope,
+} from '@tigeris/shared';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { appendAudit } from '../audit/audit';
@@ -7,13 +14,15 @@ import { withInstitution, type Tx } from '../db/client';
 import { caseEvents, caseEvidence, cases, evidenceFacts, evidenceObjects, principals } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { toCaseSummary, toEvidence } from './mappers';
+import { caseReadable } from './scope';
 import { listSources } from './sources';
 
-export async function listCases(tx: Tx): Promise<CaseSummary[]> {
+export async function listCases(tx: Tx, scope: ReadScope): Promise<CaseSummary[]> {
   const rows = await tx
     .select({ c: cases, owner: principals.displayName })
     .from(cases)
     .innerJoin(principals, eq(principals.id, cases.ownerPrincipalId))
+    .where(caseReadable(scope))
     .orderBy(desc(cases.updatedAt));
   return rows.map((r) => toCaseSummary(r.c, r.owner));
 }
@@ -43,12 +52,12 @@ export async function loadEvidence(tx: Tx, evidenceIds: string[]): Promise<Evide
   return evidenceIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
 }
 
-async function loadCase(tx: Tx, key: string): Promise<CaseDetail | null> {
+async function loadCase(tx: Tx, key: string, scope: ReadScope): Promise<CaseDetail | null> {
   const [row] = await tx
     .select({ c: cases, owner: principals.displayName })
     .from(cases)
     .innerJoin(principals, eq(principals.id, cases.ownerPrincipalId))
-    .where(eq(cases.key, key));
+    .where(and(eq(cases.key, key), caseReadable(scope)));
   if (!row) return null;
   const links = await tx
     .select({ evidenceId: caseEvidence.evidenceId })
@@ -93,7 +102,7 @@ export async function caseRoutes(app: FastifyInstance, deps: AppDeps) {
 
   app.get('/api/cases', guard, async (request) => {
     const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, listCases);
+    return withInstitution(deps.db, ctx.institutionId, (tx) => listCases(tx, ctx.scope));
   });
 
   app.get('/api/cases/:key', guard, async (request, reply) => {
@@ -101,7 +110,7 @@ export async function caseRoutes(app: FastifyInstance, deps: AppDeps) {
     if (!params.success) return reply.code(404).send({ error: 'not_found' });
     const ctx = ctxOf(request);
     const detail = await withInstitution(deps.db, ctx.institutionId, async (tx) => {
-      const found = await loadCase(tx, params.data.key);
+      const found = await loadCase(tx, params.data.key, ctx.scope);
       if (found) {
         await appendAudit(tx, {
           institutionId: ctx.institutionId,
@@ -116,7 +125,7 @@ export async function caseRoutes(app: FastifyInstance, deps: AppDeps) {
       }
       return found;
     });
-    // Same response for "missing" and "other institution": never reveal existence across boundaries.
+    // Same response for "missing", "other institution" and "outside your scope": never reveal existence.
     if (!detail) return reply.code(404).send({ error: 'not_found' });
     return detail;
   });

@@ -990,3 +990,102 @@ export interface CaseReport {
   /** SHA-256 of the canonical JSON of every field above, so a recipient can check the pack is unaltered. */
   contentHash: string;
 }
+
+// ───────────────────────────── Slice J: competitive intelligence ─────────────────────────────
+
+export type CiDomainStatus = 'pending_approval' | 'approved' | 'paused';
+export type CiRunStatus = 'running' | 'succeeded' | 'partial' | 'failed' | 'blocked';
+export type CiClaimKind = 'capability' | 'scale' | 'customer' | 'security' | 'positioning';
+
+export interface CiDomainItem {
+  id: string;
+  key: string;
+  vendor: string;
+  host: string;
+  pathPrefix: string;
+  category: string;
+  status: CiDomainStatus;
+  approvalBasis: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  lastCrawlAt: string | null;
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  /** Collected means at least one crawl fetched a page; never claimed otherwise (AC-16). */
+  collected: boolean;
+  pages: number;
+  claims: { candidate: number; accepted: number; rejected: number };
+}
+
+export interface CiRunItem {
+  key: string;
+  domainKey: string;
+  vendor: string;
+  trigger: 'manual' | 'schedule';
+  status: CiRunStatus;
+  rulesVersion: string;
+  robotsStatus: string | null;
+  pagesSeen: number;
+  pagesFetched: number;
+  pagesChanged: number;
+  pagesSkipped: number;
+  claimsProposed: number;
+  error: string | null;
+  log: string[];
+  startedBy: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+export interface CiClaimItem {
+  id: string;
+  key: string;
+  vendor: string;
+  domainKey: string;
+  kind: CiClaimKind;
+  passage: string;
+  paraphrase: string | null;
+  status: 'candidate' | 'accepted' | 'rejected';
+  verification: 'vendor_published' | 'verified';
+  sourceUrl: string;
+  pageTitle: string;
+  retrievedAt: string;
+  curationNote: string | null;
+  curatedBy: string | null;
+  curatedAt: string | null;
+}
+
+export interface CiChangeItem {
+  vendor: string;
+  url: string;
+  title: string;
+  version: number;
+  retrievedAt: string;
+  runKey: string;
+  kind: 'new_page' | 'changed';
+}
+
+export interface CiOverview {
+  domains: CiDomainItem[];
+  runs: CiRunItem[];
+  changes: CiChangeItem[];
+  canAdminister: boolean;
+  canCurate: boolean;
+  rules: { version: string; minDelaySeconds: number; maxPagesPerRun: number; userAgent: string };
+}
+
+export interface CiReport {
+  version: string;
+  generatedAt: string;
+  label: string;
+  vendors: {
+    vendor: string;
+    host: string;
+    pathPrefix: string;
+    category: string;
+    collected: boolean;
+    lastSuccessAt: string | null;
+    lastError: string | null;
+    claims: CiClaimItem[];
+  }[];
+}

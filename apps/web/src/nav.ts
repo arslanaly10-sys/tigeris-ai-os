@@ -6,6 +6,7 @@ import {
   GitFork,
   Landmark,
   ScrollText,
+  Telescope,
   Library,
   ShieldCheck,
   Workflow,
@@ -27,7 +28,7 @@ export interface NavItem {
   flow?: { name: string; detail: string }[];
 }
 
-/** The navigation from the approved light concepts (decision D-07, revised; Oversight added by D-88). */
+/** The navigation from the approved light concepts (decision D-07, revised; Oversight added by D-88, Competitive Intelligence by D-92). */
 export const NAV: NavItem[] = [
   { path: '/', labelKey: 'nav.overview', icon: Landmark, phase: 0, purpose: '', willDo: [] },
   {
@@ -53,6 +54,7 @@ export const NAV: NavItem[] = [
   { path: '/execution', labelKey: 'nav.execution', icon: Workflow, phase: 0, purpose: '', willDo: [] },
   { path: '/memory', labelKey: 'nav.memory', icon: Library, phase: 0, purpose: '', willDo: [] },
   { path: '/sources', labelKey: 'nav.data', icon: Database, phase: 0, purpose: '', willDo: [] },
+  { path: '/competitive', labelKey: 'nav.competitive', icon: Telescope, phase: 0, purpose: '', willDo: [] },
   { path: '/oversight', labelKey: 'nav.oversight', icon: ScrollText, phase: 0, purpose: '', willDo: [] },
 ];
 

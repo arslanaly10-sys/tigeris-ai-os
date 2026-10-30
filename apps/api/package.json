@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "dev": "NODE_USE_ENV_PROXY=1 tsx watch src/server.ts",
+    "start": "NODE_USE_ENV_PROXY=1 tsx src/server.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "db:migrate": "tsx src/db/migrate.ts",

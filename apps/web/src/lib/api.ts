@@ -35,6 +35,9 @@ import type {
   SectorKey,
   CaseAnalysisPayload,
   CaseReport,
+  CiOverview,
+  CiClaimItem,
+  CiReport,
   OutcomeReviewPayload,
   AuditPage,
   AuditVerification,
@@ -184,6 +187,32 @@ export const api = {
   ) => request<{ ok: true }>('POST', `/api/admin/principals/${encodeURIComponent(principalId)}/access`, body),
   provision: (body: { displayName: string; title: string; idpSubject: string; role: Role; reason: string }) =>
     request<{ id: string }>('POST', '/api/admin/principals', body),
+  ci: () => request<CiOverview>('GET', '/api/ci'),
+  ciClaims: (filter: { status?: CiClaimItem['status']; domain?: string } = {}) => {
+    const q = new URLSearchParams(Object.entries(filter).filter((e): e is [string, string] => !!e[1]));
+    return request<CiClaimItem[]>('GET', `/api/ci/claims${q.size ? `?${q}` : ''}`);
+  },
+  ciReport: () => request<CiReport>('GET', '/api/ci/report'),
+  ciAddDomain: (body: {
+    key: string;
+    vendor: string;
+    host: string;
+    pathPrefix: string;
+    category: string;
+    reason: string;
+  }) => request<{ key: string }>('POST', '/api/ci/domains', body),
+  ciDomainStatus: (key: string, status: 'approved' | 'paused', reason: string) =>
+    request<{ ok: true }>('POST', `/api/ci/domains/${encodeURIComponent(key)}/status`, { status, reason }),
+  ciCrawl: (key: string) =>
+    request<{ queued?: true; key?: string; status?: string }>(
+      'POST',
+      `/api/ci/domains/${encodeURIComponent(key)}/crawl`,
+      {},
+    ),
+  ciCurate: (
+    key: string,
+    body: { decision: 'accept' | 'reject'; paraphrase?: string; verified: boolean; note: string },
+  ) => request<{ ok: true }>('POST', `/api/ci/claims/${encodeURIComponent(key)}/curate`, body),
   caseReport: (caseKey: string) =>
     request<CaseReport>('GET', `/api/cases/${encodeURIComponent(caseKey)}/report?format=print`),
   caseAnalysis: (caseKey: string) =>

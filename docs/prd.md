@@ -162,12 +162,12 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ### 5.9 Competitive intelligence (separate from institutional data)
 
-- **FR-45** Domain registry for the five seed vendors (Palantir, BlackRock Aladdin section only, AlternativeSoft, Dasseti, V7) with administrator approval for any additional domain. _Planned (slice J)._
-- **FR-46** Polite crawler: robots.txt, sitemaps and RSS first, internal links only, per-domain rate limits, scheduled or manual runs. _Planned; Blocked on network access until the owner allows the domains (D-54)._
-- **FR-47** Page store: vendor, category, requested and canonical URL, title, relevant text, publication date, retrieval time, content hash, version history, crawl status and errors. _Planned._
-- **FR-48** Claims: paraphrase, supporting passage, clickable source URL, retrieval date, "vendor-published" unless verified by a person (D-55). _Planned._
-- **FR-49** Vendor profiles and a change feed from page versions. _Planned._
-- **FR-50** Competitive-intelligence report, separate from decision reports, with citations only to vendor-public sources. _Planned._
+- **FR-45** Domain registry for the five seed vendors (Palantir, BlackRock Aladdin section only, AlternativeSoft, Dasseti, V7) with administrator approval for any additional domain. _Implemented (slice J): five seeded domains approved by D-54; any other domain waits for administrator approval._
+- **FR-46** Polite crawler: robots.txt, sitemaps and RSS first, internal links only, per-domain rate limits, scheduled or manual runs. _Implemented (slice J): robots.txt first (Disallow, Allow, Crawl-delay), sitemaps, start page and internal links otherwise; at least 5 s between requests, 30 pages per run, manual or queued runs. Real crawls are Blocked: the environment's network proxy refuses all five hosts._
+- **FR-47** Page store: vendor, category, requested and canonical URL, title, relevant text, publication date, retrieval time, content hash, version history, crawl status and errors. _Implemented (slice J); empty until a crawl succeeds._
+- **FR-48** Claims: paraphrase, supporting passage, clickable source URL, retrieval date, "vendor-published" unless verified by a person (D-55). _Implemented (slice J): rule-based candidates in the vendor's own words; analysts accept or reject; "verified" needs an independent https source._
+- **FR-49** Vendor profiles and a change feed from page versions. _Implemented (slice J)._
+- **FR-50** Competitive-intelligence report, separate from decision reports, with citations only to vendor-public sources. _Implemented (slice J): accepted claims only, each citing its vendor page; export audited._
 
 ## 6. Technical requirements (selected)
 
@@ -187,24 +187,24 @@ labelled as such, never implying a live institution or the ability to move capit
 
 ## 7. Acceptance criteria
 
-| ID    | Criterion                                                                                                        | Status                                      |
-| ----- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| AC-01 | Enter a clearly labelled demo institution with a named role; no password field                                   | Implemented                                 |
-| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Implemented                                 |
-| AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                 |
-| AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                 |
-| AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                 |
-| AC-06 | Imported records appear in the right institution and sector workspace                                            | Implemented                                 |
-| AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                 |
-| AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                 |
-| AC-09 | A permitted user submits an option; an authorized approver approves, rejects or requests changes                 | Implemented                                 |
-| AC-10 | The decision and an accountable action are recorded; case and approval history are inspectable                   | Implemented                                 |
-| AC-11 | Sample data is visibly distinct from connected data                                                              | Implemented                                 |
-| AC-12 | Server-side authorization on reads, writes and exports                                                           | Implemented                                 |
-| AC-13 | Errors, stale sources, missing data and empty states are explicit                                                | Implemented                                 |
-| AC-14 | An administrator configures the five CI domains, runs or schedules a crawl, sees status and source-linked claims | Planned; crawling Blocked on network policy |
-| AC-15 | Competitive intelligence stays separate from portfolio and operational data                                      | Planned                                     |
-| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented (sources and connectors)        |
+| ID    | Criterion                                                                                                        | Status                                             |
+| ----- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| AC-01 | Enter a clearly labelled demo institution with a named role; no password field                                   | Implemented                                        |
+| AC-02 | An administrator registers a source and imports a sample dataset                                                 | Implemented                                        |
+| AC-03 | Any figure traces to its source record and timestamp                                                             | Implemented                                        |
+| AC-04 | Disputed and unverified values are visibly distinct and cannot be the sole basis of a decision                   | Implemented                                        |
+| AC-05 | Validation reports row-level issues and retains provenance                                                       | Implemented                                        |
+| AC-06 | Imported records appear in the right institution and sector workspace                                            | Implemented                                        |
+| AC-07 | A user opens a case, inspects evidence and sees which records support it                                         | Implemented                                        |
+| AC-08 | An illustrative scenario shows assumptions, ranges and dependencies                                              | Implemented                                        |
+| AC-09 | A permitted user submits an option; an authorized approver approves, rejects or requests changes                 | Implemented                                        |
+| AC-10 | The decision and an accountable action are recorded; case and approval history are inspectable                   | Implemented                                        |
+| AC-11 | Sample data is visibly distinct from connected data                                                              | Implemented                                        |
+| AC-12 | Server-side authorization on reads, writes and exports                                                           | Implemented                                        |
+| AC-13 | Errors, stale sources, missing data and empty states are explicit                                                | Implemented                                        |
+| AC-14 | An administrator configures the five CI domains, runs or schedules a crawl, sees status and source-linked claims | Implemented; real crawls Blocked by network policy |
+| AC-15 | Competitive intelligence stays separate from portfolio and operational data                                      | Implemented                                        |
+| AC-16 | No connector or website is described as live until collection has succeeded                                      | Implemented (sources, connectors, CI domains)      |
 
 ## 8. Competitive landscape (context, unverified)
 

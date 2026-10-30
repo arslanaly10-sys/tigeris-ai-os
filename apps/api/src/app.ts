@@ -10,6 +10,7 @@ import { caseRoutes } from './modules/cases';
 import { analysisRoutes } from './modules/analysis';
 import { oversightRoutes } from './modules/oversight';
 import { reportRoutes } from './modules/reports';
+import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
 import { commandCentreRoutes } from './modules/command-centre';
 import type { AppDeps } from './modules/context';
@@ -32,6 +33,8 @@ export interface BuildOptions {
   logger?: boolean;
   /** Background job scheduler; omitted in tests, where scheduling is refused with a clear message. */
   jobs?: JobScheduler;
+  /** Network access for the competitive-intelligence crawler (tests pass a stub). */
+  ciNetwork?: { fetch: typeof fetch; sleep?: (ms: number) => Promise<void> };
 }
 
 export async function buildApp(opts: BuildOptions) {
@@ -46,6 +49,7 @@ export async function buildApp(opts: BuildOptions) {
     demoInstitutionKey: opts.demoInstitutionKey,
     demoInstitutionCode: opts.demoInstitutionCode ?? 'GSIA-DEMO',
     jobs: opts.jobs ?? disabledJobs,
+    ciNetwork: opts.ciNetwork,
   };
 
   // Never expose stack traces, SQL or sensitive text to clients (TRD §11.2).
@@ -72,5 +76,6 @@ export async function buildApp(opts: BuildOptions) {
   await analysisRoutes(app, deps);
   await oversightRoutes(app, deps);
   await reportRoutes(app, deps);
+  await ciRoutes(app, deps);
   return app;
 }

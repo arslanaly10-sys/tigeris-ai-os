@@ -41,6 +41,9 @@ const OutcomeReviewPage = lazy(() =>
   import('@/pages/OutcomeReview').then((m) => ({ default: m.OutcomeReviewPage })),
 );
 const CaseReportPage = lazy(() => import('@/pages/CaseReport').then((m) => ({ default: m.CaseReportPage })));
+const CompetitivePage = lazy(() =>
+  import('@/pages/Competitive').then((m) => ({ default: m.CompetitivePage })),
+);
 const OversightPage = lazy(() => import('@/pages/Oversight').then((m) => ({ default: m.OversightPage })));
 const SourcesPage = lazy(() => import('@/pages/Sources').then((m) => ({ default: m.SourcesPage })));
 
@@ -82,6 +85,7 @@ function Protected() {
                 <Route path="memory" element={<MemoryPage />} />
                 <Route path="memory/:key" element={<OutcomeReviewPage />} />
                 <Route path="oversight" element={<OversightPage ctx={ctx} />} />
+                <Route path="competitive" element={<CompetitivePage />} />
                 <Route path="scenarios" element={<ScenariosPage />} />
                 <Route path="scenarios/new" element={<ScenarioBuilderPage />} />
                 <Route path="scenarios/:key" element={<ScenarioRunPage />} />

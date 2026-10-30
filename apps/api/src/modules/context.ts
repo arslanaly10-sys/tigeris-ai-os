@@ -25,6 +25,8 @@ export interface AppDeps {
   /** Code a user types at sign-in to reach the demonstration institution. */
   demoInstitutionCode: string;
   jobs: JobScheduler;
+  /** Network access for the competitive-intelligence crawler; tests pass a stub. Defaults to global fetch. */
+  ciNetwork?: { fetch: typeof fetch; sleep?: (ms: number) => Promise<void> };
 }
 
 declare module 'fastify' {

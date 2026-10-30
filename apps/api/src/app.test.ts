@@ -91,12 +91,15 @@ describe('command centre', () => {
     const cc: CommandCentre = (
       await app.inject({ method: 'GET', url: '/api/command-centre', headers })
     ).json();
-    expect(cc.attention[0]).toMatchObject({
-      ref: 'CAP-ALLOC-01',
+    // Other test files add their own cases awaiting review in parallel, so assert the rule, not one position.
+    expect(cc.attention.find((a) => a.ref === 'CAP-ALLOC-01')).toMatchObject({
       forYou: true,
       nextStepRole: 'domain_expert',
     });
-    expect(cc.counts.awaitingReview).toBe(1);
+    const firstOther = cc.attention.findIndex((a) => !a.forYou);
+    const lastMine = cc.attention.map((a) => a.forYou).lastIndexOf(true);
+    expect(firstOther === -1 || lastMine < firstOther).toBe(true);
+    expect(cc.counts.awaitingReview).toBeGreaterThanOrEqual(1);
   });
 
   it('surfaces stale and unapproved sources with a reason', async () => {

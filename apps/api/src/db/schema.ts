@@ -724,3 +724,85 @@ export const outcomeReviews = pgTable('outcome_reviews', {
   reviewerId: uuid('reviewer_id').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Slice J: competitive intelligence (migration 0011) ─────────────────────────────
+
+export const ciDomains = pgTable('ci_domains', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  vendor: text('vendor').notNull(),
+  host: text('host').notNull(),
+  pathPrefix: text('path_prefix').notNull(),
+  category: text('category').notNull(),
+  status: text('status').notNull(),
+  approvalBasis: text('approval_basis'),
+  approvedBy: uuid('approved_by'),
+  approvedAt: ts('approved_at'),
+  lastCrawlAt: ts('last_crawl_at'),
+  lastSuccessAt: ts('last_success_at'),
+  lastError: text('last_error'),
+  createdBy: uuid('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const ciCrawlRuns = pgTable('ci_crawl_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  domainId: uuid('domain_id').notNull(),
+  trigger: text('trigger').notNull(),
+  status: text('status').notNull(),
+  rulesVersion: text('rules_version').notNull(),
+  robotsStatus: text('robots_status'),
+  pagesSeen: integer('pages_seen').notNull().default(0),
+  pagesFetched: integer('pages_fetched').notNull().default(0),
+  pagesChanged: integer('pages_changed').notNull().default(0),
+  pagesSkipped: integer('pages_skipped').notNull().default(0),
+  claimsProposed: integer('claims_proposed').notNull().default(0),
+  error: text('error'),
+  log: jsonb('log').$type<string[]>().notNull().default([]),
+  startedBy: uuid('started_by'),
+  startedAt: ts('started_at').notNull().defaultNow(),
+  finishedAt: ts('finished_at'),
+});
+
+export const ciPages = pgTable('ci_pages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  domainId: uuid('domain_id').notNull(),
+  url: text('url').notNull(),
+  firstSeenAt: ts('first_seen_at').notNull().defaultNow(),
+});
+
+export const ciPageVersions = pgTable('ci_page_versions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  pageId: uuid('page_id').notNull(),
+  runId: uuid('run_id').notNull(),
+  version: integer('version').notNull(),
+  canonicalUrl: text('canonical_url'),
+  title: text('title').notNull(),
+  publishedAt: ts('published_at'),
+  retrievedAt: ts('retrieved_at').notNull(),
+  contentHash: text('content_hash').notNull(),
+  text: text('text').notNull(),
+});
+
+export const ciClaims = pgTable('ci_claims', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  domainId: uuid('domain_id').notNull(),
+  pageVersionId: uuid('page_version_id').notNull(),
+  kind: text('kind').notNull(),
+  passage: text('passage').notNull(),
+  rule: text('rule').notNull(),
+  status: text('status').notNull().default('candidate'),
+  verification: text('verification').notNull().default('vendor_published'),
+  paraphrase: text('paraphrase'),
+  curationNote: text('curation_note'),
+  curatedBy: uuid('curated_by'),
+  curatedAt: ts('curated_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

@@ -1,3 +1,4 @@
+import { LiveDataPanel } from '@/components/data/LiveDataPanel';
 import type { AuthContext, IngestionJobItem } from '@tigeris/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ban, CheckCircle2, ExternalLink, PackageCheck, PackageX, TriangleAlert } from 'lucide-react';
@@ -284,6 +285,7 @@ function SourcesAndPackages({ ctx }: { ctx: AuthContext }) {
 
 const TABS = [
   { value: 'connectors', label: 'data.connectors' },
+  { value: 'live', label: 'data.live' },
   { value: 'import', label: 'data.import' },
   { value: 'runs', label: 'data.runs' },
   { value: 'records', label: 'data.records' },
@@ -304,7 +306,7 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
     <>
       <PageHeader
         title={t('data.title')}
-        description="Connectors, imports and the source registry. Unapproved sources cannot be ingested; rejected rows and quarantined records never reach cases, the graph or recommendations. Nothing here is a live feed until a connector proves it."
+        description="Connectors, imports and the source registry. Unapproved sources cannot be ingested; rejected rows and quarantined records never reach cases, the graph or recommendations. A feed is labelled Live only after a successful, recent fetch (D-127)."
       />
       <Tabs.Root value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })}>
         <Tabs.List
@@ -327,6 +329,9 @@ export function SourcesPage({ ctx }: { ctx: AuthContext }) {
         </Tabs.List>
         <Tabs.Content value="connectors" className="outline-none">
           <ConnectorsPanel ctx={ctx} />
+        </Tabs.Content>
+        <Tabs.Content value="live" className="outline-none">
+          <LiveDataPanel ctx={ctx} />
         </Tabs.Content>
         <Tabs.Content value="import" className="outline-none">
           <ImportPanel ctx={ctx} />

@@ -59,6 +59,9 @@ import type {
   SourceSummary,
   GuardrailItem,
   DivisionItem,
+  ScenarioRoomPayload,
+  TemplateRunDetail,
+  TemplatesPayload,
   InterventionInbox,
   ValidationAssumption,
   ValidationBatch,
@@ -219,6 +222,13 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  templates: () => request<TemplatesPayload>('GET', '/api/templates'),
+  runOilShock: (body: { caseKey: string; drivers: Record<string, number> }) =>
+    request<{ key: string }>('POST', '/api/templates/oil-price-shock/runs', body),
+  templateRun: (key: string) =>
+    request<TemplateRunDetail>('GET', `/api/templates/runs/${encodeURIComponent(key)}`),
+  scenarioRoom: (keys: string[]) =>
+    request<ScenarioRoomPayload>('GET', `/api/scenario-room${keys.length ? `?keys=${keys.join(',')}` : ''}`),
   desks: () => request<DivisionItem[]>('GET', '/api/desks'),
   validation: (mine: boolean) =>
     request<{ canRequest: boolean; requests: ValidationRequestItem[] }>(

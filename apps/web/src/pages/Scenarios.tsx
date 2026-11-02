@@ -44,6 +44,7 @@ import { ClaimBadge, DataModeBadge } from '@/components/truth/badges';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/data';
 import { FadeSwap, INDICATOR_SPRING, StaggerItem, StaggerList } from '@/components/ui/motion';
+import { OilShockView, ScenarioRoomView } from '@/components/scenario/ScenarioRoom';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { SensitivityPanel } from '@/components/scenario/SensitivityPanel';
 import { api, ApiError } from '@/lib/api';
@@ -67,8 +68,18 @@ const MODELLED = SECTORS.flatMap((s) =>
   s.scenarios.filter((x) => x.modelTemplate).map((x) => ({ ...x, sector: s.label })),
 );
 
+const SCENARIO_VIEWS = [
+  { value: 'hormuz', label: 'scenarios.view.hormuz' },
+  { value: 'oil', label: 'scenarios.view.oil' },
+  { value: 'room', label: 'scenarios.view.room' },
+] as const;
+const viewTabClass =
+  'relative px-4 py-2.5 text-sm font-medium text-ink-muted hover:text-ink data-[state=active]:text-ink';
+
 export function ScenariosPage() {
   const { t } = useI18n();
+  const [params, setParams] = useSearchParams();
+  const view = SCENARIO_VIEWS.find((v) => v.value === params.get('view'))?.value ?? 'hormuz';
   const setup = useQuery({ queryKey: ['scenario-setup'], queryFn: api.scenarioSetup });
   const runs = useQuery({ queryKey: ['scenarios'], queryFn: () => api.scenarios() });
   return (
@@ -85,92 +96,120 @@ export function ScenariosPage() {
           ) : null
         }
       />
-      <div className="space-y-6">
-        <Panel aria-labelledby="runs-heading">
-          <PanelHeader
-            id="runs-heading"
-            icon={<GitFork className="h-4 w-4" aria-hidden />}
-            title="Scenario runs"
-            description="Every run is stored with its drivers, inputs and engine version and can be re-computed."
-          />
-          <LoadState isPending={runs.isPending} error={runs.error} />
-          {runs.data ? (
-            runs.data.length === 0 ? (
-              <div className="flex flex-col items-center border-t border-line px-5 py-12 text-center">
-                <GitFork className="h-7 w-7 text-brand/70" aria-hidden />
-                <p className="mt-2 text-sm font-medium text-ink">No scenario runs yet</p>
-                <p className="max-w-md text-xs text-ink-faint">
-                  An Intelligence Analyst runs a scenario from a case. Results appear here with their ranges
-                  and draft options.
-                </p>
-              </div>
-            ) : (
-              <StaggerList className="divide-y divide-line border-t border-line">
-                {runs.data.map((r) => (
-                  <StaggerItem key={r.id}>
-                    <Link to={`/scenarios/${r.key}`} className="block px-5 py-3.5 hover:bg-raised/60">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="tabular text-[12px] text-ink-faint">{r.key}</span>
-                        <DataModeBadge value="scenario" />
-                        {r.severity ? (
-                          <StatusPill tone={SEVERITY_TONE[r.severity]}>
-                            {severityLabel(r.severity)}
-                          </StatusPill>
-                        ) : null}
-                      </span>
-                      <span className="mt-1 block text-sm font-medium text-ink">{r.title}</span>
-                      <span className="text-[12px] text-ink-faint">
-                        Case {r.caseKey} · {r.caseTitle} · {r.createdBy} · {formatRelative(r.createdAt)}
-                      </span>
-                    </Link>
-                  </StaggerItem>
-                ))}
-              </StaggerList>
-            )
-          ) : null}
-        </Panel>
-
-        <Panel aria-labelledby="templates-heading">
-          <PanelHeader
-            id="templates-heading"
-            title="Scenario templates"
-            description="Modelled scenarios run on engine hormuz-disruption 1.0.0. The rest are configured in a sector pack and cannot run until a template exists."
-          />
-          <div className="grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:divide-x md:divide-line">
-            <section aria-labelledby="modelled-heading" className="px-5 py-4">
-              <h3 id="modelled-heading" className="text-sm font-semibold text-ink">
-                Modelled ({MODELLED.length})
-              </h3>
-              <ul className="mt-2 space-y-3">
-                {MODELLED.map((s) => (
-                  <li key={s.key}>
-                    <p className="text-sm font-medium text-ink">{s.title}</p>
-                    <p className="text-[13px] text-ink-muted">
-                      {s.sector} · {s.description}
+      <Tabs.Root
+        value={view}
+        onValueChange={(v) => setParams(v === 'hormuz' ? {} : { view: v }, { replace: true })}
+      >
+        <Tabs.List aria-label="Scenario views" className="mb-5 flex flex-wrap gap-1 border-b border-line">
+          {SCENARIO_VIEWS.map((x) => (
+            <Tabs.Trigger key={x.value} value={x.value} className={viewTabClass}>
+              {t(x.label)}
+              {view === x.value ? (
+                <motion.span
+                  layoutId="scenarios-tab-indicator"
+                  className="absolute inset-x-0 -bottom-px h-0.5 bg-gold"
+                  transition={INDICATOR_SPRING}
+                  aria-hidden
+                />
+              ) : null}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+        <Tabs.Content value="oil" className="outline-none">
+          <OilShockView />
+        </Tabs.Content>
+        <Tabs.Content value="room" className="outline-none">
+          <ScenarioRoomView />
+        </Tabs.Content>
+        <Tabs.Content value="hormuz" className="outline-none">
+          <div className="space-y-6">
+            <Panel aria-labelledby="runs-heading">
+              <PanelHeader
+                id="runs-heading"
+                icon={<GitFork className="h-4 w-4" aria-hidden />}
+                title="Scenario runs"
+                description="Every run is stored with its drivers, inputs and engine version and can be re-computed."
+              />
+              <LoadState isPending={runs.isPending} error={runs.error} />
+              {runs.data ? (
+                runs.data.length === 0 ? (
+                  <div className="flex flex-col items-center border-t border-line px-5 py-12 text-center">
+                    <GitFork className="h-7 w-7 text-brand/70" aria-hidden />
+                    <p className="mt-2 text-sm font-medium text-ink">No scenario runs yet</p>
+                    <p className="max-w-md text-xs text-ink-faint">
+                      An Intelligence Analyst runs a scenario from a case. Results appear here with their
+                      ranges and draft options.
                     </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section
-              aria-labelledby="notmodelled-heading"
-              className="border-t border-line px-5 py-4 md:border-t-0"
-            >
-              <h3 id="notmodelled-heading" className="text-sm font-semibold text-ink">
-                Not yet modelled ({NOT_MODELLED.length})
-              </h3>
-              <ul className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-                {NOT_MODELLED.map((s) => (
-                  <li key={`${s.sector}:${s.key}`}>
-                    <p className="text-sm text-ink-muted">{s.title}</p>
-                    <p className="text-[13px] text-ink-faint">{s.sector}</p>
-                  </li>
-                ))}
-              </ul>
-            </section>
+                  </div>
+                ) : (
+                  <StaggerList className="divide-y divide-line border-t border-line">
+                    {runs.data.map((r) => (
+                      <StaggerItem key={r.id}>
+                        <Link to={`/scenarios/${r.key}`} className="block px-5 py-3.5 hover:bg-raised/60">
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="tabular text-[12px] text-ink-faint">{r.key}</span>
+                            <DataModeBadge value="scenario" />
+                            {r.severity ? (
+                              <StatusPill tone={SEVERITY_TONE[r.severity]}>
+                                {severityLabel(r.severity)}
+                              </StatusPill>
+                            ) : null}
+                          </span>
+                          <span className="mt-1 block text-sm font-medium text-ink">{r.title}</span>
+                          <span className="text-[12px] text-ink-faint">
+                            Case {r.caseKey} · {r.caseTitle} · {r.createdBy} · {formatRelative(r.createdAt)}
+                          </span>
+                        </Link>
+                      </StaggerItem>
+                    ))}
+                  </StaggerList>
+                )
+              ) : null}
+            </Panel>
+
+            <Panel aria-labelledby="templates-heading">
+              <PanelHeader
+                id="templates-heading"
+                title="Scenario templates"
+                description="Modelled scenarios run on engine hormuz-disruption 1.0.0. The rest are configured in a sector pack and cannot run until a template exists."
+              />
+              <div className="grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:divide-x md:divide-line">
+                <section aria-labelledby="modelled-heading" className="px-5 py-4">
+                  <h3 id="modelled-heading" className="text-sm font-semibold text-ink">
+                    Modelled ({MODELLED.length})
+                  </h3>
+                  <ul className="mt-2 space-y-3">
+                    {MODELLED.map((s) => (
+                      <li key={s.key}>
+                        <p className="text-sm font-medium text-ink">{s.title}</p>
+                        <p className="text-[13px] text-ink-muted">
+                          {s.sector} · {s.description}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section
+                  aria-labelledby="notmodelled-heading"
+                  className="border-t border-line px-5 py-4 md:border-t-0"
+                >
+                  <h3 id="notmodelled-heading" className="text-sm font-semibold text-ink">
+                    Not yet modelled ({NOT_MODELLED.length})
+                  </h3>
+                  <ul className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                    {NOT_MODELLED.map((s) => (
+                      <li key={`${s.sector}:${s.key}`}>
+                        <p className="text-sm text-ink-muted">{s.title}</p>
+                        <p className="text-[13px] text-ink-faint">{s.sector}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            </Panel>
           </div>
-        </Panel>
-      </div>
+        </Tabs.Content>
+      </Tabs.Root>
     </>
   );
 }

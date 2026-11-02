@@ -1,5 +1,6 @@
 import { inArray } from 'drizzle-orm';
 import { ASSUMPTIONS, AUTHORITY_RULES, MANDATES } from '../fixtures/mandates';
+import { OIL_ASSUMPTIONS } from '../fixtures/oil-assumptions';
 import { withInstitution, type Db } from './client';
 import { assumptions, authorityRules, evidenceObjects, mandates } from './schema';
 
@@ -30,5 +31,6 @@ export async function seedMandates(db: Db, institutionId: string) {
         basisEvidenceId: basis.find((b) => b.externalId === basisExternalId)?.id ?? null,
       })),
     );
+    await tx.insert(assumptions).values(OIL_ASSUMPTIONS.map((a) => ({ ...a, institutionId })));
   });
 }

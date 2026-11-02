@@ -1,3 +1,4 @@
+import type { OilResult, ScenarioTemplate } from './oil-shock';
 import type {
   DivisionKind,
   ValidationAssumption,
@@ -1349,4 +1350,55 @@ export interface ValidationBatch {
   dueOn: string;
   counts: RollupCounts & { summary: string };
   requests: ValidationRequestItem[];
+}
+
+// ───────────────────────────── Phase 5F: scenario templates and room ─────────────────────────────
+
+export interface TemplateRunDetail {
+  key: string;
+  title: string;
+  caseKey: string;
+  templateKey: string;
+  engineVersion: string;
+  dataMode: 'scenario';
+  createdBy: string;
+  createdAt: string;
+  inputHash: string;
+  outputHash: string;
+  /** True when the stored output still matches its hash. */
+  intact: boolean;
+  /** Position rows outside the reader's scope are left out; totals include them. */
+  result: OilResult & { hiddenPositions: number };
+}
+
+export interface TemplatesPayload {
+  canRun: boolean;
+  templates: ScenarioTemplate[];
+  oilAssumptions: {
+    key: string;
+    label: string;
+    unit: string;
+    rationale: string;
+    version: number;
+    low: number;
+    central: number;
+    high: number;
+    claimClass: 'assumed';
+  }[];
+}
+
+export interface ScenarioRoomRun {
+  key: string;
+  templateKey: string;
+  engineVersion: string;
+  title: string;
+  caseKey: string;
+  createdAt: string;
+  drivers: Record<string, number>;
+  figures: { key: string; label: string; unit: string; low: number; central: number; high: number }[];
+}
+
+export interface ScenarioRoomPayload {
+  available: { key: string; title: string; caseKey: string; templateKey: string; createdAt: string }[];
+  runs: ScenarioRoomRun[];
 }

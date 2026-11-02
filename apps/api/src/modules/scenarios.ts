@@ -109,7 +109,12 @@ const sha = (v: unknown) => createHash('sha256').update(canonicalJson(v)).digest
 export const formatValue = formatScenarioValue;
 
 async function latestAssumptions(tx: Tx): Promise<AssumptionItem[]> {
-  const rows = await tx.select().from(assumptions).orderBy(assumptions.key, desc(assumptions.version));
+  // The Hormuz engine's assumptions only; other templates read their own keys (5F).
+  const rows = await tx
+    .select()
+    .from(assumptions)
+    .where(inArray(assumptions.key, [...ASSUMPTION_KEYS]))
+    .orderBy(assumptions.key, desc(assumptions.version));
   const seen = new Set<string>();
   const out: AssumptionItem[] = [];
   for (const r of rows) {

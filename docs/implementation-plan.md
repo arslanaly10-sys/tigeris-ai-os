@@ -35,7 +35,7 @@ Status words: Implemented · Simulated · Planned · Blocked.
 | 5C    | Decision guardrails and post-decision monitoring (FR-54)                                                                  | 5A, 5B     | Implemented |
 | 5D    | Learning loop: assumption calibration proposals (FR-55)                                                                   | —          | Implemented |
 | 5E    | Validation tasking, asset-class desks, roll-up (FR-56)                                                                    | —          | Implemented |
-| 5F    | Oil-price-shock template and scenario room (FR-57)                                                                        | 5A         | Planned     |
+| 5F    | Oil-price-shock template and scenario room (FR-57)                                                                        | 5A         | Implemented |
 | 5G    | Ask TIGERIS and notification adapters (FR-58)                                                                             | 5B         | Planned     |
 | 5H    | Production foundations (FR-59)                                                                                            | —          | Planned     |
 | 5I    | Claude adapter, AI economics, model configuration (FR-60)                                                                 | 5H         | Planned     |

@@ -999,3 +999,23 @@ export const validationRequests = pgTable('validation_requests', {
   withdrawnReason: text('withdrawn_reason'),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Phase 5F: template runs (migration 0018) ─────────────────────────────
+
+export const templateRuns = pgTable('template_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  caseId: uuid('case_id').notNull(),
+  templateKey: text('template_key').notNull(),
+  engineVersion: text('engine_version').notNull(),
+  title: text('title').notNull(),
+  drivers: jsonb('drivers').notNull(),
+  inputs: jsonb('inputs').notNull(),
+  outputs: jsonb('outputs').notNull(),
+  inputHash: text('input_hash').notNull(),
+  outputHash: text('output_hash').notNull(),
+  dataMode: text('data_mode').notNull().default('scenario'),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

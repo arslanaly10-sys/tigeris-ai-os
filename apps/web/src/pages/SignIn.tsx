@@ -116,6 +116,15 @@ function RolePicker({ onBack }: { onBack: () => void }) {
  * pilot that routes to the institution's identity provider. In this demonstration build the demo code
  * reveals labelled seeded roles. There is no password field anywhere.
  */
+const OIDC_ERRORS: Record<string, string> = {
+  not_provisioned:
+    'Your identity was verified, but no TIGERIS account is linked to it. Ask your administrator.',
+  identity_not_verified: 'Your identity provider’s answer could not be verified. Try again.',
+  identity_provider_refused: 'Your identity provider refused the sign-in.',
+  sign_in_expired: 'The sign-in took too long or was started elsewhere. Try again.',
+  institution_missing: 'This deployment has no institution configured for sign-in.',
+};
+
 export function SignInPage() {
   const { t } = useI18n();
   const [identifier, setIdentifier] = useState('');
@@ -125,6 +134,8 @@ export function SignInPage() {
     onSuccess: () => setResolved(true),
   });
   const notConnected = resolve.error instanceof ApiError && resolve.error.status === 404;
+  const oidc = useQuery({ queryKey: ['auth', 'oidc'], queryFn: api.oidcStatus, staleTime: Infinity });
+  const oidcError = new URLSearchParams(window.location.search).get('error');
 
   return (
     <div className="grid min-h-dvh bg-canvas lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -184,6 +195,22 @@ export function SignInPage() {
           <div className="w-full max-w-lg rounded-2xl border border-line bg-panel/90 px-6 py-9 sm:px-12">
             <h1 className="font-serif text-[1.75rem] text-ink">{t('signin.title')}</h1>
             <p className="mt-2 font-serif text-[17px] text-ink-muted">{t('signin.lead')}</p>
+            {oidcError ? (
+              <p
+                role="alert"
+                className="mt-4 rounded-md border border-amber/40 bg-amber-soft px-3 py-2 text-sm text-amber"
+              >
+                {OIDC_ERRORS[oidcError] ?? 'Sign-in did not complete. Try again.'}
+              </p>
+            ) : null}
+            {oidc.data?.enabled ? (
+              <a
+                href="/api/auth/oidc/start"
+                className="mt-6 flex h-12 w-full items-center justify-center rounded-lg bg-brand text-[15px] font-medium text-white hover:bg-brand-hover"
+              >
+                Sign in with your organisation
+              </a>
+            ) : null}
 
             <AnimatePresence mode="wait">
               {resolved ? (

@@ -8,7 +8,7 @@ export interface SessionIdentity {
 
 /**
  * Identity provider seam (FR-01, D-18). The MVP ships the labelled demo provider only.
- * A production deployment supplies an OIDC/SAML provider that maps issuer + subject to a principal;
+ * OIDC sign-in (oidc.ts) verifies the person and then writes this same signed session;
  * TIGERIS never becomes the institution's identity directory and never stores passwords.
  */
 export interface IdentityProvider {
@@ -53,16 +53,4 @@ export class DemoIdentityProvider implements IdentityProvider {
   clearSession(reply: FastifyReply): void {
     reply.clearCookie(COOKIE, { path: '/' });
   }
-}
-
-/** Placeholder for the pilot phase: wired once the client names its IdP and claim mapping. */
-export class OidcIdentityProvider implements IdentityProvider {
-  readonly kind = 'oidc' as const;
-  readSession(): SessionIdentity | null {
-    throw new Error('OIDC identity provider is not configured in this build (pilot scope).');
-  }
-  writeSession(): void {
-    throw new Error('OIDC identity provider is not configured in this build (pilot scope).');
-  }
-  clearSession(): void {}
 }

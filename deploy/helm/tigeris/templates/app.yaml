@@ -1,0 +1,29 @@
+{{- range $name, $port := dict "api" 4000 "web" 8080 }}
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: {{ $name }}, labels: { app: tigeris-{{ $name }} } }
+spec:
+  replicas: {{ index $.Values.replicas $name }}
+  selector: { matchLabels: { app: tigeris-{{ $name }} } }
+  template:
+    metadata: { labels: { app: tigeris-{{ $name }} } }
+    spec:
+      securityContext: { runAsNonRoot: true }
+      containers:
+        - name: {{ $name }}
+          image: {{ index $.Values.image $name }}
+          ports: [{ containerPort: {{ $port }} }]
+          {{- if eq $name "api" }}
+          envFrom: [{ secretRef: { name: {{ $.Values.envSecret }} } }]
+          readinessProbe: { httpGet: { path: /api/ready, port: {{ $port }} }, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: /api/health, port: {{ $port }} }, periodSeconds: 20 }
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata: { name: {{ $name }} }
+spec:
+  selector: { app: tigeris-{{ $name }} }
+  ports: [{ port: {{ $port }}, targetPort: {{ $port }} }]
+---
+{{- end }}

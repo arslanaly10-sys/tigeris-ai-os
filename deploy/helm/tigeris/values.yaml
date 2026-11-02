@@ -1,0 +1,7 @@
+image:
+  api: tigeris-api:5h
+  web: tigeris-web:5h
+# Name of an existing Secret holding the environment (DATABASE_APP_URL, SESSION_SECRET, OIDC_*, EVIDENCE_S3_*, ...).
+# The chart never creates secrets.
+envSecret: tigeris-env
+replicas: { api: 2, web: 2 }

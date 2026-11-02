@@ -25,4 +25,4 @@ const app = await buildApp({
   jobs,
 });
 
-await app.listen({ port: config.API_PORT, host: '127.0.0.1' });
+await app.listen({ port: config.API_PORT, host: config.API_HOST });

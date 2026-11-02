@@ -83,7 +83,7 @@ labelled as such, never implying a live institution or the ability to move capit
 ### 5.1 Entry, identity and context
 
 - **FR-01** Institution identification first (code or work-email domain); unknown institutions are refused. _Implemented._
-- **FR-02** Production identity through the institution's IdP (OIDC/SAML, MFA enforced by the IdP). _Planned — provider chosen (D-100: OIDC, Microsoft Entra ID by default); adapter boundary exists._
+- **FR-02** Production identity through the institution's IdP (OIDC/SAML, MFA enforced by the IdP). _Implemented (5H): OIDC with PKCE, off until configured; see D-122._
 - **FR-03** Workspace (sector) selection and a persistent context bar: institution, role, environment, data modes. _Implemented._
 - **FR-04** Labelled demonstration roles, no password fields. _Implemented._
 - **FR-05** Demonstration disclosure always visible. _Implemented (D-42)._

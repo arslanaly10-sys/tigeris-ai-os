@@ -224,6 +224,7 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  oidcStatus: () => request<{ enabled: boolean; issuer: string | null }>('GET', '/api/auth/oidc/status'),
   ask: (question: string) => request<AskAnswer>('POST', '/api/ask', { question }),
   notificationChannels: () => request<NotificationChannel[]>('GET', '/api/notifications/channels'),
   templates: () => request<TemplatesPayload>('GET', '/api/templates'),

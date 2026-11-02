@@ -1,5 +1,6 @@
 import cookie from '@fastify/cookie';
 import multipart from '@fastify/multipart';
+import { sql } from 'drizzle-orm';
 import Fastify, { type FastifyError } from 'fastify';
 import { MAX_UPLOAD_BYTES } from './connectors/parse';
 import type { Db } from './db/client';
@@ -17,6 +18,7 @@ import { validationRoutes } from './modules/validation';
 import { scenarioRoomRoutes } from './modules/scenario-room';
 import { askRoutes } from './modules/ask';
 import { notifyRoutes } from './modules/notify';
+import { oidcRoutes } from './modules/auth/oidc';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -68,7 +70,17 @@ export async function buildApp(opts: BuildOptions) {
   });
 
   app.get('/api/health', async () => ({ status: 'ok', environment: 'demonstration' }));
+  // Readiness for orchestrators: the API answers only when its database does (D-122).
+  app.get('/api/ready', async (_request, reply) => {
+    try {
+      await opts.db.execute(sql`select 1`);
+      return { status: 'ready' };
+    } catch {
+      return reply.code(503).send({ status: 'database_unavailable' });
+    }
+  });
   await authRoutes(app, deps);
+  await oidcRoutes(app, deps);
   await commandCentreRoutes(app, deps);
   await caseRoutes(app, deps);
   await sourceRoutes(app, deps);

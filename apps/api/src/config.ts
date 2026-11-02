@@ -11,6 +11,8 @@ const schema = z.object({
   DEMO_INSTITUTION_KEY: z.string().default('gsia-demo'),
   DEMO_INSTITUTION_CODE: z.string().default('GSIA-DEMO'),
   API_PORT: z.coerce.number().int().default(4000),
+  /** 127.0.0.1 locally; 0.0.0.0 inside a container. */
+  API_HOST: z.string().default('127.0.0.1'),
   NODE_ENV: z.string().default('development'),
   /** Where uploaded files are stored (outside the web root). Relative paths resolve from apps/api. */
   UPLOAD_DIR: z.string().default(fileURLToPath(new URL('../var/uploads', import.meta.url))),
@@ -23,6 +25,19 @@ const schema = z.object({
    * Optional model-provider endpoint (local OpenAI-compatible server or hosted provider). Recorded and shown as
    * configured, never called while external model calls are disabled by policy (D-14).
    */
+  /** OpenID Connect sign-in (Entra ID: https://login.microsoftonline.com/<tenant>/v2.0). Off when the issuer is empty. */
+  OIDC_ISSUER: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+  OIDC_CLIENT_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  OIDC_CLIENT_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  OIDC_REDIRECT_URI: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+  /** The one institution this deployment signs people into. */
+  OIDC_INSTITUTION_KEY: z.string().default('gsia-demo'),
+  /** S3-compatible evidence store (MinIO, AWS S3). When the endpoint is empty, files stay on local disk. */
+  EVIDENCE_S3_ENDPOINT: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+  EVIDENCE_S3_BUCKET: z.string().default('tigeris-evidence'),
+  EVIDENCE_S3_REGION: z.string().default('us-east-1'),
+  EVIDENCE_S3_ACCESS_KEY_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  EVIDENCE_S3_SECRET_ACCESS_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   /** Microsoft Teams incoming-webhook address for intervention alerts. Off when empty (D-110). */
   TEAMS_WEBHOOK_URL: z.preprocess(
     (v) => (v === '' ? undefined : v),

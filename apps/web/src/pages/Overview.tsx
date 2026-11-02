@@ -177,7 +177,7 @@ function OverduePanel({ data }: { data: CommandCentre }) {
                   <Clock className="h-3.5 w-3.5" aria-hidden />
                   {days(o.overdueHours)} {t('overdue.late')}
                 </span>
-                <span className="min-w-0 flex-1 text-sm">
+                <span className="min-w-0 flex-[1_1_14rem] text-sm">
                   <span className="font-medium text-ink">{o.label}</span>
                   <span className="text-ink-muted">
                     {' '}

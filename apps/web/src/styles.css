@@ -115,6 +115,39 @@
   a[href] {
     cursor: pointer;
   }
+  /* A grid item never forces the page wider than the screen; long lines wrap or truncate inside it. */
+  .grid > * {
+    min-width: 0;
+  }
+  /* Every pointer target is at least 24px (WCAG 2.2 target size). */
+  button,
+  select,
+  summary,
+  [role='tab'],
+  input[type='range'] {
+    min-height: 1.5rem;
+  }
+}
+
+/*
+ * On touch screens, controls and navigation links are at least 44px tall (Apple HIG, Material). Kept outside the
+ * layers so it outranks height utilities such as min-h-10; it only ever raises a minimum, so nothing shrinks.
+ * Inline text links in prose and tables are exempt (WCAG spacing exception).
+ */
+@media (pointer: coarse) {
+  button,
+  select,
+  summary,
+  [role='tab'],
+  input:not([type='checkbox'], [type='radio']),
+  nav a {
+    min-height: 2.75rem;
+  }
+  button,
+  a,
+  summary {
+    touch-action: manipulation;
+  }
 }
 
 @utility tabular {

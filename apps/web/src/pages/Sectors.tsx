@@ -423,7 +423,10 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                   icon={<Bot className="h-4 w-4" aria-hidden />}
                   title={t('sector.agents')}
                   action={
-                    <Link to="/ai" className="text-sm text-cyan hover:underline">
+                    <Link
+                      to="/ai"
+                      className="inline-flex min-h-6 items-center text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+                    >
                       {t('nav.ai')}
                     </Link>
                   }
@@ -497,7 +500,7 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
                 <ul className="divide-y divide-line border-t border-line">
                   {records.data.positions.slice(0, 8).map((p) => (
                     <li key={p.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-                      <span className="min-w-0 flex-1">
+                      <span className="min-w-0 flex-[1_1_14rem]">
                         <span className="block text-sm font-medium text-ink">{p.name}</span>
                         <span className="text-xs text-ink-faint">
                           {p.key} · {p.assetClass} · as of {p.asOf}

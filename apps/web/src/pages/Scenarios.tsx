@@ -314,7 +314,10 @@ export function ScenarioBuilderPage() {
 
   return (
     <>
-      <Link to="/scenarios" className="mb-2 inline-flex text-sm text-cyan hover:underline">
+      <Link
+        to="/scenarios"
+        className="mb-2 inline-flex min-h-6 items-center text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+      >
         ← All scenarios
       </Link>
       <PageHeader
@@ -553,7 +556,10 @@ export function ScenarioRunPage() {
 
   return (
     <>
-      <Link to="/scenarios" className="mb-2 inline-flex text-sm text-cyan hover:underline">
+      <Link
+        to="/scenarios"
+        className="mb-2 inline-flex min-h-6 items-center text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+      >
         ← All scenarios
       </Link>
       <PageHeader

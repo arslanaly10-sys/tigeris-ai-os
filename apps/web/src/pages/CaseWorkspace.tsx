@@ -108,7 +108,10 @@ function CaseHeader({ c }: { c: CaseDetail }) {
   const { t } = useI18n();
   return (
     <header className="mb-5">
-      <Link to="/cases" className="inline-flex items-center gap-1 text-sm text-cyan hover:underline">
+      <Link
+        to="/cases"
+        className="inline-flex min-h-6 items-center gap-1 text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+      >
         <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
         All cases
       </Link>

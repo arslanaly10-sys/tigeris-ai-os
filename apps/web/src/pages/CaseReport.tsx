@@ -295,7 +295,10 @@ export function CaseReportPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link to={`/cases/${key}`} className="text-sm text-cyan hover:underline">
+        <Link
+          to={`/cases/${key}`}
+          className="inline-flex min-h-6 items-center text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+        >
           ← {key}
         </Link>
         <div className="flex flex-wrap gap-2">

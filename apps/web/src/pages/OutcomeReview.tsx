@@ -254,7 +254,10 @@ export function OutcomeReviewPage() {
   const s = d.summary;
   return (
     <>
-      <Link to="/memory" className="mb-2 inline-flex text-sm text-cyan hover:underline">
+      <Link
+        to="/memory"
+        className="mb-2 inline-flex min-h-6 items-center text-sm text-cyan hover:underline pointer-coarse:min-h-11"
+      >
         ← Institutional memory
       </Link>
       <PageHeader

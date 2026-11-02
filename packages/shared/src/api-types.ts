@@ -1457,3 +1457,24 @@ export interface ModelStatus {
     costUsd: number;
   }[];
 }
+
+// ───────────────────────────── Pilot readiness: data retention (D-126) ─────────────────────────────
+
+import type { RetentionClass } from './retention';
+
+export interface RetentionPolicyItem {
+  dataClass: RetentionClass;
+  description: string;
+  /** Null: no period set, so nothing of this class is ever purged. */
+  keepDays: number | null;
+  reason: string | null;
+  setAt: string | null;
+  /** Rows a purge would remove now; null when no period is set. */
+  eligibleNow: number | null;
+}
+
+export interface RetentionOverview {
+  policies: RetentionPolicyItem[];
+  canManage: boolean;
+  note: string;
+}

@@ -42,6 +42,8 @@ import type {
   AuditPage,
   AuditVerification,
   AdminOverview,
+  RetentionClass,
+  RetentionOverview,
   Role,
   HorizonKey,
   ReviewNoteItem,
@@ -196,6 +198,13 @@ export const api = {
   },
   verifyAudit: () => request<AuditVerification>('POST', '/api/audit/verify', {}),
   admin: () => request<AdminOverview>('GET', '/api/admin'),
+  retention: () => request<RetentionOverview>('GET', '/api/admin/retention'),
+  setRetention: (dataClass: RetentionClass, body: { keepDays: number; reason: string }) =>
+    request<{ ok: true }>('POST', `/api/admin/retention/${dataClass}`, body),
+  purgeRetention: (reason: string) =>
+    request<{ purged: Partial<Record<RetentionClass, number>> }>('POST', '/api/admin/retention/purge', {
+      reason,
+    }),
   changeAccess: (
     principalId: string,
     body:

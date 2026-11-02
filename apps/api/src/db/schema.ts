@@ -1036,3 +1036,13 @@ export const modelUsage = pgTable('model_usage', {
   detail: text('detail'),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+export const retentionPolicies = pgTable('retention_policies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  dataClass: text('data_class').notNull(),
+  keepDays: integer('keep_days').notNull(),
+  reason: text('reason').notNull(),
+  setBy: uuid('set_by').notNull(),
+  setAt: ts('set_at').notNull().defaultNow(),
+});

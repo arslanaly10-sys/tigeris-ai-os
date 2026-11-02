@@ -20,6 +20,7 @@ import { CircleCheck, CircleX, Link2, ShieldCheck, UserPlus, Users } from 'lucid
 import { useId, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { LoadState, PageHeader } from '@/components/PageHeader';
+import { RetentionPanel } from '@/components/RetentionPanel';
 import { Button } from '@/components/ui/button';
 import { INDICATOR_SPRING } from '@/components/ui/motion';
 import { Panel, PanelHeader } from '@/components/ui/panel';
@@ -575,6 +576,8 @@ function Administration({ roles, me }: { roles: Role[]; me: string }) {
           <ProvisionForm />
         </Panel>
       ) : null}
+
+      <RetentionPanel />
 
       <Sheet
         open={editing !== null}

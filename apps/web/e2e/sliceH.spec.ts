@@ -40,8 +40,8 @@ test.describe('audit and administration (slice H)', () => {
     await page.getByLabel('Title').fill('Utilities analyst');
     await page.getByLabel(/Identity-provider subject/).fill(`${Date.now().toString(36)}@institution.example`);
     await page
+      .getByRole('region', { name: 'Provision a person' })
       .getByLabel(/^Reason/)
-      .last()
       .fill('New joiner in the utilities team, approved by the head of risk.');
     await page.getByRole('button', { name: 'Provision person' }).click();
     const row = page.getByRole('row').filter({ hasText: name });
@@ -55,6 +55,15 @@ test.describe('audit and administration (slice H)', () => {
     await sheet.getByRole('button', { name: 'Record change' }).click();
     await expect(sheet).toBeHidden();
     await expect(row).toContainText('Infrastructure & Utilities');
+
+    // Data retention (D-126): nothing is purged until a period is set; setting one is recorded with a reason.
+    const retention = page.getByRole('region', { name: 'Data retention' });
+    await expect(retention).toContainText('the audit chain and model costs are never purged');
+    const closed = retention.getByRole('listitem').filter({ hasText: 'Closed interventions' });
+    await closed.getByLabel('Keep (days)').fill('365');
+    await closed.getByLabel(/^Reason/).fill('Pilot policy: closed interventions kept for one year.');
+    await closed.getByRole('button', { name: /Set period/ }).click();
+    await expect(closed).toContainText(/Kept 365 days/);
     await shot(page, 'admin', info.project.name);
     await expectAccessible(page);
 

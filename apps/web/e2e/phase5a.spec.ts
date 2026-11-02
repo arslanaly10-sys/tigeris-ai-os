@@ -41,6 +41,7 @@ test.describe('semantic registry (Phase 5A)', () => {
     page,
   }, info) => {
     test.skip(info.project.name === 'mobile', 'Mutating journey runs once, on desktop');
+    test.slow(); // Two people sign in and act in turn, with accessibility checks.
     const key = `E2E-${Date.now().toString(36).toUpperCase()}`;
     await signInAs(page, /Intelligence Analyst/);
     await page.goto('/mandates?view=rules');

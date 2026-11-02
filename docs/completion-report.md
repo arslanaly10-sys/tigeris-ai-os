@@ -1,7 +1,7 @@
 # TIGERIS AI OS — completion report (platform brief A–K and Phase 5)
 
 Date: 2 November 2026. Branch: `main`. This report states what is built, how to run and configure it, what was
-verified, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to `docs/decisions.md` (D-01..D-124).
+verified, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to `docs/decisions.md` (D-01..D-126).
 
 ## 1. What the platform does
 
@@ -30,13 +30,14 @@ expected; and a miss proposes better assumptions for a domain expert to approve.
 | 5G    | Ask TIGERIS with quoted citations; Teams and email alert channels, off until configured                                                                                                                            | D-121        |
 | 5H    | OIDC sign-in (Entra ID), S3-compatible evidence store, backups with a restore test, readiness, packaging                                                                                                           | D-122        |
 | 5I    | Claude through the gateway (Ask TIGERIS and case analysis), budget hard stop, cost per call, case and decision                                                                                                     | D-123, D-124 |
+| Pilot | Security review fixes; data retention for two operational data classes, set and run by an administrator; load test                                                                                                 | D-125, D-126 |
 
 ## 3. Where things are
 
-- Database: 20 forward-only migrations in `apps/api/db/migrations`. Every institutional table has `institution_id`,
+- Database: 21 forward-only migrations in `apps/api/db/migrations`. Every institutional table has `institution_id`,
   forced row-level security and the non-owner `tigeris_app` role.
 - API modules (`apps/api/src/modules`): auth (demo and OIDC), cases, signals, graph, sectors, scenarios, scenario room,
-  analysis, governance, guardrails, oversight, reports, connectors, portfolio, ci, command-centre, search, semantic,
+  analysis, governance, guardrails, oversight, retention, reports, connectors, portfolio, ci, command-centre, search, semantic,
   interventions, validation, learning, ask, notify, claude (model use), gateway.
 - Shared, unit-tested logic (`packages/shared/src`): vocabulary, lifecycle, scenario engine and sensitivity, options
   ranker, decision policy, read scope, connectors, dependencies, analysis roster, outcome review, service levels, sector
@@ -45,15 +46,15 @@ expected; and a miss proposes better assumptions for a domain expert to approve.
   and alert channels), Signals, Cases and the case workspace, AI Command (Ask TIGERIS, model use and budget), Foresight &
   Scenarios (Hormuz runs, oil price shock, scenario room), Mandates & Authority (register, codified rules, definitions,
   guardrails, export), Decisions & Approvals, Governed Execution, Institutional Memory (decisions and learning), Data &
-  Integrations, Competitive Intelligence, Audit & Administration.
+  Integrations, Competitive Intelligence, Audit & Administration (audit log, access, data retention).
 - Deployment: `deploy/Dockerfile`, `deploy/compose.yml`, `deploy/helm/tigeris`; `scripts/db-setup.sh`,
-  `scripts/backup.sh`, `scripts/restore-test.sh`. Project skill: `.claude/skills/hallmark` (vendored, MIT).
+  `scripts/backup.sh`, `scripts/restore-test.sh`, `scripts/load-test.mjs`. Project skill: `.claude/skills/hallmark` (vendored, MIT).
 
 ## 4. How to run it
 
 ```bash
 pnpm install
-pnpm db:reset    # roles, database, migrations 0001–0020, seed (local PostgreSQL 16)
+pnpm db:reset    # roles, database, migrations 0001–0021, seed (local PostgreSQL 16)
 pnpm dev         # API :4000, web :5173
 pnpm lint && pnpm typecheck && pnpm test
 pnpm test:e2e    # Playwright, desktop and mobile, axe WCAG 2.2 AA on every screen visited
@@ -66,7 +67,7 @@ if missing (never dropping anything) and applies new migrations. Backups: `scrip
 
 ## 5. Verification at this commit
 
-- Unit and API: shared 96, web 3, API 200 tests pass; lint and type checks are clean.
+- Unit and API: shared 96, web 3, API 208 tests pass; lint and type checks are clean.
 - Browser: see the latest full run recorded in section 8; each Phase 5 slice also passed its own full run when it
   landed (97 to 113 passed, the rest skipped by design: journeys that change data run once, on desktop).
 - Packaging, in a container runtime: the API image builds, runs as non-root and serves `/api/ready` and data; the
@@ -75,6 +76,8 @@ if missing (never dropping anything) and applies new migrations. Backups: `scrip
 - Sign-in: discovery and the PKCE redirect were exercised against a real Entra tenant; the ID-token verifier is
   unit-tested against forged, expired, replayed and wrong-audience tokens.
 - Evidence store: the request signer reproduces the AWS SigV4 test vector.
+- Load: 100 concurrent users looping without pause, 17,600 requests, no server errors, p95 under 0.6 s on one
+  API process; see `docs/load-test.md` for the setup and what was not measured.
 - Claude: the live Messages API accepted the request shape up to authentication; replies, fallbacks and budget
   behaviour are tested with a stand-in.
 
@@ -103,15 +106,15 @@ every setting from an existing Secret.
   your agreement's prices and a monthly budget; an S3 endpoint for evidence; Teams or mail relay addresses for alerts.
 - **Not verified here:** the nginx web image (Docker Hub rate limit), a live S3 upload, and a real Claude reply.
 - **Not built:** case and source change views (FR-37), full model configuration (FR-44, partial), early-warning indicators
-  on live feeds (FR-36, partial), federated database reads, metrics and tracing, load and security testing, retention
-  policies, MapLibre and React Flow upgrades. Scenario option drafts stay on the deterministic stub.
+  on live feeds (FR-36, partial), federated database reads, metrics and tracing, external security testing (penetration test), scheduled
+  retention purges, load at production data volumes, MapLibre and React Flow upgrades. Scenario option drafts stay on the deterministic stub.
 - **Arabic** covers titles, tabs and buttons as an owner-approved draft; much explanatory text on newer screens is English.
 - **No certification claims.** Nothing is described as compliant, certified, air-gapped, tamper-proof or production-secure.
   The audit chain is tamper-evident (verification detects edits), not tamper-proof.
 
 ## 8. Latest full browser run
 
-2 November 2026, on the code at this commit: 112 passed, 15 skipped by design, 1 timed out. The timeout was the
-phase 3 scenario journey (a scenario run, its case and AI Command, with accessibility checks on each) at 31.8 s
-against a 30 s limit; every assertion held. It now has the longer limit other long journeys use and passes on its own in
-30.9 s.
+2 November 2026, after the security review fixes: 112 passed, 15 skipped by design, 1 timed out. The timeout was
+the Phase 5A rule-approval journey (two people sign in and act in turn) at 31.1 s against a 30 s limit, with every
+assertion holding. It now has the longer limit other long journeys use and passes on its own in 25.5 s. The
+administration journey, now including data retention, passes on desktop and mobile with accessibility checks.

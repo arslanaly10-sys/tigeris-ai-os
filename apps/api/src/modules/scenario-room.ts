@@ -22,6 +22,7 @@ import {
   type ScenarioRoomPayload,
   type ScenarioRoomRun,
   type ScenarioTemplate,
+  type ReferenceObservation,
   type TemplateRunDetail,
 } from '@tigeris/shared';
 import { createHash } from 'node:crypto';
@@ -32,6 +33,7 @@ import { appendAudit, canonicalJson } from '../audit/audit';
 import { withInstitution, type Tx } from '../db/client';
 import { assumptions, cases, principals, scenarioRuns, templateRuns } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
+import { referenceObservation } from './live';
 import { readPositions } from './portfolio';
 import { caseReadable } from './scope';
 
@@ -94,6 +96,14 @@ async function nextKey(tx: Tx, now: Date): Promise<string> {
 }
 
 /** Hides position rows the reader may not read; totals stay, since they are derived figures. */
+/** FRED daily Brent spot price; the reference for oil-shock runs (D-127). */
+export const BRENT_SERIES = 'DCOILBRENTEU';
+
+/** The price a shock implies from its reference, rounded to cents. A versioned, deterministic calculation. */
+export function impliedReference(ref: ReferenceObservation | null, changePct: number) {
+  return ref ? { ...ref, impliedPrice: Math.round(ref.value * (1 + changePct / 100) * 100) / 100 } : null;
+}
+
 async function forReader(
   tx: Tx,
   ctx: RequestContext,
@@ -164,9 +174,12 @@ export async function scenarioRoomRoutes(app: FastifyInstance, deps: AppDeps) {
       const positions = (await readPositions(tx, ctx.scope)).positions;
       if (!positions.length)
         return reply.code(409).send({ error: 'no_positions', message: 'No positions you may read.' });
+      // The latest fetched Brent price, when a fetch has succeeded, is recorded as the run's reference (D-127).
+      const reference = await referenceObservation(tx, BRENT_SERIES);
       const inputs = {
         positions: positions.map((p) => ({ key: p.key, mode: p.provenance.recordMode, asOf: p.asOf })),
         assumptions: Object.fromEntries(OIL_ASSUMPTION_KEYS.map((k) => [k, a[k]])),
+        reference,
       };
       const result = runOilShock(
         drivers,
@@ -246,6 +259,10 @@ export async function scenarioRoomRoutes(app: FastifyInstance, deps: AppDeps) {
           outputHash: row.r.outputHash,
           intact: recomputed,
           result: await forReader(tx, ctx, result),
+          reference: impliedReference(
+            (row.r.inputs as { reference?: ReferenceObservation | null }).reference ?? null,
+            result.drivers.oilPriceChangePct,
+          ),
         };
       });
     },

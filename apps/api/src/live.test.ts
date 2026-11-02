@@ -1,6 +1,6 @@
 // Live data (D-127, slice L1). The network is stubbed with short bodies in each provider's documented format, so this
 // tests the pipeline (fetch, parse, store, label), not the providers. Nothing here is presented as real data.
-import type { DemoPrincipal, LiveFeedItem } from '@tigeris/shared';
+import type { DemoPrincipal, LiveFeedItem, TemplateRunDetail } from '@tigeris/shared';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp } from './app';
 import { config } from './config';
@@ -87,6 +87,33 @@ describe('live data (D-127)', () => {
       .series.find((s) => s.seriesKey === 'DCOILBRENTEU')!;
     expect(brent.latest).toMatchObject({ value: 70.4, revised: true });
     expect(brent.count).toBe(1);
+  });
+
+  it('records the latest fetched Brent price as an oil-shock reference, with its lineage', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/templates/oil-price-shock/runs',
+      headers: await as('analyst'),
+      payload: { caseKey: 'HMZ-2024-0413', drivers: { oilPriceChangePct: 25, horizonMonths: 6 } },
+    });
+    expect(res.statusCode).toBe(201);
+    const d = (
+      await app.inject({
+        method: 'GET',
+        url: `/api/templates/runs/${res.json().key}`,
+        headers: await as('analyst'),
+      })
+    ).json() as TemplateRunDetail;
+    expect(d.reference).toMatchObject({
+      seriesKey: 'DCOILBRENTEU',
+      value: 70.4,
+      observedOn: '2026-10-30',
+      connectorKey: 'CON-FRED-OIL',
+      freshness: 'live',
+      impliedPrice: 88,
+    });
+    expect(d.reference!.runKey).toMatch(/^RUN-/);
+    expect(d.intact).toBe(true);
   });
 
   it('fails clearly, and is never Live, when the response is not what the connector declares', async () => {

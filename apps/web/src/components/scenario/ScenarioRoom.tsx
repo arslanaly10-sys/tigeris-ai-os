@@ -13,7 +13,7 @@ import { ClaimBadge } from '@/components/truth/badges';
 import { Button } from '@/components/ui/button';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { ApiError, api } from '@/lib/api';
-import { formatRelative } from '@/lib/format';
+import { formatDate, formatDateTime, formatRelative } from '@/lib/format';
 
 const field =
   'mt-1 block min-h-10 w-full rounded-md border border-line-strong bg-panel px-3 text-sm text-ink focus-visible:border-brand';
@@ -103,6 +103,27 @@ function OilResultView({ d }: { d: TemplateRunDetail }) {
           not listed; the totals include {r.hiddenPositions === 1 ? 'it' : 'them'}.
         </p>
       ) : null}
+      {d.reference ? (
+        <p className="text-sm text-ink-muted">
+          Reference price: Brent{' '}
+          <span className="tabular text-ink">
+            {d.reference.value.toFixed(2)} {d.reference.unit ?? ''}
+          </span>{' '}
+          on {formatDate(d.reference.observedOn)} ({d.reference.source}, fetched{' '}
+          {formatDateTime(d.reference.fetchedAt)}, run {d.reference.runKey},{' '}
+          {d.reference.freshness === 'live'
+            ? 'Live'
+            : d.reference.freshness === 'stale'
+              ? 'Stale'
+              : 'Snapshot'}{' '}
+          when used). This shock implies about{' '}
+          <span className="tabular text-ink">{d.reference.impliedPrice.toFixed(2)}</span>.
+        </p>
+      ) : (
+        <p className="text-sm text-ink-muted">
+          No fetched oil price was available when this ran; the result rests on percentage changes alone.
+        </p>
+      )}
       <p className="text-[12px] text-ink-faint">
         {d.key} · {d.engineVersion} · case{' '}
         <Link className="text-brand underline-offset-2 hover:underline" to={`/cases/${d.caseKey}`}>

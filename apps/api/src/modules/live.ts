@@ -10,11 +10,12 @@ import {
   type ConnectorStatus,
   type LiveFeedItem,
   type ObservationFormat,
+  type ReferenceObservation,
   type SectorKey,
 } from '@tigeris/shared';
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
-import { withInstitution } from '../db/client';
+import { withInstitution, type Tx } from '../db/client';
 import { connectorRuns, connectors, observations, sources } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps } from './context';
 
@@ -92,4 +93,41 @@ export async function liveRoutes(app: FastifyInstance, deps: AppDeps) {
       });
     });
   });
+}
+
+/**
+ * The latest fetched value of a series from a connector whose last fetch succeeded, with its lineage and its label at
+ * this moment (D-127). Null when nothing usable was fetched: callers fall back to their labelled assumptions.
+ */
+export async function referenceObservation(
+  tx: Tx,
+  seriesKey: string,
+  now = new Date(),
+): Promise<ReferenceObservation | null> {
+  const [r] = await tx
+    .select({ o: observations, c: connectors, s: sources, runKey: connectorRuns.key })
+    .from(observations)
+    .innerJoin(connectors, eq(connectors.id, observations.connectorId))
+    .innerJoin(sources, eq(sources.id, connectors.sourceId))
+    .innerJoin(connectorRuns, eq(connectorRuns.id, observations.runId))
+    .where(and(eq(observations.seriesKey, seriesKey), isNotNull(connectors.lastSuccessAt)))
+    .orderBy(desc(observations.observedOn), desc(observations.fetchedAt))
+    .limit(1);
+  if (!r) return null;
+  return {
+    seriesKey,
+    value: Number(r.o.value),
+    unit: r.o.unit,
+    observedOn: r.o.observedOn,
+    fetchedAt: r.o.fetchedAt.toISOString(),
+    runKey: r.runKey,
+    connectorKey: r.c.key,
+    source: `${r.s.publisher}: ${r.s.title}`,
+    freshness: freshness({
+      connectorStatus: r.c.status as ConnectorStatus,
+      fetchedAt: r.o.fetchedAt,
+      scheduleIntervalMs: cronIntervalMs(r.c.schedule),
+      now,
+    }),
+  };
 }

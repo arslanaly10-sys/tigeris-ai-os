@@ -1370,6 +1370,25 @@ export interface TemplateRunDetail {
   intact: boolean;
   /** Position rows outside the reader's scope are left out; totals include them. */
   result: OilResult & { hiddenPositions: number };
+  /**
+   * The latest fetched Brent price when the run was made (D-127), with its lineage, and the price the shock implies.
+   * Null when no fetch had succeeded: the run then rests on percentage changes alone.
+   */
+  reference: (ReferenceObservation & { impliedPrice: number }) | null;
+}
+
+/** One fetched value used as a reference in a calculation, with everything needed to trace it (D-127). */
+export interface ReferenceObservation {
+  seriesKey: string;
+  value: number;
+  unit: string | null;
+  observedOn: string;
+  fetchedAt: string;
+  runKey: string;
+  connectorKey: string;
+  source: string;
+  /** The label at the moment the calculation used it. */
+  freshness: Freshness;
 }
 
 export interface TemplatesPayload {

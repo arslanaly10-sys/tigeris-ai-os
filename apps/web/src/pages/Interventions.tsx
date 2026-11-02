@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { NotificationChannels } from '@/components/ask/AskPanel';
 import { RollupView, ValidationView } from '@/components/governance/Validation';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { ClaimBadge } from '@/components/truth/badges';
@@ -440,7 +441,10 @@ export function InterventionsPage() {
           <RollupView />
         </Tabs.Content>
         <Tabs.Content value="rules" className="outline-none">
-          <WatchRules />
+          <div className="grid gap-6">
+            <WatchRules />
+            <NotificationChannels />
+          </div>
         </Tabs.Content>
       </Tabs.Root>
     </>

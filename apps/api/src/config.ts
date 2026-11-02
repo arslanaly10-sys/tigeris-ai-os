@@ -23,6 +23,20 @@ const schema = z.object({
    * Optional model-provider endpoint (local OpenAI-compatible server or hosted provider). Recorded and shown as
    * configured, never called while external model calls are disabled by policy (D-14).
    */
+  /** Microsoft Teams incoming-webhook address for intervention alerts. Off when empty (D-110). */
+  TEAMS_WEBHOOK_URL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().startsWith('https://').optional(),
+  ),
+  /** HTTPS mail relay (your gateway's send API) for intervention alerts, its bearer token and the recipients. */
+  EMAIL_RELAY_URL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().startsWith('https://').optional(),
+  ),
+  EMAIL_RELAY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  EMAIL_TO: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  /** Address of the TIGERIS web app, used for links in alerts. */
+  APP_BASE_URL: z.string().url().default('http://127.0.0.1:5173'),
   MODEL_PROVIDER_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 

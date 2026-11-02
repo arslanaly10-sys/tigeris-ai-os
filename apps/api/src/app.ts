@@ -15,6 +15,8 @@ import { guardrailRoutes } from './modules/guardrails';
 import { learningRoutes } from './modules/learning';
 import { validationRoutes } from './modules/validation';
 import { scenarioRoomRoutes } from './modules/scenario-room';
+import { askRoutes } from './modules/ask';
+import { notifyRoutes } from './modules/notify';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -89,5 +91,7 @@ export async function buildApp(opts: BuildOptions) {
   await learningRoutes(app, deps);
   await validationRoutes(app, deps);
   await scenarioRoomRoutes(app, deps);
+  await askRoutes(app, deps);
+  await notifyRoutes(app, deps);
   return app;
 }

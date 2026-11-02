@@ -58,7 +58,9 @@ import type {
   SignalSummary,
   SourceSummary,
   GuardrailItem,
+  AskAnswer,
   DivisionItem,
+  NotificationChannel,
   ScenarioRoomPayload,
   TemplateRunDetail,
   TemplatesPayload,
@@ -222,6 +224,8 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  ask: (question: string) => request<AskAnswer>('POST', '/api/ask', { question }),
+  notificationChannels: () => request<NotificationChannel[]>('GET', '/api/notifications/channels'),
   templates: () => request<TemplatesPayload>('GET', '/api/templates'),
   runOilShock: (body: { caseKey: string; drivers: Record<string, number> }) =>
     request<{ key: string }>('POST', '/api/templates/oil-price-shock/runs', body),

@@ -56,6 +56,7 @@ import {
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
 import { caseReadable } from './scope';
 import { observer } from './semantic';
+import { notifyRaised } from './notify';
 import { openValidations } from './validation';
 
 const has = (ctx: RequestContext, roles: readonly Role[]) => roles.some((r) => ctx.roles.includes(r));
@@ -223,6 +224,8 @@ export interface SweepResult {
   raised: number;
   refreshed: number;
   cleared: number;
+  /** What this sweep raised, for notification after the transaction commits. */
+  raisedItems: { key: string; severity: InterventionSeverity; title: string; classification: Sensitivity }[];
 }
 
 /**
@@ -249,6 +252,7 @@ export async function sweep(
     raised: 0,
     refreshed: 0,
     cleared: 0,
+    raisedItems: [],
   };
   const seen = new Set<string>();
   for (const rule of rules) {
@@ -280,9 +284,16 @@ export async function sweep(
           .where(eq(interventions.id, existing.i.id));
         result.refreshed++;
       } else {
+        const key = await nextKey(tx, now, 0);
+        result.raisedItems.push({
+          key,
+          severity: f.severity,
+          title: f.title,
+          classification: f.classification,
+        });
         await tx.insert(interventions).values({
           institutionId,
-          key: await nextKey(tx, now, 0),
+          key,
           watchRuleId: rule.id,
           engineVersion: INTERVENTION_ENGINE,
           subjectRef: f.subjectRef,
@@ -315,7 +326,14 @@ export async function sweep(
     objectType: 'intervention_engine',
     objectId: null,
     caseId: null,
-    payload: { ...result },
+    payload: {
+      engine: result.engine,
+      rules: result.rules,
+      raised: result.raised,
+      refreshed: result.refreshed,
+      cleared: result.cleared,
+      raisedKeys: result.raisedItems.map((i) => i.key),
+    },
   });
   return result;
 }
@@ -395,7 +413,8 @@ export async function interventionRoutes(app: FastifyInstance, deps: AppDeps) {
   if (deps.jobs.enabled)
     await deps.jobs.work(QUEUES.interventionSweep, async (data) => {
       const institutionId = String(data.institutionId);
-      await withInstitution(deps.db, institutionId, (tx) => sweep(tx, institutionId, null));
+      const r = await withInstitution(deps.db, institutionId, (tx) => sweep(tx, institutionId, null));
+      await notifyRaised(deps.db, institutionId, r.raisedItems);
     });
   /** The first read in each institution registers its schedule; the schedule itself is idempotent. */
   const ensureSchedule = async (institutionId: string) => {
@@ -473,7 +492,11 @@ export async function interventionRoutes(app: FastifyInstance, deps: AppDeps) {
 
   app.post('/api/interventions/sweep', guard, async (request) => {
     const ctx = ctxOf(request);
-    return withInstitution(deps.db, ctx.institutionId, (tx) => sweep(tx, ctx.institutionId, ctx.principalId));
+    const r = await withInstitution(deps.db, ctx.institutionId, (tx) =>
+      sweep(tx, ctx.institutionId, ctx.principalId),
+    );
+    const delivered = await notifyRaised(deps.db, ctx.institutionId, r.raisedItems);
+    return { ...r, notifications: delivered };
   });
 
   app.post('/api/interventions/:key/act', guard, async (request, reply) => {

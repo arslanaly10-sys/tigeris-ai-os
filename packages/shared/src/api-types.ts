@@ -1402,3 +1402,34 @@ export interface ScenarioRoomPayload {
   available: { key: string; title: string; caseKey: string; templateKey: string; createdAt: string }[];
   runs: ScenarioRoomRun[];
 }
+
+// ───────────────────────────── Phase 5G: Ask TIGERIS and alert channels ─────────────────────────────
+
+export interface AskCitation {
+  kind: 'case' | 'memory' | 'evidence' | 'signal' | 'definition';
+  ref: string;
+  title: string;
+  /** The sentence of the record that matched best, quoted as recorded. */
+  excerpt: string;
+  href: string | null;
+  label: string;
+}
+
+export interface AskAnswer {
+  version: string;
+  question: string;
+  terms: string[];
+  /** Quotes the cited records only; says so plainly when nothing matches. */
+  answer: string;
+  drafter: string;
+  citations: AskCitation[];
+}
+
+export interface NotificationChannel {
+  key: 'inbox' | 'teams' | 'email';
+  label: string;
+  /** "configured" means set up, not proven: lastDelivery shows whether a delivery was accepted. */
+  status: 'on' | 'configured' | 'off';
+  detail: string;
+  lastDelivery: { ok: boolean; at: string; detail: string } | null;
+}

@@ -11,6 +11,8 @@ export default tseslint.config(
       '**/playwright-report/**',
       '**/test-results/**',
       'apps/web/public/**',
+      // Vendored Claude Code skills (third-party, kept unchanged).
+      '.claude/**',
     ],
   },
   js.configs.recommended,

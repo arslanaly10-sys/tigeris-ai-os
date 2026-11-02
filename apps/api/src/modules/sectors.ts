@@ -34,6 +34,7 @@ import {
   sources,
 } from '../db/schema';
 import { listCases } from './cases';
+import { referenceObservation } from './live';
 import { recordReadable } from './portfolio';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { listSignals } from './signals';
@@ -55,7 +56,32 @@ async function resolveKpis(tx: Tx, def: SectorDef): Promise<SectorKpi[]> {
         .innerJoin(sources, eq(sources.id, evidenceObjects.sourceId))
         .where(inArray(evidenceObjects.externalId, ids))
     : [];
+  const fetched = new Map(
+    await Promise.all(
+      def.kpis
+        .flatMap((k) => (k.series ? [k.series] : []))
+        .map(async (sk) => [sk, await referenceObservation(tx, sk)] as const),
+    ),
+  );
   return def.kpis.map((k) => {
+    const ref = k.series ? fetched.get(k.series) : null;
+    if (ref)
+      return {
+        key: k.key,
+        label: k.label,
+        value: {
+          valueNum: ref.value,
+          valueText: null,
+          unit: ref.unit,
+          // Fetched public data: sourced, not corroborated.
+          claimClass: 'sourced' as ClaimClass,
+          evidenceId: null,
+          validationStatus: 'unverified' as ValidationStatus,
+          publisher: ref.source,
+          retrievedAt: ref.fetchedAt,
+          series: ref,
+        },
+      };
     const hit = k.binding
       ? rows.find(
           (r) =>

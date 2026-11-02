@@ -14,7 +14,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { RecordModeBadge } from '@/components/data/badges';
 import { SectorBanner } from '@/components/illustrations/Scenes';
 import { SectorSubnav } from '@/components/layout/SectorSubnav';
@@ -148,10 +148,13 @@ function SectorCentre({ sectorKey }: { sectorKey: SectorKey }) {
     queryFn: () => api.positions({ sector: sectorKey }),
   });
   const [lineage, setLineage] = useState<LineageTarget | null>(null);
+  const navigate = useNavigate();
   const { stats: agentStats } = useAgentRunStats();
 
   const openLineage = (kpi: SectorKpi) => {
     if (!kpi.value) return;
+    // A fetched series has its lineage on the Live data tab (D-127).
+    if (!kpi.value.evidenceId) return navigate('/sources?tab=live');
     const predicate = def.kpis.find((k) => k.key === kpi.key)?.binding?.predicate;
     setLineage({ evidenceId: kpi.value.evidenceId, fact: null, predicate });
   };

@@ -7,9 +7,9 @@ import type { SectorKpi } from '@tigeris/shared';
 import { BarChart3, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { ClaimBadge, ValidationBadge } from '@/components/truth/badges';
+import { ClaimBadge, DataModeBadge, ValidationBadge } from '@/components/truth/badges';
 import { cn } from '@/lib/cn';
-import { formatFactValue } from '@/lib/format';
+import { formatDateTime, formatFactValue } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
 
 export function KpiCard({ kpi, onLineage }: { kpi: SectorKpi; onLineage?: (kpi: SectorKpi) => void }) {
@@ -21,9 +21,21 @@ export function KpiCard({ kpi, onLineage }: { kpi: SectorKpi; onLineage?: (kpi: 
       {v ? (
         <div className="mt-auto pt-3">
           <p className="tabular font-serif text-2xl font-semibold text-ink">{formatFactValue(v)}</p>
+          {v.series ? (
+            <p className="mt-1 text-xs text-ink-muted">
+              For {v.series.observedOn}, fetched {formatDateTime(v.series.fetchedAt)}
+            </p>
+          ) : null}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <ClaimBadge value={v.claimClass} />
             {v.validationStatus !== 'validated' ? <ValidationBadge value={v.validationStatus} /> : null}
+            {v.series ? (
+              v.series.freshness === 'stale' ? (
+                <ValidationBadge value="stale" />
+              ) : (
+                <DataModeBadge value={v.series.freshness === 'live' ? 'live' : 'snapshot'} />
+              )
+            ) : null}
             {onLineage ? (
               <button
                 type="button"

@@ -23,6 +23,8 @@ export interface SectorKpiDef {
   label: string;
   /** Binds to an evidence fact by its evidence external id and predicate. Absent = not connected. */
   binding?: { externalId: string; predicate: string };
+  /** Or binds to a fetched data series (D-127); shown only after a fetch has succeeded. */
+  series?: string;
 }
 
 export interface SectorAgentDef {
@@ -96,7 +98,11 @@ export const SECTORS: SectorDef[] = [
           predicate: 'Share of global petroleum liquids consumption, 2023',
         },
       },
-      { key: 'tanker-transits', label: 'Tanker transits (live)' },
+      {
+        key: 'tanker-transits',
+        label: 'Tanker transits through Hormuz (daily)',
+        series: 'PortWatch:Strait of Hormuz:n_tanker',
+      },
       { key: 'terminal-throughput', label: 'Terminal throughput' },
     ],
     agents: [
@@ -160,6 +166,11 @@ export const SECTORS: SectorDef[] = [
           externalId: 'gsia-demo:dependency:energy-water:v1',
           predicate: 'Fuel buffer before output reduction',
         },
+      },
+      {
+        key: 'uae-energy-use',
+        label: 'UAE energy use per head (World Bank)',
+        series: 'WB:ARE:EG.USE.PCAP.KG.OE',
       },
       { key: 'grid-margin', label: 'Grid reserve margin' },
       { key: 'water-storage', label: 'Water storage days' },

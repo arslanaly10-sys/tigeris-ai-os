@@ -305,10 +305,12 @@ export interface SectorKpi {
     valueText: string | null;
     unit: string | null;
     claimClass: ClaimClass;
-    evidenceId: string;
+    /** The evidence record behind the figure; null for a fetched series, whose lineage is `series`. */
+    evidenceId: string | null;
     validationStatus: ValidationStatus;
     publisher: string;
     retrievedAt: string | null;
+    series?: ReferenceObservation;
   } | null;
 }
 

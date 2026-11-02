@@ -74,7 +74,7 @@ describe('sectors', () => {
     const flow = energy.kpis.find((k) => k.key === 'hormuz-oil-flow')!;
     expect(flow.value).toMatchObject({ valueNum: 20.9, unit: 'million b/d', claimClass: 'sourced' });
     expect(flow.value!.evidenceId).toMatch(/[0-9a-f-]{36}/);
-    expect(energy.kpis.find((k) => k.key === 'tanker-transits')!.value).toBeNull();
+    expect(energy.kpis.find((k) => k.key === 'terminal-throughput')!.value).toBeNull();
     expect(energy.cases.map((c) => c.key)).toContain('HMZ-2024-0413');
   });
 

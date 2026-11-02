@@ -1,6 +1,6 @@
 // Live data (D-127, slice L1). The network is stubbed with short bodies in each provider's documented format, so this
 // tests the pipeline (fetch, parse, store, label), not the providers. Nothing here is presented as real data.
-import type { DemoPrincipal, LiveFeedItem, TemplateRunDetail } from '@tigeris/shared';
+import type { DemoPrincipal, LiveFeedItem, SectorKpi, TemplateRunDetail } from '@tigeris/shared';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp } from './app';
 import { config } from './config';
@@ -152,6 +152,24 @@ describe('live data (D-127)', () => {
     const hit = inbox.items.find((i) => i.ruleKey === 'W-HORMUZ');
     expect(hit?.title).toBe('PortWatch:Strait of Hormuz:n_total is 45% below its recent level');
     expect(hit!.inputs.find((i) => i.label === 'Latest fetch run')!.value).toMatch(/^RUN-/);
+  });
+
+  it('shows fetched tanker transits on the Energy Command Centre with lineage, not before', async () => {
+    const energy = (
+      await app.inject({ method: 'GET', url: '/api/sectors/energy', headers: await as('analyst') })
+    ).json() as { kpis: SectorKpi[] };
+    const k = energy.kpis.find((x) => x.key === 'tanker-transits')!;
+    expect(k.value).toMatchObject({ valueNum: 20, claimClass: 'sourced', evidenceId: null });
+    expect(k.value!.series).toMatchObject({
+      observedOn: '2026-10-30',
+      connectorKey: 'CON-PORTWATCH-HORMUZ',
+      freshness: 'live',
+    });
+    const utilities = (
+      await app.inject({ method: 'GET', url: '/api/sectors/utilities', headers: await as('analyst') })
+    ).json() as { kpis: SectorKpi[] };
+    // The World Bank feed has not fetched in this test, so the figure stays unconnected.
+    expect(utilities.kpis.find((x) => x.key === 'uae-energy-use')!.value).toBeNull();
   });
 
   it('reports a blocked host as a failed fetch, not as data', async () => {

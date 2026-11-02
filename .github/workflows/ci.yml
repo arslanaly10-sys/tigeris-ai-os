@@ -18,7 +18,7 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
     env:
-      PG_SUPERUSER_URL: postgres://postgres:postgres@localhost:5432/postgres
+      PG_SUPERUSER_URL: postgres://postgres:postgres@localhost:5432
       DATABASE_OWNER_URL: postgres://tigeris_owner:tigeris_owner_dev@localhost:5432/tigeris
       DATABASE_APP_URL: postgres://tigeris_app:tigeris_app_dev@localhost:5432/tigeris
       SESSION_SECRET: ci-only-session-secret-ci-only-session-secret

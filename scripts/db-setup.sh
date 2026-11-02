@@ -4,7 +4,8 @@
 # Role passwords: TIGERIS_OWNER_PASSWORD and TIGERIS_APP_PASSWORD (dev defaults only for local use).
 #   tigeris_owner — owns schema objects; used only by migrations and seed.
 #   tigeris_app   — application role: no ownership, no BYPASSRLS, no superuser.
-# Connects as a PostgreSQL superuser via PG_SUPERUSER_URL (default: local socket as postgres).
+# Connects as a PostgreSQL superuser via PG_SUPERUSER_URL, given without a database name
+# (postgres://user:pass@host:5432); default: local socket as postgres.
 set -euo pipefail
 
 SUPER_URL="${PG_SUPERUSER_URL:-}"

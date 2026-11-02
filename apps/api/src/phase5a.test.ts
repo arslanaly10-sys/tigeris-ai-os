@@ -149,12 +149,12 @@ describe('semantic registry', () => {
       jurisdiction: 'Demo jurisdiction A',
     });
     expect(res.statusCode).toBe(201);
-    const self = await post('domain_expert', '/api/semantic/definitions/term:essential_plant/1/approve');
+    // Use the version the API assigned rather than assuming 1, so the test holds whatever ran before it.
+    const url = `/api/semantic/definitions/term:essential_plant/${res.json().version}/approve`;
+    const self = await post('domain_expert', url);
+    expect(self.json()).toMatchObject({ error: 'self_approval' });
     expect(self.statusCode).toBe(403);
-    expect(self.json().error).toBe('self_approval');
-    expect(
-      (await post('executive', '/api/semantic/definitions/term:essential_plant/1/approve')).statusCode,
-    ).toBe(200);
+    expect((await post('executive', url)).statusCode).toBe(200);
   });
 
   it('only lets a rule judge a known metric', async () => {

@@ -15,7 +15,9 @@ a portfolio system or a SaaS service. Full decisions: `docs/decisions.md`.
    - `ClaimClass`: observed · sourced · inferred · assumed · synthetic · illustrative
    - `DataMode`: live · snapshot · replay · scenario · synthetic_demo
      Status must never rely on colour alone (text + icon/shape).
-4. **No live claims.** The MVP has no live feeds. Never label anything LIVE; movement is "Illustrative simulation".
+4. **Live only when proven (D-127).** A value is Live only if its connector's last fetch succeeded, it is within its
+   freshness window, and it shows source, observation date and fetch time; otherwise Snapshot or Stale. Synthetic,
+   sample and illustrative data are never Live; map movement is "Illustrative simulation" unless from licensed vessel data.
 5. **Confidence is a band plus its basis** (high/moderate/low/insufficient with factors). Never a bare percentage.
 6. **Human authority.** No code path executes an external action. Approval is a named human state transition.
    Expert review is mandatory before decision. A creator can never approve their own recommendation.

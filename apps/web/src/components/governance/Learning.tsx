@@ -152,7 +152,12 @@ function Calibration({ data }: { data: LearningOverview }) {
         title="Calibration"
         description="How often reviewed outcomes of figures that depend on each assumption fell within their expected range. Counts are shown with every rate; a few reviews are not evidence of calibration."
       />
-      <div className="overflow-x-auto border-t border-line">
+      <div
+        className="overflow-x-auto border-t border-line"
+        tabIndex={0}
+        role="region"
+        aria-label="Reviews held and missed per assumption"
+      >
         <table className="w-full min-w-[40rem] text-sm">
           <thead>
             <tr className="bg-raised text-xs text-ink-muted">

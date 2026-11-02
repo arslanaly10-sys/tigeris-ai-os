@@ -112,7 +112,12 @@ export function AiCommandPage() {
           runs.length === 0 ? (
             <p className="border-t border-line px-5 py-6 text-sm text-ink-muted">{t('common.noRunsYet')}</p>
           ) : (
-            <div className="overflow-x-auto border-t border-line">
+            <div
+              className="overflow-x-auto border-t border-line"
+              tabIndex={0}
+              role="region"
+              aria-label="Run history"
+            >
               <table className="w-full min-w-[46rem] text-sm">
                 <caption className="sr-only">Recorded specialist runs</caption>
                 <thead>
@@ -196,7 +201,12 @@ export function AiCommandPage() {
           title="Specialist registry"
           description={`${total} specialists across ${SECTORS.length} sector configurations, with their recorded runs.`}
         />
-        <div className="overflow-x-auto border-t border-line">
+        <div
+          className="overflow-x-auto border-t border-line"
+          tabIndex={0}
+          role="region"
+          aria-label="Registered specialists by sector"
+        >
           <table className="w-full min-w-[44rem] text-sm">
             <caption className="sr-only">Registered specialists by sector</caption>
             <thead>
@@ -374,7 +384,12 @@ function MandateRegister() {
               title="Authority matrix"
               description="Expert review and the self-approval block are enforced in the database for every action class."
             />
-            <div className="overflow-x-auto border-t border-line">
+            <div
+              className="overflow-x-auto border-t border-line"
+              tabIndex={0}
+              role="region"
+              aria-label="Approval limits by role"
+            >
               <table className="w-full min-w-[52rem] text-sm">
                 <thead>
                   <tr className="bg-raised text-start text-xs text-ink-muted">

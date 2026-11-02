@@ -378,7 +378,7 @@ export function SignalReviewPage() {
             })}
           </div>
           <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_28rem]">
-            <Panel className="overflow-x-auto">
+            <Panel className="overflow-x-auto" tabIndex={0} role="region" aria-label="Signals table">
               <table className="w-full min-w-[46rem] text-sm">
                 <caption className="sr-only">
                   Signals awaiting or past triage. Select a row to review its evidence.

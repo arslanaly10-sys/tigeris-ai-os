@@ -21,6 +21,7 @@ import { notifyRoutes } from './modules/notify';
 import { oidcRoutes } from './modules/auth/oidc';
 import { modelRoutes } from './modules/claude';
 import { retentionRoutes } from './modules/retention';
+import { liveRoutes } from './modules/live';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -109,5 +110,6 @@ export async function buildApp(opts: BuildOptions) {
   await notifyRoutes(app, deps);
   await modelRoutes(app, deps);
   await retentionRoutes(app, deps);
+  await liveRoutes(app, deps);
   return app;
 }

@@ -42,6 +42,7 @@ import type {
   AuditPage,
   AuditVerification,
   AdminOverview,
+  LiveFeedItem,
   RetentionClass,
   RetentionOverview,
   Role,
@@ -376,6 +377,7 @@ export const api = {
     ),
   memory: (q: string) => request<MemoryItem[]>('GET', `/api/memory${q ? `?q=${encodeURIComponent(q)}` : ''}`),
   connectors: () => request<ConnectorItem[]>('GET', '/api/connectors'),
+  live: () => request<LiveFeedItem[]>('GET', '/api/live'),
   registerConnector: (body: Record<string, unknown>) =>
     request<{ key: string }>('POST', '/api/connectors', body),
   approveSource: (key: string) =>

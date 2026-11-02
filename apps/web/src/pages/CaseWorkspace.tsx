@@ -188,7 +188,12 @@ function LineageButton({ label, onClick }: { label: string; onClick: () => void 
 function FactTable({ evidence, onOpen }: { evidence: EvidenceItem; onOpen: (t: LineageTarget) => void }) {
   if (evidence.facts.length === 0) return null;
   return (
-    <div className="overflow-x-auto border-t border-line">
+    <div
+      className="overflow-x-auto border-t border-line"
+      tabIndex={0}
+      role="region"
+      aria-label="Extracted facts table"
+    >
       <table className="w-full min-w-[32rem] text-sm">
         <caption className="sr-only">Facts extracted from {evidence.title}</caption>
         <thead>

@@ -55,7 +55,10 @@ function authHeaders(c: ConnectorConfig): Record<string, string> {
 
 export class AdapterError extends Error {}
 
-async function get(c: ConnectorConfig, accept: string): Promise<{ body: string; contentType: string }> {
+export async function get(
+  c: ConnectorConfig,
+  accept: string,
+): Promise<{ body: string; contentType: string }> {
   if (!c.endpoint) throw new AdapterError('No endpoint is configured.');
   let url: URL;
   try {

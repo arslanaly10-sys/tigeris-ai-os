@@ -21,7 +21,7 @@ export function CasesListPage() {
       />
       <LoadState isPending={q.isPending} error={q.error} />
       {q.data ? (
-        <Panel className="overflow-x-auto">
+        <Panel className="overflow-x-auto" tabIndex={0} role="region" aria-label="Cases table">
           <table className="w-full min-w-[48rem] text-sm">
             <caption className="sr-only">Cases in your institution</caption>
             <thead>

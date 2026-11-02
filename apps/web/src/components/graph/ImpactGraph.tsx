@@ -385,7 +385,13 @@ export function ImpactGraph({
             </ReactFlow>
           </FadeSwap>
         ) : (
-          <FadeSwap key="list" className="overflow-x-auto rounded-lg border border-line">
+          <FadeSwap
+            key="list"
+            className="overflow-x-auto rounded-lg border border-line"
+            tabIndex={0}
+            role="region"
+            aria-label="Every link in the graph table"
+          >
             <table className="w-full min-w-[44rem] text-sm">
               <caption className="sr-only">Every link in the graph with its class and confidence</caption>
               <thead>

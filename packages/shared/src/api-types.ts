@@ -1,3 +1,4 @@
+import type { Freshness, ObservationFormat } from './observations';
 import type { OilResult, ScenarioTemplate } from './oil-shock';
 import type {
   DivisionKind,
@@ -1477,4 +1478,38 @@ export interface RetentionOverview {
   policies: RetentionPolicyItem[];
   canManage: boolean;
   note: string;
+}
+
+// ───────────────────────────── Live data (D-127) ─────────────────────────────
+
+export interface ObservationPoint {
+  observedOn: string;
+  value: number;
+}
+
+export interface LiveSeriesItem {
+  seriesKey: string;
+  unit: string | null;
+  latest: ObservationPoint & { fetchedAt: string; revised: boolean; runKey: string };
+  /** Most recent first, at most 30 points, for a small trend. */
+  recent: ObservationPoint[];
+  count: number;
+}
+
+export interface LiveFeedItem {
+  connectorKey: string;
+  name: string;
+  provider: string;
+  format: ObservationFormat;
+  formatLabel: string;
+  sectorKey: SectorKey | null;
+  status: ConnectorStatus;
+  schedule: string | null;
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  source: { key: string; title: string; publisher: string; terms: string | null; url: string | null };
+  /** Live / Snapshot / Stale under D-127, from the last successful fetch. Null when nothing was ever fetched. */
+  freshness: Freshness | null;
+  needsCredential: string | null;
+  series: LiveSeriesItem[];
 }

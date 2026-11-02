@@ -20,3 +20,4 @@ export * from './learning';
 export * from './validation';
 export * from './oil-shock';
 export * from './retention';
+export * from './observations';

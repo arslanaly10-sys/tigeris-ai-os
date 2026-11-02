@@ -6,6 +6,7 @@ import { ALL_INSTITUTIONS, type InstitutionFixture } from '../fixtures/demo';
 import { seedCanonical } from './seed-canonical';
 import { seedCi } from './seed-ci';
 import { seedEiaSnapshot } from './seed-eia-snapshot';
+import { seedLiveFeeds } from './seed-live-feeds';
 import { seedSectorSamples } from './seed-sector-samples';
 import { seedMandates } from './seed-mandates';
 import { seedSemantic } from './seed-semantic';
@@ -201,6 +202,7 @@ export async function seedAll(url = config.DATABASE_OWNER_URL) {
         await seedSemantic(db, ids.institutionId);
         await seedCanonical(db, ids.institutionId);
         await seedEiaSnapshot(db, ids.institutionId);
+        await seedLiveFeeds(db, ids.institutionId);
         await seedCi(db, ids.institutionId);
         await seedSectorSamples(db, ids.institutionId);
         await seedDesks(db, ids.institutionId);

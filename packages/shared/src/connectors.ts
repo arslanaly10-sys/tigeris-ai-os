@@ -60,6 +60,7 @@ export const DATASETS = [
   'due_diligence',
   'documents',
   'signals',
+  'observations',
   ...SECTOR_DATASETS,
 ] as const;
 export type Dataset = (typeof DATASETS)[number];
@@ -72,6 +73,7 @@ export const DATASET_LABEL: Record<Dataset, string> = {
   due_diligence: 'Due-diligence records',
   documents: 'Documents',
   signals: 'Public signals (feed items)',
+  observations: 'Dated observations (live data)',
   ...(Object.fromEntries(SECTOR_DATASETS.map((d) => [d, SECTOR_DATASET_DEFS[d].label])) as Record<
     (typeof SECTOR_DATASETS)[number],
     string
@@ -84,6 +86,7 @@ export const MAPPING_VERSIONS: Record<Dataset, string> = {
   due_diligence: 'due_diligence.csv.v1',
   documents: 'documents.text.v1',
   signals: 'feed.items.v1',
+  observations: 'observations.v1',
   ...(Object.fromEntries(SECTOR_DATASETS.map((d) => [d, SECTOR_DATASET_DEFS[d].mappingVersion])) as Record<
     (typeof SECTOR_DATASETS)[number],
     string

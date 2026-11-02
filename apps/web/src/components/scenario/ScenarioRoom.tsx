@@ -51,7 +51,12 @@ function OilResultView({ d }: { d: TemplateRunDetail }) {
         </p>
       ) : null}
       <p className="text-xs text-ink-muted">{r.method}</p>
-      <div className="overflow-x-auto">
+      <div
+        className="overflow-x-auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Contribution to NAV by position table"
+      >
         <table className="w-full min-w-[40rem] text-sm">
           <caption className="sr-only">Contribution to NAV by position</caption>
           <thead>
@@ -237,7 +242,7 @@ function RoomTable({ runs }: { runs: ScenarioRoomRun[] }) {
         const figures = mine[0]!.figures;
         const driverKeys = [...new Set(mine.flatMap((r) => Object.keys(r.drivers)))];
         return (
-          <div key={tk} className="overflow-x-auto">
+          <div key={tk} className="overflow-x-auto" tabIndex={0} role="region" aria-label="Run results table">
             <table className="w-full min-w-[40rem] text-sm">
               <caption className="pb-2 text-start text-xs font-semibold text-ink-muted">
                 {tk === 'oil-price-shock' ? 'Oil price shock runs' : 'Hormuz disruption runs'} · ranges are

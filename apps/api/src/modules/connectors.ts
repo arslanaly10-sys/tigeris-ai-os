@@ -428,7 +428,7 @@ export async function connectorRoutes(app: FastifyInstance, deps: AppDeps) {
       if (!c) return { code: 404 as const };
       if (c.status === 'paused' || c.status === 'retired')
         return { code: 409 as const, error: `Connector is ${c.status}.` };
-      if (!ADAPTERS[c.connectionType as ConnectionType].fetchItems)
+      if (!c.observationFormat && !ADAPTERS[c.connectionType as ConnectionType].fetchItems)
         return { code: 409 as const, error: 'This connector imports files; use upload instead.' };
       return {
         code: 200 as const,

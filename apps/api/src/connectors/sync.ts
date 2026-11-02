@@ -3,13 +3,28 @@
  * from the connector's source plus a `new` signal in the inbox, labelled as a dated snapshot of the fetch — never
  * live. A connector becomes `connected` only when the fetch succeeds; failures keep the real error and back off.
  */
-import { SECTOR_BY_KEY, MAPPING_VERSIONS, type SectorKey, type SignalType } from '@tigeris/shared';
+import {
+  SECTOR_BY_KEY,
+  MAPPING_VERSIONS,
+  type ObservationFormat,
+  type SectorKey,
+  type SignalType,
+} from '@tigeris/shared';
 import { createHash } from 'node:crypto';
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { appendAudit } from '../audit/audit';
 import type { Tx } from '../db/client';
-import { connectorRuns, connectors, evidenceObjects, signalEvidence, signals, sources } from '../db/schema';
-import { ADAPTERS, type FeedItem } from './adapters';
+import {
+  connectorRuns,
+  connectors,
+  evidenceObjects,
+  observations,
+  signalEvidence,
+  signals,
+  sources,
+} from '../db/schema';
+import { ADAPTERS, get, type FeedItem } from './adapters';
+import { observationRequest, parseObservations, type ArcgisFields } from './observations';
 import { nextKey } from './ingest';
 
 type ConnectorRow = typeof connectors.$inferSelect;
@@ -38,6 +53,7 @@ export async function syncConnector(
   actorId: string | null,
   trigger: 'manual' | 'schedule',
 ): Promise<SyncOutcome> {
+  if (c.observationFormat) return syncObservations(tx, institutionId, c, actorId, trigger);
   const now = new Date();
   const adapter = ADAPTERS[c.connectionType as keyof typeof ADAPTERS];
   const runKey = await nextKey(tx, connectorRuns, 'RUN', now);
@@ -169,4 +185,149 @@ export async function syncConnector(
     payload: { connector: c.key, run: runKey, trigger, fetched: items.length, created, error },
   });
   return { status: error ? 'failed' : 'succeeded', runKey, fetched: items.length, created, error };
+}
+
+/**
+ * Observation connectors (D-127): fetch the series, parse it in the declared format and store each dated value with
+ * the run that fetched it. A revised value for an existing date updates the row and is counted as a revision.
+ */
+async function syncObservations(
+  tx: Tx,
+  institutionId: string,
+  c: ConnectorRow,
+  actorId: string | null,
+  trigger: 'manual' | 'schedule',
+): Promise<SyncOutcome> {
+  const now = new Date();
+  const format = c.observationFormat as ObservationFormat;
+  const opts = c.observationOptions as { unit?: string; arcgis?: ArcgisFields };
+  const runKey = await nextKey(tx, connectorRuns, 'RUN', now);
+  const [run] = await tx
+    .insert(connectorRuns)
+    .values({
+      institutionId,
+      key: runKey,
+      connectorId: c.id,
+      dataset: 'observations',
+      trigger,
+      status: 'running',
+      mappingVersion: `observations-${format}-v1`,
+      actorId,
+      startedAt: now,
+    })
+    .returning({ id: connectorRuns.id });
+
+  let error: string | null = null;
+  let parsed: ReturnType<typeof parseObservations> = [];
+  const [src] = await tx.select().from(sources).where(eq(sources.id, c.sourceId));
+  if (src?.approvalStatus !== 'approved')
+    error = "The connector's source is not approved; nothing can be ingested.";
+  else
+    try {
+      const req = observationRequest({
+        endpoint: c.endpoint,
+        authType: c.authType,
+        authRef: c.authRef,
+        format,
+      });
+      const { body } = await get(
+        {
+          key: c.key,
+          connectionType: 'rest',
+          authType: req.authType as never,
+          authRef: c.authRef,
+          endpoint: req.endpoint,
+        },
+        req.accept,
+      );
+      parsed = parseObservations(format, body, opts);
+      if (!parsed.length) error = 'The response parsed but held no observations.';
+    } catch (e) {
+      error = (e as Error).message;
+    }
+
+  let created = 0;
+  let revisions = 0;
+  const fetchedAt = new Date();
+  for (const o of error ? [] : parsed) {
+    const [prev] = await tx
+      .select({ id: observations.id, value: observations.value })
+      .from(observations)
+      .where(
+        and(
+          eq(observations.connectorId, c.id),
+          eq(observations.seriesKey, o.seriesKey),
+          eq(observations.observedOn, o.observedOn),
+        ),
+      );
+    if (!prev) {
+      await tx.insert(observations).values({
+        institutionId,
+        connectorId: c.id,
+        runId: run!.id,
+        seriesKey: o.seriesKey,
+        observedOn: o.observedOn,
+        value: String(o.value),
+        unit: o.unit,
+        fetchedAt,
+      });
+      created += 1;
+    } else if (Number(prev.value) !== o.value) {
+      await tx
+        .update(observations)
+        .set({ value: String(o.value), unit: o.unit, runId: run!.id, fetchedAt, revised: true })
+        .where(eq(observations.id, prev.id));
+      revisions += 1;
+    } else {
+      // Same value seen again: it is now confirmed by this fetch.
+      await tx.update(observations).set({ runId: run!.id, fetchedAt }).where(eq(observations.id, prev.id));
+    }
+  }
+
+  const done = new Date();
+  await tx
+    .update(connectorRuns)
+    .set({
+      status: error ? 'failed' : 'succeeded',
+      rowsTotal: parsed.length,
+      rowsAccepted: created,
+      error,
+      finishedAt: done,
+    })
+    .where(eq(connectorRuns.id, run!.id));
+  const failures = error ? c.retryCount + 1 : 0;
+  await tx
+    .update(connectors)
+    .set(
+      error
+        ? {
+            status: c.status === 'paused' || c.status === 'retired' ? c.status : 'failed',
+            lastError: error,
+            lastErrorAt: done,
+            retryCount: failures,
+            nextRetryAt: new Date(done.getTime() + backoffMinutes(failures) * 60_000),
+            updatedAt: done,
+          }
+        : { status: 'connected', lastSuccessAt: done, retryCount: 0, nextRetryAt: null, updatedAt: done },
+    )
+    .where(eq(connectors.id, c.id));
+  await appendAudit(tx, {
+    institutionId,
+    actorPrincipalId: actorId,
+    actorType: actorId ? 'human' : 'service',
+    action: 'connector.sync',
+    objectType: 'connector_run',
+    objectId: run!.id,
+    payload: {
+      connector: c.key,
+      run: runKey,
+      trigger,
+      format,
+      fetched: parsed.length,
+      created,
+      revisions,
+      error,
+    },
+  });
+  return { status: error ? 'failed' : 'succeeded', runKey, fetched: parsed.length, created, error };
 }

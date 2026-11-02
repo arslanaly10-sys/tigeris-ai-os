@@ -603,6 +603,8 @@ export const connectors = pgTable('connectors', {
   readOnly: boolean('read_only').notNull().default(true),
   createdBy: uuid('created_by').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
+  observationFormat: text('observation_format'),
+  observationOptions: jsonb('observation_options').notNull().default({}),
   updatedAt: ts('updated_at').notNull().defaultNow(),
 });
 
@@ -1045,4 +1047,17 @@ export const retentionPolicies = pgTable('retention_policies', {
   reason: text('reason').notNull(),
   setBy: uuid('set_by').notNull(),
   setAt: ts('set_at').notNull().defaultNow(),
+});
+
+export const observations = pgTable('observations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  connectorId: uuid('connector_id').notNull(),
+  runId: uuid('run_id').notNull(),
+  seriesKey: text('series_key').notNull(),
+  observedOn: date('observed_on', { mode: 'string' }).notNull(),
+  value: numeric('value').notNull(),
+  unit: text('unit'),
+  fetchedAt: ts('fetched_at').notNull(),
+  revised: boolean('revised').notNull().default(false),
 });

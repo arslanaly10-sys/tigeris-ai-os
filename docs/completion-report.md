@@ -1,128 +1,117 @@
-# TIGERIS AI OS — completion report for the platform brief (slices A–K)
+# TIGERIS AI OS — completion report (platform brief A–K and Phase 5)
 
-Date: 30 October 2026. Branch: `main`. This report states what was built against the owner's brief (sections 1–15),
-how to run it, how it is configured, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to
-`docs/decisions.md` (D-01..D-102).
+Date: 2 November 2026. Branch: `main`. This report states what is built, how to run and configure it, what was
+verified, and what is not done. Requirement IDs refer to `docs/prd.md`; decisions to `docs/decisions.md` (D-01..D-124).
 
 ## 1. What the platform does
 
 A case-first sovereign intelligence and decision workspace for one fictional institution, "Gulf Sovereign Investment
-Authority (Demo)", built around a Strait of Hormuz disruption. Every number has a source record, a versioned
-calculation or a labelled assumption; every status is words plus an icon; nothing is called live; no code path
-executes an external action.
+Authority (Demo)", built around a Strait of Hormuz disruption and an oil-price shock. Every number has a source record,
+a versioned calculation or a labelled assumption; every status is words plus an icon; nothing is called live; no code
+path executes an external action; models draft prose from cited records only and code computes every quantity.
 
-The flagship journey runs end to end in the browser and is covered by tests:
-
-1. A public signal is triaged into a case (Signals & Early Warning).
-2. Affected routes, assets, sectors and holdings are traced on the Gulf map, the impact graph and the entity
-   explorer (what an entity relies on, what is exposed if it is disrupted).
-3. A deterministic scenario models impacts with every assumption visible, a range, and a sensitivity table.
-4. Options are ranked by a published rule and checked against mandates and synthetic delegated limits.
-5. A recommendation passes mandatory expert review; reviewers can record disagreement; a named authority decides
-   under `decision-policy 1.1.0` (two-person where required, limits, acknowledged dissent).
-6. The decision is handed to operations, its outcome and lesson are kept as institutional memory, and the
-   expected figures are later compared with what was observed.
+The flagship journey runs end to end in the browser and is covered by tests: a public signal becomes a case; affected
+routes, assets and holdings are traced; a deterministic scenario models impacts with ranges and visible assumptions;
+options are ranked and checked against codified mandate rules and delegated limits; a recommendation passes mandatory
+expert review and a policy-checked decision; it is handed to operations; its outcome is compared with what was
+expected; and a miss proposes better assumptions for a domain expert to approve.
 
 ## 2. Built, by slice
 
-| Slice | Delivered                                                                                                                                                                                      | Commit      |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| A     | PRD with FR/TR/AC IDs and statuses, architecture note, implementation plan                                                                                                                     | `874ebb5`   |
-| B     | Server-side read scope (clearance by classification, sector workspaces; out-of-scope answers 404), canonical positions, managers and due diligence with provenance, synthetic delegated limits | `89356de`   |
-| C/D   | Connector registry (read-only, credentials by reference), file/document/REST/RSS adapters, CSV/XLSX/JSON/PDF/DOCX import with row-level issues, pg-boss jobs, data-quality view                | `624cce7`   |
-| E     | Entity and dependency explorer, sector "records in this workspace"                                                                                                                             | `be4ff25`   |
-| F/G   | Agentic case analysis (eight read-only agents on the deterministic stub, gaps stated), model-provider boundary (off), scenario sensitivity, reviewer notes and recorded disagreement           | `2dd8123`   |
-| H     | Expected-versus-observed outcome review, audit log viewer with chain verification, role and workspace administration with separation of duties                                                 | `0f45387`   |
-| I     | Governance case report (print view and content-hashed JSON evidence pack, audited exports), overdue actions on the Sovereign Overview, drafted Arabic for new screens                          | `c752068`   |
-| J     | Competitive intelligence: domain registry with approval, polite crawler, page versions and change feed, curated vendor claims, CI report                                                       | `7ad0158`   |
-| K     | Sector datasets for the six sectors without data and versioned sector models with lineage                                                                                                      | this commit |
-
-Earlier phases (P1–P4, the Sovereign Light design system, motion pass and audits) are described in `docs/decisions.md`.
+| Slice | Delivered                                                                                                                                                                                                          | Decision     |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| A–K   | PRD, canonical model and read scope, connectors and ingestion, entity explorer, case analysis, sensitivity and dissent, outcome review, audit and administration, reports, competitive intelligence, sector models | D-69..D-102  |
+| 5A    | Semantic registry: system and institution definitions, codified rules with live evaluation and lineage, JSON-LD export                                                                                             | D-115        |
+| 5B    | Intervention engine and inbox: versioned watch rules, sweep, routing by role within read scope, human closure                                                                                                      | D-116        |
+| 5C    | Decision guardrails enforced by `decision-policy 1.2.0`; post-decision drift monitoring                                                                                                                            | D-117        |
+| 5D    | Learning loop: missed outcomes propose assumption versions; domain-expert approval; calibration counts                                                                                                             | D-118        |
+| 5E    | Validation tasking to five asset-class desks under the Investment Committee; roll-up by counts, never averages                                                                                                     | D-119        |
+| 5F    | Oil-price-shock template on the portfolio; declarative templates; scenario room for up to four runs                                                                                                                | D-120        |
+| 5G    | Ask TIGERIS with quoted citations; Teams and email alert channels, off until configured                                                                                                                            | D-121        |
+| 5H    | OIDC sign-in (Entra ID), S3-compatible evidence store, backups with a restore test, readiness, packaging                                                                                                           | D-122        |
+| 5I    | Claude through the gateway (Ask TIGERIS and case analysis), budget hard stop, cost per call, case and decision                                                                                                     | D-123, D-124 |
 
 ## 3. Where things are
 
-- Database: 12 forward-only migrations in `apps/api/db/migrations` (0001 foundation … 0012 sector records). Every
-  institutional table has `institution_id`, forced row-level security and the non-owner `tigeris_app` role.
-- API modules (`apps/api/src/modules`): auth, cases, signals, graph (entities), sectors, scenarios, analysis, governance,
-  oversight (outcomes, audit, administration), reports, connectors, portfolio, ci, command-centre, search, gateway.
-- Crawler: `apps/api/src/ci/crawl-lib.ts` (pure rules) and `crawler.ts` (network). Connectors: `apps/api/src/connectors`.
-- Shared, unit-tested logic (`packages/shared/src`): vocabulary, case lifecycle, scenario engine and sensitivity, options
-  ranker, decision policy, read scope, connectors and validation, dependency reading, analysis roster, outcome review,
-  service levels, sector models.
-- Screens (`apps/web/src/pages`): Sovereign Overview, Sector Command Centres, Signals, Cases and case workspace (overview,
-  evidence, impact graph, timeline, scenarios, options, analysis, decision and memory), case report, Intelligence Graph
-  and entity explorer, AI Command, Foresight & Scenarios, Mandates, Decisions & Approvals, Governed Execution,
-  Institutional Memory and outcome review, Data & Integrations, Competitive Intelligence, Audit & Administration.
+- Database: 20 forward-only migrations in `apps/api/db/migrations`. Every institutional table has `institution_id`,
+  forced row-level security and the non-owner `tigeris_app` role.
+- API modules (`apps/api/src/modules`): auth (demo and OIDC), cases, signals, graph, sectors, scenarios, scenario room,
+  analysis, governance, guardrails, oversight, reports, connectors, portfolio, ci, command-centre, search, semantic,
+  interventions, validation, learning, ask, notify, claude (model use), gateway.
+- Shared, unit-tested logic (`packages/shared/src`): vocabulary, lifecycle, scenario engine and sensitivity, options
+  ranker, decision policy, read scope, connectors, dependencies, analysis roster, outcome review, service levels, sector
+  models, semantic rules, intervention engine, learning loop, validation, oil shock.
+- Screens: Sovereign Overview, Sector Command Centres, Intervention Inbox (inbox, validation, desk roll-up, watch rules
+  and alert channels), Signals, Cases and the case workspace, AI Command (Ask TIGERIS, model use and budget), Foresight &
+  Scenarios (Hormuz runs, oil price shock, scenario room), Mandates & Authority (register, codified rules, definitions,
+  guardrails, export), Decisions & Approvals, Governed Execution, Institutional Memory (decisions and learning), Data &
+  Integrations, Competitive Intelligence, Audit & Administration.
+- Deployment: `deploy/Dockerfile`, `deploy/compose.yml`, `deploy/helm/tigeris`; `scripts/db-setup.sh`,
+  `scripts/backup.sh`, `scripts/restore-test.sh`. Project skill: `.claude/skills/hallmark` (vendored, MIT).
 
 ## 4. How to run it
 
 ```bash
 pnpm install
-pnpm db:reset    # roles, database, migrations 0001–0012, seed (local PostgreSQL 16)
-pnpm dev         # API :4000 (with NODE_USE_ENV_PROXY=1), web :5173
+pnpm db:reset    # roles, database, migrations 0001–0020, seed (local PostgreSQL 16)
+pnpm dev         # API :4000, web :5173
 pnpm lint && pnpm typecheck && pnpm test
 pnpm test:e2e    # Playwright, desktop and mobile, axe WCAG 2.2 AA on every screen visited
 ```
 
-Tests need a freshly reset database. At this commit: shared 69, web 3 and API 145 tests pass; the browser suite passes 91
-and skips 11 by design (journeys that change data run once, on desktop), with axe accessibility checks throughout.
+Deployment: copy `.env.example` to `deploy/.env` with real values, then
+`docker compose -f deploy/compose.yml --env-file deploy/.env up -d`. On every start it creates the roles and database
+if missing (never dropping anything) and applies new migrations. Backups: `scripts/backup.sh`, then
+`scripts/restore-test.sh <file>` to prove the backup restores.
 
-## 5. Configuration (`.env.example`)
+## 5. Verification at this commit
 
-| Variable                                  | Purpose                                                                                                 |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `DATABASE_OWNER_URL` / `DATABASE_APP_URL` | Owner role for migrations and seed only; the API always uses the non-owner `tigeris_app` role           |
-| `SESSION_SECRET`                          | Signs the demonstration session cookie; replace outside local development                               |
-| `DEMO_INSTITUTION_KEY`                    | Seeded demonstration institution                                                                        |
-| `UPLOAD_DIR`                              | Where uploaded files are stored, named by SHA-256                                                       |
-| `JOBS_ENABLED`                            | pg-boss background jobs (scheduled syncs, queued crawls)                                                |
-| `MODEL_PROVIDER_URL`                      | Optional model provider; shown as configured and never called while external model calls are off (D-14) |
+- Unit and API: shared 96, web 3, API 200 tests pass; lint and type checks are clean.
+- Browser: see the latest full run recorded in section 8; each Phase 5 slice also passed its own full run when it
+  landed (97 to 113 passed, the rest skipped by design: journeys that change data run once, on desktop).
+- Packaging, in a container runtime: the API image builds, runs as non-root and serves `/api/ready` and data; the
+  compose path (role setup, 20 migrations, API, restart keeps data) runs; the Helm chart lints and renders; the web build
+  stage runs in a container.
+- Sign-in: discovery and the PKCE redirect were exercised against a real Entra tenant; the ID-token verifier is
+  unit-tested against forged, expired, replayed and wrong-audience tokens.
+- Evidence store: the request signer reproduces the AWS SigV4 test vector.
+- Claude: the live Messages API accepted the request shape up to authentication; replies, fallbacks and budget
+  behaviour are tested with a stand-in.
 
-Connector credentials are never stored: a connector names an environment variable (`auth_ref`). The API start scripts
-set `NODE_USE_ENV_PROXY=1` so outbound requests use the environment's proxy (D-94).
+## 6. Configuration (`.env.example`)
 
-## 6. Limitations and what is not done
+| Area     | Settings                                                                                                                 | Default             |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Database | `DATABASE_OWNER_URL` (migrations only), `DATABASE_APP_URL` (the API, non-owner role)                                     | local               |
+| Sessions | `SESSION_SECRET`                                                                                                         | dev value; replace  |
+| Sign-in  | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`, `OIDC_INSTITUTION_KEY`                       | off                 |
+| Evidence | `EVIDENCE_S3_ENDPOINT`, `_BUCKET`, `_REGION`, `_ACCESS_KEY_ID`, `_SECRET_ACCESS_KEY`; else `UPLOAD_DIR`                  | local disk          |
+| Alerts   | `TEAMS_WEBHOOK_URL`; `EMAIL_RELAY_URL`, `EMAIL_RELAY_TOKEN`, `EMAIL_TO`; `APP_BASE_URL`                                  | off                 |
+| Claude   | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_PRICE_INPUT_PER_MTOK`, `_OUTPUT_PER_MTOK`, `MODEL_MONTHLY_BUDGET_USD` | off                 |
+| Runtime  | `API_HOST`, `API_PORT`, `JOBS_ENABLED`                                                                                   | 127.0.0.1, 4000, on |
 
-Stated plainly, so nothing here is mistaken for a claim:
+Credentials are never stored in the database or the code: connectors name an environment variable, and the chart reads
+every setting from an existing Secret.
 
-- **Competitive-intelligence crawling is blocked.** The environment's network policy refuses `www.palantir.com`,
-  `www.blackrock.com`, `www.alternativesoft.com`, `www.dasseti.com` and `www.v7labs.com`. Real crawl attempts are
-  recorded as "blocked" with the proxy's error and no vendor is shown as collected. The `www.eia.gov` feed is refused
-  the same way. Allowing those hosts in the environment's network settings (a change may only reach a new session) is
-  all that is needed; nothing about vendors has been collected or invented.
-- **No live data.** Every source is a dated snapshot, a synthetic fixture or an import. The seeded EIA feed connector
-  source is approved by the owner (D-98) but the connector stays "configured" until a fetch succeeds. One EIA item
-  pasted by the owner is held as a manual, unverified snapshot signal (D-102). Public figures from secondary summaries are
-  marked unverified until the primary page is captured.
-- **Identity is a demonstration directory.** Production sign-in through the institution's identity provider (FR-02)
-  is an adapter boundary, not built; the provider is chosen (D-100: OpenID Connect, Microsoft Entra ID by default).
-  People can be provisioned and given roles, but they cannot sign in until the identity provider is connected.
-- **Models.** Prose is drafted only by the internal deterministic stub; external model calls are disabled by policy
-  and by a database constraint. Agent "analysis" is deterministic retrieval and templated drafting, not a language
-  model. The production provider is chosen (D-101: Anthropic Claude in-region through the gateway; a self-hosted
-  open-weight model when air-gapped) but not connected.
-- **One scenario template.** The engine models a Hormuz disruption only; other sector scenarios are listed as "not yet
-  modelled". The six sector datasets and models compute indicators from imported records; they are not scenario
-  engines. Each sector shows labelled sample records (record mode "sample", D-98) until real data is imported.
-- **Arabic** covers interface titles, tabs and buttons on new screens as an owner-approved draft (D-99);
-  explanatory text and several older case tabs remain English; English text inside the RTL layout shows its full stop
-  on the left.
-- **Not built:** early-warning indicator rules (FR-36), case and source change views (FR-37, partial), a full model
-  configuration screen (FR-44, partial), MinIO evidence storage, MapLibre/deck.gl and React Flow upgrades beyond the
-  current map and graph, production deployment, backups and monitoring.
-- **No certification claims.** Nothing here is described as compliant, certified, air-gapped, tamper-proof or
-  production-secure. The audit chain is tamper-evident (verification detects edits); it is not tamper-proof.
+## 7. Limitations and what is not done
 
-## 7. Owner actions
+- **No live data.** Every source is a dated snapshot, a synthetic fixture or an import. Real crawls and the EIA feed are
+  refused by this environment's network policy until the hosts are allowed.
+- **Synthetic configuration.** Mandate limits, codified rules, watch rules, desk membership, oil sensitivities and service
+  levels are synthetic and owner-approved for the demonstration only; replace them before any real use.
+- **Owner actions to switch features on:** an Entra app registration (client ID, secret, redirect); an Anthropic key with
+  your agreement's prices and a monthly budget; an S3 endpoint for evidence; Teams or mail relay addresses for alerts.
+- **Not verified here:** the nginx web image (Docker Hub rate limit), a live S3 upload, and a real Claude reply.
+- **Not built:** case and source change views (FR-37), full model configuration (FR-44, partial), early-warning indicators
+  on live feeds (FR-36, partial), federated database reads, metrics and tracing, load and security testing, retention
+  policies, MapLibre and React Flow upgrades. Scenario option drafts stay on the deterministic stub.
+- **Arabic** covers titles, tabs and buttons as an owner-approved draft; much explanatory text on newer screens is English.
+- **No certification claims.** Nothing is described as compliant, certified, air-gapped, tamper-proof or production-secure.
+  The audit chain is tamper-evident (verification detects edits), not tamper-proof.
 
-Done (30 Oct 2026): the EIA feed source and labelled sector samples are approved (D-98); the drafted Arabic, the
-synthetic limits and the service levels are approved for the demonstration (D-99); the identity and model providers
-are chosen (D-100, D-101).
+## 8. Latest full browser run
 
-Remaining:
-
-1. Allow the five vendor hosts and `www.eia.gov` in the environment's network access settings, start a new session,
-   then use "Crawl now" in Competitive Intelligence and "Sync" on the EIA connector.
-2. Replace the labelled samples with the institution's own sector files when available.
-3. Before any production use: replace the synthetic limits and service levels with real ones, have the Arabic
-   terminology reviewed, connect the identity provider (D-100) and, once policy allows, the model provider (D-101).
+2 November 2026, on the code at this commit: 112 passed, 15 skipped by design, 1 timed out. The timeout was the
+phase 3 scenario journey (a scenario run, its case and AI Command, with accessibility checks on each) at 31.8 s
+against a 30 s limit; every assertion held. It now has the longer limit other long journeys use and passes on its own in
+30.9 s.

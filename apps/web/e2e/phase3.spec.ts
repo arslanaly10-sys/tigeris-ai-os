@@ -4,6 +4,7 @@ import { expectAccessible, signInAs } from './helpers';
 test.describe('foresight & scenarios (FR-14..FR-18)', () => {
   test('an analyst runs a scenario and gets ranges, lineage and draft options', async ({ page }, info) => {
     test.skip(info.project.name === 'mobile', 'Mutating journey runs once, on desktop');
+    test.slow(); // A scenario run, its case and AI Command, with accessibility checks on each.
     await signInAs(page, /Intelligence Analyst/);
     await page.goto('/scenarios/new?case=HMZ-2024-0413');
     await expect(page.getByRole('heading', { level: 1, name: 'Hormuz disruption' })).toBeVisible();

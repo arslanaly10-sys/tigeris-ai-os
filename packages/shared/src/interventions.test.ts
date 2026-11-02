@@ -187,3 +187,39 @@ describe('post-decision monitoring', () => {
     expect(f[0]!.detail).toContain('SCN-2');
   });
 });
+
+describe('overdue validation', () => {
+  it('raises requests past their due date (plus grace), naming who it waits on', () => {
+    const v = (key: string, dueOn: string) => ({
+      key,
+      subjectLabel: 'Case HMZ-2024-0413',
+      question: 'Is the bypass ramp-up assumption still right?',
+      assignee: 'Infrastructure desk',
+      dueOn,
+      requestedBy: 'Omar Haddad',
+      classification: 'confidential' as const,
+      sectorKey: null,
+      caseId: null,
+    });
+    const r = {
+      key: 'W-VALIDATION',
+      version: 1,
+      kind: 'validation_overdue' as const,
+      params: {},
+      severity: 'attention' as const,
+    };
+    const f = evaluateWatchRule(r, {
+      ...empty,
+      validations: [v('VR-1', '2026-10-29'), v('VR-2', '2026-10-30')],
+    });
+    expect(f.map((x) => x.subjectRef)).toEqual(['validation:VR-1']);
+    expect(f[0]!.title).toContain('overdue by 1 day');
+    expect(f[0]!.detail).toContain('Infrastructure desk');
+    expect(
+      evaluateWatchRule(
+        { ...r, params: { graceDays: 2 } },
+        { ...empty, validations: [v('VR-1', '2026-10-29')] },
+      ),
+    ).toEqual([]);
+  });
+});

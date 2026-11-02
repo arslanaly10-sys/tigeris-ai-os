@@ -13,6 +13,7 @@ import { semanticRoutes } from './modules/semantic';
 import { interventionRoutes } from './modules/interventions';
 import { guardrailRoutes } from './modules/guardrails';
 import { learningRoutes } from './modules/learning';
+import { validationRoutes } from './modules/validation';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -85,5 +86,6 @@ export async function buildApp(opts: BuildOptions) {
   await interventionRoutes(app, deps);
   await guardrailRoutes(app, deps);
   await learningRoutes(app, deps);
+  await validationRoutes(app, deps);
   return app;
 }

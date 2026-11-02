@@ -56,6 +56,7 @@ import {
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
 import { caseReadable } from './scope';
 import { observer } from './semantic';
+import { openValidations } from './validation';
 
 const has = (ctx: RequestContext, roles: readonly Role[]) => roles.some((r) => ctx.roles.includes(r));
 /** The sweep sees everything in the institution; what each person sees is filtered when they read. */
@@ -78,6 +79,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
   ]);
   const read = await observer(tx, FULL_SCOPE);
   const monitored = await monitoredFigures(tx);
+  const validations = await openValidations(tx);
   const semantic: Observations['semantic'] = [];
   for (const r of rules) {
     const o = await read(r.subject);
@@ -107,6 +109,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
   return {
     now: now.toISOString(),
     monitored,
+    validations,
     semantic,
     signals: sigs.map((s) => ({
       key: s.key,
@@ -380,6 +383,7 @@ const PARAMS: Record<WatchKind, z.ZodType> = {
   connector_stale: z.object({ maxDays: z.number().int().min(1).max(365).optional() }).strict(),
   decision_drift: z.object({}).strict(),
   decision_monitor: z.object({ breachWidths: z.number().positive().max(10).optional() }).strict(),
+  validation_overdue: z.object({ graceDays: z.number().int().min(0).max(30).optional() }).strict(),
 };
 
 /** Background sweep every 15 minutes per institution, when jobs are on (D-116). */

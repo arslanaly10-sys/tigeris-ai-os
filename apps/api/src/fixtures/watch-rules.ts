@@ -53,4 +53,14 @@ export const WATCH_RULES = [
     rationale:
       'A newer scenario run outside the range a decision expected is a reason to check the decision before its outcome arrives.',
   },
+  {
+    key: 'W-VALIDATION',
+    label: 'Validation requests past their due date',
+    kind: 'validation_overdue',
+    params: { graceDays: 0 },
+    severity: 'attention',
+    routeRoles: ['executive', 'approver'],
+    rationale:
+      'A finding still waiting for a desk after its due date should not be relied on without a follow-up.',
+  },
 ] as const;

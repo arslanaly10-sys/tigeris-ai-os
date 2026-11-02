@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { RollupView, ValidationView } from '@/components/governance/Validation';
 import { LoadState, PageHeader } from '@/components/PageHeader';
 import { ClaimBadge } from '@/components/truth/badges';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,8 @@ const field =
 
 const VIEWS = [
   { value: 'inbox', label: 'interventions.view.inbox' },
+  { value: 'validation', label: 'interventions.view.validation' },
+  { value: 'rollup', label: 'interventions.view.rollup' },
   { value: 'rules', label: 'interventions.view.rules' },
 ] as const;
 
@@ -401,7 +404,7 @@ function WatchRules() {
 export function InterventionsPage() {
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
-  const view = params.get('view') === 'rules' ? 'rules' : 'inbox';
+  const view = VIEWS.find((v) => v.value === params.get('view'))?.value ?? 'inbox';
   return (
     <>
       <PageHeader
@@ -429,6 +432,12 @@ export function InterventionsPage() {
         </Tabs.List>
         <Tabs.Content value="inbox" className="outline-none">
           <Inbox />
+        </Tabs.Content>
+        <Tabs.Content value="validation" className="outline-none">
+          <ValidationView />
+        </Tabs.Content>
+        <Tabs.Content value="rollup" className="outline-none">
+          <RollupView />
         </Tabs.Content>
         <Tabs.Content value="rules" className="outline-none">
           <WatchRules />

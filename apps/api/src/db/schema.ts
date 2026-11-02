@@ -955,3 +955,47 @@ export const assumptionProposals = pgTable('assumption_proposals', {
   decisionNote: text('decision_note'),
   newVersion: integer('new_version'),
 });
+
+// ───────────────────────────── Phase 5E: desks and validation (migration 0017) ─────────────────────────────
+
+export const divisions = pgTable('divisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  name: text('name').notNull(),
+  key: text('key'),
+  kind: text('kind').notNull(),
+  parentId: uuid('parent_id'),
+  description: text('description'),
+});
+
+export const deskMembers = pgTable('desk_members', {
+  institutionId: uuid('institution_id').notNull(),
+  divisionId: uuid('division_id').notNull(),
+  principalId: uuid('principal_id').notNull(),
+  addedAt: ts('added_at').notNull().defaultNow(),
+});
+
+export const validationRequests = pgTable('validation_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  key: text('key').notNull(),
+  batchKey: text('batch_key').notNull(),
+  subjectType: text('subject_type').notNull(),
+  subjectKey: text('subject_key').notNull(),
+  subjectLabel: text('subject_label').notNull(),
+  caseId: uuid('case_id'),
+  classification: text('classification').notNull(),
+  question: text('question').notNull(),
+  requestedBy: uuid('requested_by').notNull(),
+  assigneePrincipalId: uuid('assignee_principal_id'),
+  assigneeDivisionId: uuid('assignee_division_id'),
+  dueOn: date('due_on').notNull(),
+  status: text('status').notNull(),
+  verdict: text('verdict'),
+  response: text('response'),
+  assumptions: jsonb('assumptions').notNull(),
+  answeredBy: uuid('answered_by'),
+  answeredAt: ts('answered_at'),
+  withdrawnReason: text('withdrawn_reason'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

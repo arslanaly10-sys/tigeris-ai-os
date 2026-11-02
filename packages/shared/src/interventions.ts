@@ -14,6 +14,7 @@ export const WATCH_KINDS = [
   'connector_stale',
   'decision_drift',
   'decision_monitor',
+  'validation_overdue',
 ] as const;
 export type WatchKind = (typeof WATCH_KINDS)[number];
 
@@ -23,6 +24,7 @@ export const WATCH_KIND_LABEL: Record<WatchKind, string> = {
   connector_stale: 'Data connector failing or out of date',
   decision_drift: 'Decision outcome outside its expected range',
   decision_monitor: 'Approved decision drifting from its expected figures',
+  validation_overdue: 'Validation request past its due date',
 };
 
 export const INTERVENTION_STATUSES = ['open', 'acknowledged', 'resolved', 'dismissed'] as const;
@@ -120,8 +122,22 @@ export interface MonitorObservation {
   sectorKey: string | null;
 }
 
+/** An open validation request, with who it is waiting on. */
+export interface ValidationObservation {
+  key: string;
+  subjectLabel: string;
+  question: string;
+  assignee: string;
+  dueOn: string;
+  requestedBy: string;
+  classification: Sensitivity;
+  sectorKey: string | null;
+  caseId: string | null;
+}
+
 export interface Observations {
   now: string;
+  validations?: ValidationObservation[];
   monitored?: MonitorObservation[];
   semantic: SemanticObservation[];
   signals: SignalObservation[];
@@ -270,6 +286,35 @@ export function evaluateWatchRule(rule: WatchRuleSpec, obs: Observations): Findi
             classification: m.classification,
             sectorKey: m.sectorKey,
             caseId: m.caseId,
+          } satisfies Finding;
+        });
+    }
+    case 'validation_overdue': {
+      const graceDays = asNumber(rule.params.graceDays, 0);
+      const today = obs.now.slice(0, 10);
+      return (obs.validations ?? [])
+        .filter((v) => {
+          const due = new Date(`${v.dueOn}T00:00:00Z`);
+          due.setUTCDate(due.getUTCDate() + graceDays);
+          return due.toISOString().slice(0, 10) < today;
+        })
+        .map((v) => {
+          const days = Math.floor(
+            (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${v.dueOn}T00:00:00Z`)) / 86_400_000,
+          );
+          return {
+            subjectRef: `validation:${v.key}`,
+            severity: rule.severity,
+            title: `Validation ${v.key} overdue by ${days} day${days === 1 ? '' : 's'}: ${v.subjectLabel}`,
+            detail: `${v.assignee} has not answered "${v.question}", requested by ${v.requestedBy} and due ${v.dueOn}.`,
+            inputs: [
+              { label: 'Request', value: v.key, ref: `validation:${v.key}` },
+              { label: 'Waiting on', value: v.assignee, ref: `validation:${v.key}:assignee` },
+              { label: 'Due', value: v.dueOn, ref: `validation:${v.key}:due_on` },
+            ],
+            classification: v.classification,
+            sectorKey: v.sectorKey,
+            caseId: v.caseId,
           } satisfies Finding;
         });
     }

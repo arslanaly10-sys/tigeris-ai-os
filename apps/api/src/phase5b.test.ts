@@ -156,6 +156,6 @@ describe('watch rules', () => {
     const r = (await post('analyst', '/api/interventions/sweep')).json();
     const signalsLive = (await inbox('analyst')).items.filter((i) => i.ruleKey === 'W-SIGNALS');
     expect(new Set(signalsLive.map((i) => i.subjectRef)).size).toBe(signalsLive.length);
-    expect(r.rules).toBe(5);
+    expect(r.rules).toBe(6);
   });
 });

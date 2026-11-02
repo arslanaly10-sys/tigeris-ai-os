@@ -1,3 +1,11 @@
+import type {
+  DivisionKind,
+  ValidationAssumption,
+  ValidationState,
+  ValidationSubject,
+  ValidationVerdict,
+  RollupCounts,
+} from './validation';
 import type { InterventionInput, InterventionSeverity, InterventionStatus, WatchKind } from './interventions';
 import type { DefinitionKind, RuleEvaluation, RuleOperator, RuleSeverity, SemanticStatus } from './semantic';
 import type { SectorDataset, SectorIndicator } from './sector-models';
@@ -1293,4 +1301,52 @@ export interface LearningOverview {
   }[];
   models: { engine: string; held: number; missed: number }[];
   proposals: AssumptionProposalItem[];
+}
+
+// ───────────────────────────── Phase 5E: desks, validation and roll-up ─────────────────────────────
+
+export interface DivisionItem {
+  key: string;
+  name: string;
+  kind: DivisionKind;
+  parentKey: string | null;
+  description: string | null;
+  members: { id: string; name: string; title: string }[];
+  openRequests: number;
+}
+
+export interface ValidationRequestItem {
+  key: string;
+  batchKey: string;
+  subjectType: ValidationSubject;
+  subjectKey: string;
+  subjectLabel: string;
+  caseKey: string | null;
+  question: string;
+  requestedBy: string;
+  assignee: { kind: 'person' | 'desk'; key: string; name: string };
+  dueOn: string;
+  state: ValidationState;
+  verdict: ValidationVerdict | null;
+  response: string | null;
+  assumptions: ValidationAssumption[];
+  answeredBy: string | null;
+  answeredAt: string | null;
+  withdrawnReason: string | null;
+  createdAt: string;
+  canAnswer: boolean;
+  canWithdraw: boolean;
+}
+
+export interface ValidationBatch {
+  batchKey: string;
+  subjectLabel: string;
+  subjectType: ValidationSubject;
+  subjectKey: string;
+  caseKey: string | null;
+  question: string;
+  requestedBy: string;
+  dueOn: string;
+  counts: RollupCounts & { summary: string };
+  requests: ValidationRequestItem[];
 }

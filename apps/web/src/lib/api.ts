@@ -58,7 +58,12 @@ import type {
   SignalSummary,
   SourceSummary,
   GuardrailItem,
+  DivisionItem,
   InterventionInbox,
+  ValidationAssumption,
+  ValidationBatch,
+  ValidationRequestItem,
+  ValidationVerdict,
   LearningOverview,
   RuleOperator,
   SemanticRegistry,
@@ -214,6 +219,26 @@ export const api = {
       reason,
     }),
   watchRules: () => request<WatchRuleList>('GET', '/api/watch-rules'),
+  desks: () => request<DivisionItem[]>('GET', '/api/desks'),
+  validation: (mine: boolean) =>
+    request<{ canRequest: boolean; requests: ValidationRequestItem[] }>(
+      'GET',
+      `/api/validation?mine=${mine}`,
+    ),
+  validationRollup: () => request<ValidationBatch[]>('GET', '/api/validation/rollup'),
+  requestValidation: (body: {
+    subjectType: string;
+    subjectKey: string;
+    question: string;
+    dueOn: string;
+    deskKeys: string[];
+  }) => request<{ batchKey: string; keys: string[] }>('POST', '/api/validation', body),
+  answerValidation: (
+    key: string,
+    body: { verdict: ValidationVerdict; response: string; assumptions: ValidationAssumption[] },
+  ) => request<{ status: string }>('POST', `/api/validation/${encodeURIComponent(key)}/answer`, body),
+  withdrawValidation: (key: string, reason: string) =>
+    request<{ status: string }>('POST', `/api/validation/${encodeURIComponent(key)}/withdraw`, { reason }),
   learning: () => request<LearningOverview>('GET', '/api/learning'),
   decideProposal: (key: string, action: 'approve' | 'reject', note: string) =>
     request<{ status: string; newVersion: number | null }>(

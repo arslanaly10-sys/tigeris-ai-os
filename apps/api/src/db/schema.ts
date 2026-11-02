@@ -1032,6 +1032,7 @@ export const modelUsage = pgTable('model_usage', {
   outputTokens: integer('output_tokens').notNull().default(0),
   costUsd: numeric('cost_usd').notNull().default('0'),
   principalId: uuid('principal_id'),
+  caseId: uuid('case_id'),
   detail: text('detail'),
   createdAt: ts('created_at').notNull().defaultNow(),
 });

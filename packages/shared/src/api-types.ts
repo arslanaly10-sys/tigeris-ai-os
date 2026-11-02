@@ -1444,6 +1444,9 @@ export interface ModelStatus {
   prices: { inputPerMTok: number | null; outputPerMTok: number | null };
   monthlyBudgetUsd: number | null;
   spentThisMonthUsd: number;
+  /** All-time model cost per case (readable rows only) and per decision: the case's spend up to the decision. */
+  byCase: { caseKey: string; calls: number; costUsd: number }[];
+  byDecision: { decisionKey: string; caseKey: string; costUsd: number }[];
   recent: {
     at: string;
     feature: string;

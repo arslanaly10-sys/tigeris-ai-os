@@ -191,13 +191,15 @@ describe('scenario runs (FR-14..FR-18)', () => {
     expect(rows).toHaveLength(0);
   });
 
-  it('refuses to record an external model call at the database', async () => {
+  it('records no external model run while no model is configured (D-124)', async () => {
+    // D-124 lifted the database refusal so Claude-drafted analysis can be recorded; with Claude off (no key,
+    // prices or budget), every recorded agent run must still be the internal stub.
     const gsia = (await resolveInstitutionId(db, 'gsia-demo'))!;
-    const [existing] = await withInstitution(db, gsia, (tx) => tx.select().from(agentRuns).limit(1));
-    const { id: _id, ...row } = existing!;
-    await expect(
-      withInstitution(db, gsia, (tx) => tx.insert(agentRuns).values({ ...row, external: true })),
-    ).rejects.toThrow();
+    const runs = await withInstitution(db, gsia, (tx) =>
+      tx.select({ external: agentRuns.external }).from(agentRuns),
+    );
+    expect(runs.length).toBeGreaterThan(0);
+    expect(runs.every((r) => !r.external)).toBe(true);
   });
 });
 

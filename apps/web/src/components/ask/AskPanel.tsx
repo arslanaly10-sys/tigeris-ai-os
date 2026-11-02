@@ -184,6 +184,36 @@ export function ModelUsagePanel() {
               ? `USD ${m.prices.inputPerMTok} in / ${m.prices.outputPerMTok} out per million tokens`
               : 'not set'}
           </p>
+          {m.byCase.length ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold text-ink-muted">By case (all time)</p>
+                <ul className="mt-1 space-y-0.5 text-xs">
+                  {m.byCase.map((c) => (
+                    <li key={c.caseKey} className="tabular text-ink">
+                      {c.caseKey}: USD {c.costUsd.toFixed(4)} · {c.calls} call{c.calls === 1 ? '' : 's'}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-ink-muted">
+                  By decision (case spend before deciding)
+                </p>
+                <ul className="mt-1 space-y-0.5 text-xs">
+                  {m.byDecision.length ? (
+                    m.byDecision.map((d) => (
+                      <li key={d.decisionKey} className="tabular text-ink">
+                        {d.decisionKey} ({d.caseKey}): USD {d.costUsd.toFixed(4)}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-ink-muted">No decisions on cases with model use yet.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          ) : null}
           {m.recent.length ? (
             <ul className="divide-y divide-line rounded-md border border-line">
               {m.recent.map((r, i) => (

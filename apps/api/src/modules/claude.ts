@@ -5,13 +5,14 @@
  * kept. Every call and every fallback is recorded with tokens and cost; at the monthly budget it stops calling.
  */
 import type { ModelStatus } from '@tigeris/shared';
-import { and, desc, gte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { config } from '../config';
 import { withInstitution, type Tx } from '../db/client';
-import { modelUsage } from '../db/schema';
+import { cases, decisions, modelUsage } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps } from './context';
 import { groundingCheck, type Citation } from './gateway';
+import { caseReadable } from './scope';
 
 /** Why Claude is off, or null when it may be called. Prices and a budget are required: no unpriced spend. */
 export function claudeOffReason(): string | null {
@@ -51,8 +52,9 @@ export async function claudeDraft(
   question: string,
   citations: Citation[],
   fallback: string,
-): Promise<{ text: string; drafter: string }> {
-  const deterministic = { text: fallback, drafter: 'deterministic (no model called)' };
+  caseId: string | null = null,
+): Promise<{ text: string; drafter: string; used: boolean }> {
+  const deterministic = { text: fallback, drafter: 'deterministic (no model called)', used: false };
   if (claudeOffReason() || !citations.length) return deterministic;
   const record = (outcome: string, inputTokens = 0, outputTokens = 0, detail: string | null = null) =>
     tx.insert(modelUsage).values({
@@ -64,6 +66,7 @@ export async function claudeDraft(
       outputTokens,
       costUsd: String(costUsd(inputTokens, outputTokens)),
       principalId: ctx.principalId,
+      caseId,
       detail,
     });
   if ((await spentThisMonth(tx)) >= config.MODEL_MONTHLY_BUDGET_USD!) {
@@ -119,7 +122,11 @@ export async function claudeDraft(
       return { ...deterministic, drafter: 'deterministic (model draft failed the grounding check)' };
     }
     await record('used', inTok, outTok);
-    return { text, drafter: `${config.ANTHROPIC_MODEL} via the gateway, from cited records only` };
+    return {
+      text,
+      drafter: `${config.ANTHROPIC_MODEL} via the gateway, from cited records only`,
+      used: true,
+    };
   } catch (err) {
     await record('fallback_error', 0, 0, (err as Error).message.slice(0, 200));
     return deterministic;
@@ -139,6 +146,35 @@ export async function modelRoutes(app: FastifyInstance, deps: AppDeps) {
           .orderBy(desc(modelUsage.createdAt))
           .limit(20),
       ]);
+      // Per case: every call that served it. Per decision: the case's model spend up to the moment of decision.
+      const byCase = await tx
+        .select({
+          caseKey: cases.key,
+          calls: sql<number>`count(*)::int`,
+          cost: sql<string>`coalesce(sum(${modelUsage.costUsd}), 0)`,
+        })
+        .from(modelUsage)
+        .innerJoin(cases, eq(cases.id, modelUsage.caseId))
+        .where(caseReadable(ctx.scope))
+        .groupBy(cases.key)
+        .orderBy(desc(sql`sum(${modelUsage.costUsd})`))
+        .limit(50);
+      const byDecision = await tx
+        .select({
+          decisionKey: decisions.key,
+          caseKey: cases.key,
+          cost: sql<string>`coalesce(sum(${modelUsage.costUsd}), 0)`,
+        })
+        .from(decisions)
+        .innerJoin(cases, eq(cases.id, decisions.caseId))
+        .innerJoin(
+          modelUsage,
+          and(eq(modelUsage.caseId, decisions.caseId), lte(modelUsage.createdAt, decisions.createdAt)),
+        )
+        .where(caseReadable(ctx.scope))
+        .groupBy(decisions.key, cases.key)
+        .orderBy(desc(decisions.key))
+        .limit(50);
       const off = claudeOffReason();
       return {
         enabled: !off,
@@ -152,6 +188,12 @@ export async function modelRoutes(app: FastifyInstance, deps: AppDeps) {
         },
         monthlyBudgetUsd: config.MODEL_MONTHLY_BUDGET_USD ?? null,
         spentThisMonthUsd: Math.round(spent * 10_000) / 10_000,
+        byCase: byCase.map((r) => ({ caseKey: r.caseKey, calls: r.calls, costUsd: Number(r.cost) })),
+        byDecision: byDecision.map((r) => ({
+          decisionKey: r.decisionKey,
+          caseKey: r.caseKey,
+          costUsd: Number(r.cost),
+        })),
         recent: recent.map((r) => ({
           at: r.createdAt.toISOString(),
           feature: r.feature,

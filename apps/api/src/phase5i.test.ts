@@ -4,7 +4,8 @@ import type { AskAnswer, DemoPrincipal, ModelStatus } from '@tigeris/shared';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp } from './app';
 import { config } from './config';
-import { createDb } from './db/client';
+import { createDb, resolveInstitutionId, withInstitution } from './db/client';
+import { cases } from './db/schema';
 
 const { db, close } = createDb(config.DATABASE_APP_URL, 3);
 const app = await buildApp({ db, sessionSecret: config.SESSION_SECRET, demoInstitutionKey: 'gsia-demo' });
@@ -113,5 +114,74 @@ describe('Claude through the gateway', () => {
     expect((await ask()).drafter).toContain('budget');
     expect(f).not.toHaveBeenCalled();
     expect((await models()).recent[0]!.outcome).toBe('fallback_budget');
+  });
+
+  it('attributes analysis drafts to their case and a decision to the spend before it', async () => {
+    const who = (role: string) => principals.find((p) => p.roles.includes(role as never))!;
+    const post = async (role: string, url: string, payload: object = {}) =>
+      app.inject({ method: 'POST', url, headers: await as(role), payload });
+    const why = 'Defer new route-dependent commitments while transit is uncertain (test).';
+    const key = `AIC-${Date.now().toString(36).toUpperCase()}`;
+    const gsia = (await resolveInstitutionId(db, 'gsia-demo'))!;
+    await withInstitution(db, gsia, (tx) =>
+      tx.insert(cases).values({
+        institutionId: gsia,
+        key,
+        title: 'AI cost test case (synthetic)',
+        state: 'review',
+        domain: 'Sovereign capital',
+        sectorKey: 'capital',
+        sensitivity: 'confidential',
+        urgency: 'routine',
+        dataMode: 'synthetic_demo',
+        ownerPrincipalId: who('analyst').id,
+        objective: 'Attribute model cost to a case and a decision.',
+        summary: 'Synthetic test case.',
+        whyItMatters: 'Phase 5I test.',
+        unresolvedQuestions: [],
+        confidence: { band: 'low', factors: [] },
+        version: 1,
+      }),
+    );
+    await post('analyst', '/api/scenarios', {
+      caseKey: key,
+      drivers: { durationDays: 21, capacityLostPct: 50, bypassMbd: 2.6, oilPriceShockPct: 30 },
+    });
+    turnOn();
+    claudeReplies('This finding restates the cited records [1].');
+    expect((await post('analyst', `/api/cases/${key}/analysis`)).statusCode).toBe(201);
+    const runs = (
+      await app.inject({ method: 'GET', url: `/api/cases/${key}/analysis`, headers: await as('analyst') })
+    ).json();
+    expect(JSON.stringify(runs)).toContain('claude-sonnet-5-5');
+
+    const g = (
+      await app.inject({ method: 'GET', url: `/api/cases/${key}/governance`, headers: await as('analyst') })
+    ).json();
+    const option = g.candidateOptions.find(
+      (o: { authority?: { twoPerson: boolean; requiredRole: string } }) =>
+        o.authority && !o.authority.twoPerson && o.authority.requiredRole === 'approver',
+    );
+    const rec = (
+      await post('analyst', `/api/cases/${key}/recommendations`, { optionId: option.id, rationale: why })
+    ).json().key;
+    await post('domain_expert', `/api/recommendations/${rec}/reviews`, {
+      verdict: 'endorse',
+      rationale: why,
+    });
+    const dec = (
+      await post('approver', `/api/recommendations/${rec}/decisions`, { outcome: 'approve', rationale: why })
+    ).json().key;
+
+    const m = await models();
+    const byCase = m.byCase.find((c) => c.caseKey === key)!;
+    expect(byCase.calls).toBeGreaterThan(0);
+    expect(byCase.costUsd).toBeGreaterThan(0);
+    expect(m.byDecision.find((d) => d.decisionKey === dec)!.costUsd).toBe(byCase.costUsd);
+    // A reader without clearance for the confidential case does not see it.
+    const ops = (
+      await app.inject({ method: 'GET', url: '/api/models', headers: await as('operations_owner') })
+    ).json() as ModelStatus;
+    expect(ops.byCase.some((c) => c.caseKey === key)).toBe(false);
   });
 });

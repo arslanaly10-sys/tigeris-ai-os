@@ -1,4 +1,5 @@
-# Production-shaped stack (D-122): PostgreSQL, MinIO evidence store, API and web. Secrets come from deploy/.env
+# Production-shaped stack (D-122): PostgreSQL, API and web. Evidence goes to the S3-compatible store named by
+# EVIDENCE_S3_ENDPOINT in .env (the institution's MinIO or S3), or to the `uploads` volume when it is empty. Secrets come from deploy/.env
 # (copy .env.example; never commit real values). On every start `db-setup` creates the roles and database if missing
 # (never drops anything) and `migrate` applies new migrations as the owner.
 #   docker compose -f deploy/compose.yml --env-file deploy/.env up -d
@@ -8,33 +9,28 @@ services:
     environment: { POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}' }
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck: { test: ['CMD', 'pg_isready', '-U', 'postgres'], interval: 5s, retries: 10 }
-  minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    command: server /data
-    environment:
-      MINIO_ROOT_USER: '${EVIDENCE_S3_ACCESS_KEY_ID:?set EVIDENCE_S3_ACCESS_KEY_ID}'
-      MINIO_ROOT_PASSWORD: '${EVIDENCE_S3_SECRET_ACCESS_KEY:?set EVIDENCE_S3_SECRET_ACCESS_KEY}'
-    volumes: [minio:/data]
   db-setup:
-    build: { context: .., dockerfile: deploy/Dockerfile, target: api }
+    image: postgres:16
     env_file: .env
+    volumes: ['../scripts:/scripts:ro']
     environment:
       TIGERIS_DB_KEEP: '1'
       PG_SUPERUSER_URL: 'postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432'
-    command: ['bash', 'scripts/db-setup.sh']
+    command: ['bash', '/scripts/db-setup.sh']
     depends_on: { postgres: { condition: service_healthy } }
   migrate:
     build: { context: .., dockerfile: deploy/Dockerfile, target: api }
     env_file: .env
-    command: ['pnpm', '--filter', '@tigeris/api', 'db:migrate']
+    command: ['node_modules/.bin/tsx', 'src/db/migrate.ts']
     depends_on: { db-setup: { condition: service_completed_successfully } }
   api:
     build: { context: .., dockerfile: deploy/Dockerfile, target: api }
     env_file: .env
-    environment: { EVIDENCE_S3_ENDPOINT: 'http://minio:9000' }
-    depends_on: { migrate: { condition: service_completed_successfully }, minio: { condition: service_started } }
+    environment: { UPLOAD_DIR: /var/tigeris/uploads }
+    volumes: ['uploads:/var/tigeris/uploads']
+    depends_on: { migrate: { condition: service_completed_successfully } }
   web:
     build: { context: .., dockerfile: deploy/Dockerfile, target: web }
     ports: ['8080:8080']
     depends_on: [api]
-volumes: { pgdata: {}, minio: {} }
+volumes: { pgdata: {}, uploads: {} }

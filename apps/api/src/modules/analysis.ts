@@ -52,6 +52,7 @@ import { loadEdges } from './graph';
 import { freshnessOf } from './mappers';
 import { buildCitations, engineInputsFrom, formatValue, metricDef, type StoredOutputs } from './scenarios';
 import { ROLE_LABEL_API } from './roles';
+import { claudeDraft } from './claude';
 import { caseReadable } from './scope';
 
 /** Roles that may start an analysis run. Agents only read and draft, but a run is still a recorded act. */
@@ -461,24 +462,39 @@ export async function analysisRoutes(app: FastifyInstance, deps: AppDeps) {
 
       const now = new Date();
       const { steps: specs, scenarioRunId } = await planSteps(tx, ctx, kase);
-      const steps: AnalysisStepItem[] = specs.map((s) => {
+      const steps: (AnalysisStepItem & { external: boolean })[] = [];
+      for (const s of specs) {
         const d = draft({ templateKey: s.templateKey, citations: s.citations });
         const agent = ANALYSIS_AGENTS.find((a) => a.key === s.agentKey)!;
-        return {
+        // When Claude is on (5I, D-124), it may rewrite a finding from the same citations; gaps stay as stated.
+        const c =
+          s.templateKey === 'analysis-gap'
+            ? null
+            : await claudeDraft(
+                tx,
+                ctx,
+                'analysis',
+                `${agent.name}: state the cited findings plainly`,
+                s.citations,
+                d.text,
+                kase.id,
+              );
+        steps.push({
           agentKey: s.agentKey,
           agentName: agent.name,
           status: s.templateKey === 'analysis-gap' ? 'gap' : 'completed',
-          text: d.text,
+          text: c?.used ? c.text : d.text,
           findings: s.findings,
           gaps: s.gaps,
           citations: s.citations,
           grounding: d.grounding,
-          modelId: d.modelId,
-          modelVersion: d.modelVersion,
+          modelId: c?.used ? config.ANTHROPIC_MODEL : d.modelId,
+          modelVersion: c?.used ? 'anthropic' : d.modelVersion,
           templateKey: d.templateKey,
           templateVersion: d.templateVersion,
-        };
-      });
+          external: !!c?.used,
+        });
+      }
       const key = await nextAnalysisKey(tx, now);
       const question = specs[0]!.citations[0]!.display;
       const inputHash = sha({ version: ANALYSIS_VERSION, citations: specs.map((s) => s.citations) });
@@ -510,13 +526,15 @@ export async function analysisRoutes(app: FastifyInstance, deps: AppDeps) {
           analysisRunId: run!.id,
           modelId: s.modelId,
           modelVersion: s.modelVersion,
-          external: false,
+          external: s.external,
           templateKey: s.templateKey,
           templateVersion: s.templateVersion,
           inputs: s.citations,
           outputText: s.text,
           grounding: s.grounding,
-          policyDecision: 'allowed: internal deterministic stub',
+          policyDecision: s.external
+            ? 'allowed: Claude via the gateway, grounded in the cited inputs (D-124)'
+            : 'allowed: internal deterministic stub',
           status: 'completed',
           triggeredBy: ctx.principalId,
           startedAt: now,

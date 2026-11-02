@@ -29,6 +29,10 @@ const schema = z.object({
    * Claude through the gateway (D-112, D-113): drafts Ask TIGERIS answers from cited records only. Off unless the key,
    * both prices (USD per million tokens, from your Anthropic agreement) and a monthly budget are all set.
    */
+  /** Highest classification whose content may be sent to an external model (security review, D-125). */
+  MODEL_MAX_CLASSIFICATION: z.enum(['internal', 'restricted', 'confidential']).default('internal'),
+  /** Demo sign-in (labelled demo principals). Off in production unless explicitly set to true. */
+  DEMO_SIGN_IN: z.enum(['true', 'false']).optional(),
   ANTHROPIC_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
   ANTHROPIC_BASE_URL: z.string().url().default('https://api.anthropic.com'),
@@ -45,7 +49,10 @@ const schema = z.object({
     z.coerce.number().positive().optional(),
   ),
   /** OpenID Connect sign-in (Entra ID: https://login.microsoftonline.com/<tenant>/v2.0). Off when the issuer is empty. */
-  OIDC_ISSUER: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
+  OIDC_ISSUER: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().startsWith('https://').optional(),
+  ),
   OIDC_CLIENT_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   OIDC_CLIENT_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
   OIDC_REDIRECT_URI: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
@@ -74,5 +81,21 @@ const schema = z.object({
   MODEL_PROVIDER_URL: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
 });
 
-export const config = schema.parse(process.env);
+const DEV_SECRET = 'dev-only-change-me-dev-only-change-me';
+
+export const config = schema
+  .superRefine((c, ctx) => {
+    // A known secret lets anyone forge a signed session for any person (security review, D-125).
+    if (c.NODE_ENV === 'production' && c.SESSION_SECRET === DEV_SECRET)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SESSION_SECRET'],
+        message: 'Set a unique SESSION_SECRET in production.',
+      });
+  })
+  .transform((c) => ({
+    ...c,
+    DEMO_SIGN_IN: c.DEMO_SIGN_IN ? c.DEMO_SIGN_IN === 'true' : c.NODE_ENV !== 'production',
+  }))
+  .parse(process.env);
 export type Config = typeof config;

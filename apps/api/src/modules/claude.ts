@@ -4,7 +4,7 @@
  * must pass the gateway's grounding check (every number must appear in a citation) or the deterministic answer is
  * kept. Every call and every fallback is recorded with tokens and cost; at the monthly budget it stops calling.
  */
-import type { ModelStatus } from '@tigeris/shared';
+import { SENSITIVITY_ORDER, type ModelStatus, type Sensitivity } from '@tigeris/shared';
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { config } from '../config';
@@ -53,9 +53,16 @@ export async function claudeDraft(
   citations: Citation[],
   fallback: string,
   caseId: string | null = null,
+  classification: Sensitivity = 'internal',
 ): Promise<{ text: string; drafter: string; used: boolean }> {
   const deterministic = { text: fallback, drafter: 'deterministic (no model called)', used: false };
   if (claudeOffReason() || !citations.length) return deterministic;
+  // Content above the configured ceiling never leaves for an external model (D-125).
+  if (SENSITIVITY_ORDER.indexOf(classification) > SENSITIVITY_ORDER.indexOf(config.MODEL_MAX_CLASSIFICATION))
+    return {
+      ...deterministic,
+      drafter: `deterministic (${classification} content is not sent to an external model)`,
+    };
   const record = (outcome: string, inputTokens = 0, outputTokens = 0, detail: string | null = null) =>
     tx.insert(modelUsage).values({
       institutionId: ctx.institutionId,

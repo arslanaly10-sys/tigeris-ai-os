@@ -5,6 +5,7 @@ import type {
   ScenarioRunSummary,
   ScenarioSetup,
 } from '@tigeris/shared';
+import { isNull } from 'drizzle-orm';
 import { METRICS, SCENARIO_HORIZONS } from '@tigeris/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
@@ -191,12 +192,11 @@ describe('scenario runs (FR-14..FR-18)', () => {
     expect(rows).toHaveLength(0);
   });
 
-  it('records no external model run while no model is configured (D-124)', async () => {
-    // D-124 lifted the database refusal so Claude-drafted analysis can be recorded; with Claude off (no key,
-    // prices or budget), every recorded agent run must still be the internal stub.
+  it('keeps scenario specialist drafts on the internal stub (D-124)', async () => {
+    // D-124 lets case analysis draft through Claude when configured; scenario drafts always stay deterministic.
     const gsia = (await resolveInstitutionId(db, 'gsia-demo'))!;
     const runs = await withInstitution(db, gsia, (tx) =>
-      tx.select({ external: agentRuns.external }).from(agentRuns),
+      tx.select({ external: agentRuns.external }).from(agentRuns).where(isNull(agentRuns.analysisRunId)),
     );
     expect(runs.length).toBeGreaterThan(0);
     expect(runs.every((r) => !r.external)).toBe(true);

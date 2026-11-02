@@ -56,6 +56,7 @@ const turnOn = (budget = 50) =>
     ANTHROPIC_PRICE_INPUT_PER_MTOK: 3,
     ANTHROPIC_PRICE_OUTPUT_PER_MTOK: 15,
     MODEL_MONTHLY_BUDGET_USD: budget,
+    MODEL_MAX_CLASSIFICATION: 'confidential',
   });
 
 beforeAll(async () => {

@@ -23,6 +23,7 @@ import {
   type MandateCheck,
   type Role,
   type ScenarioInputRef,
+  type Sensitivity,
   type SensitivityPayload,
 } from '@tigeris/shared';
 import { and, desc, eq, ne, or, sql } from 'drizzle-orm';
@@ -478,6 +479,7 @@ export async function analysisRoutes(app: FastifyInstance, deps: AppDeps) {
                 s.citations,
                 d.text,
                 kase.id,
+                kase.sensitivity as Sensitivity,
               );
         steps.push({
           agentKey: s.agentKey,

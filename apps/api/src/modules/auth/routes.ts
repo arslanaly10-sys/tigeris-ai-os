@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { appendAudit } from '../../audit/audit';
 import { resolveInstitutionId, withInstitution } from '../../db/client';
 import { institutions, principalRoles, principals } from '../../db/schema';
+import { config } from '../../config';
 import { ctxOf, loadPrincipal, requireSession, type AppDeps } from '../context';
 
 const ROLE_ORDER: Role[] = [
@@ -22,6 +23,7 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
 
   /** Seeded demo principals for the labelled Demonstration Mode role picker (FR-04). */
   app.get('/api/auth/demo-principals', async (_request, reply) => {
+    if (!config.DEMO_SIGN_IN) return reply.code(404).send({ error: 'demo_sign_in_disabled' });
     const institutionId = await resolveInstitutionId(db, deps.demoInstitutionKey);
     if (!institutionId) return reply.code(503).send({ error: 'demo_institution_missing' });
     return withInstitution(db, institutionId, async (tx) => {
@@ -55,6 +57,7 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
    * institution's identity provider; the demonstration build only knows its one demo institution.
    */
   app.post('/api/auth/resolve-institution', async (request, reply) => {
+    if (!config.DEMO_SIGN_IN) return reply.code(404).send({ error: 'demo_sign_in_disabled' });
     const body = z.object({ identifier: z.string().trim().min(2).max(200) }).safeParse(request.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_request' });
     const id = body.data.identifier.toLowerCase();
@@ -68,6 +71,7 @@ export async function authRoutes(app: FastifyInstance, deps: AppDeps) {
   });
 
   app.post('/api/auth/demo-session', async (request, reply) => {
+    if (!config.DEMO_SIGN_IN) return reply.code(404).send({ error: 'demo_sign_in_disabled' });
     const body = z.object({ principalId: z.string().uuid() }).safeParse(request.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_request' });
     const institutionId = await resolveInstitutionId(db, deps.demoInstitutionKey);

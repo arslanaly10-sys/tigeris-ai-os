@@ -4,7 +4,7 @@
  * matched, records ranked by how many terms they contain); the answer quotes the cited records and nothing else.
  * No model is called; when nothing matches, the answer says so instead of guessing.
  */
-import type { AskAnswer, AskCitation } from '@tigeris/shared';
+import { SENSITIVITY_ORDER, type AskAnswer, type AskCitation, type Sensitivity } from '@tigeris/shared';
 import { createHash } from 'node:crypto';
 import { and, eq, ilike, or, type SQL } from 'drizzle-orm';
 import type { PgColumn } from 'drizzle-orm/pg-core';
@@ -52,7 +52,7 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
       const ctx = ctxOf(request);
       const ts = terms(body.data.question);
       return withInstitution(deps.db, ctx.institutionId, async (tx) => {
-        const citations: (AskCitation & { score: number })[] = [];
+        const citations: (AskCitation & { score: number; sensitivity?: Sensitivity })[] = [];
         if (ts.length) {
           const [c, m, e, s, d] = await Promise.all([
             tx
@@ -66,7 +66,7 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
               )
               .limit(20),
             tx
-              .select({ m: memoryEntries, caseKey: cases.key })
+              .select({ m: memoryEntries, caseKey: cases.key, sensitivity: cases.sensitivity })
               .from(memoryEntries)
               .innerJoin(cases, eq(cases.id, memoryEntries.caseId))
               .where(
@@ -115,9 +115,10 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
               href: `/cases/${x.key}`,
               label: 'Case',
               score: hits(text, ts),
+              sensitivity: x.sensitivity as Sensitivity,
             });
           }
-          for (const { m: x, caseKey } of m) {
+          for (const { m: x, caseKey, sensitivity } of m) {
             const text = `${x.title}. ${x.lesson} ${x.outcome} ${x.decisionRationale}`;
             citations.push({
               kind: 'memory',
@@ -127,6 +128,7 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
               href: `/cases/${caseKey}`,
               label: 'Institutional memory',
               score: hits(text, ts) + 1,
+              sensitivity: sensitivity as Sensitivity,
             });
           }
           for (const x of e) {
@@ -184,6 +186,11 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
             display: `[${i + 1}] ${t.ref} ${t.title}: ${t.excerpt}`,
           })),
           deterministic,
+          null,
+          // The most sensitive cited record decides whether the answer may go to an external model.
+          SENSITIVITY_ORDER[
+            Math.max(0, ...top.map((t) => SENSITIVITY_ORDER.indexOf(t.sensitivity ?? 'internal')))
+          ]!,
         );
         await appendAudit(tx, {
           institutionId: ctx.institutionId,
@@ -207,7 +214,7 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
           terms: ts,
           answer: drafted.text,
           drafter: drafted.drafter,
-          citations: top.map(({ score: _score, ...c }) => c),
+          citations: top.map(({ score: _score, sensitivity: _s, ...c }) => c),
         };
       });
     },

@@ -3,4 +3,4 @@ name: tigeris
 description: TIGERIS AI OS API and web (PostgreSQL and the S3-compatible evidence store are provided separately).
 type: application
 version: 0.1.0
-appVersion: "5h"
+appVersion: '5h'

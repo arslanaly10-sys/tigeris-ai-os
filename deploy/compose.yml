@@ -1,6 +1,6 @@
 # Production-shaped stack (D-122): PostgreSQL, MinIO evidence store, API and web. Secrets come from deploy/.env
-# (copy .env.example; never commit real values). First create the roles with scripts/db-setup.sh (PG_SUPERUSER_URL
-# pointing at this postgres); the `migrate` service then applies migrations as the owner on every start.
+# (copy .env.example; never commit real values). On every start `db-setup` creates the roles and database if missing
+# (never drops anything) and `migrate` applies new migrations as the owner.
 #   docker compose -f deploy/compose.yml --env-file deploy/.env up -d
 services:
   postgres:
@@ -15,11 +15,19 @@ services:
       MINIO_ROOT_USER: '${EVIDENCE_S3_ACCESS_KEY_ID:?set EVIDENCE_S3_ACCESS_KEY_ID}'
       MINIO_ROOT_PASSWORD: '${EVIDENCE_S3_SECRET_ACCESS_KEY:?set EVIDENCE_S3_SECRET_ACCESS_KEY}'
     volumes: [minio:/data]
+  db-setup:
+    build: { context: .., dockerfile: deploy/Dockerfile, target: api }
+    env_file: .env
+    environment:
+      TIGERIS_DB_KEEP: '1'
+      PG_SUPERUSER_URL: 'postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432'
+    command: ['bash', 'scripts/db-setup.sh']
+    depends_on: { postgres: { condition: service_healthy } }
   migrate:
     build: { context: .., dockerfile: deploy/Dockerfile, target: api }
     env_file: .env
     command: ['pnpm', '--filter', '@tigeris/api', 'db:migrate']
-    depends_on: { postgres: { condition: service_healthy } }
+    depends_on: { db-setup: { condition: service_completed_successfully } }
   api:
     build: { context: .., dockerfile: deploy/Dockerfile, target: api }
     env_file: .env

@@ -1433,3 +1433,24 @@ export interface NotificationChannel {
   detail: string;
   lastDelivery: { ok: boolean; at: string; detail: string } | null;
 }
+
+// ───────────────────────────── Phase 5I: model use and budget ─────────────────────────────
+
+export interface ModelStatus {
+  enabled: boolean;
+  /** Why it is off, or what it does when on. */
+  reason: string;
+  model: string;
+  prices: { inputPerMTok: number | null; outputPerMTok: number | null };
+  monthlyBudgetUsd: number | null;
+  spentThisMonthUsd: number;
+  recent: {
+    at: string;
+    feature: string;
+    model: string;
+    outcome: 'used' | 'fallback_budget' | 'fallback_error' | 'fallback_grounding';
+    inputTokens: number;
+    outputTokens: number;
+    costUsd: number;
+  }[];
+}

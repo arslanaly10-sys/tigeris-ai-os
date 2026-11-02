@@ -23,7 +23,7 @@ import { formatRelative } from '@/lib/format';
 import { SECTOR_LABEL_AR, useI18n } from '@/lib/i18n';
 import { ROLE_LABEL } from '@/lib/roles';
 import { AttentionRow } from '@/pages/Overview';
-import { AskPanel } from '@/components/ask/AskPanel';
+import { AskPanel, ModelUsagePanel } from '@/components/ask/AskPanel';
 import { GuardrailsView } from '@/components/governance/Guardrails';
 import { DefinitionsView, ExportView, RulesView } from '@/components/governance/SemanticRegistry';
 import { HandoffCard, OUTCOME_LABEL, PolicyResultBadge, RecStatusPill } from '@/components/governance/parts';
@@ -66,8 +66,9 @@ export function AiCommandPage() {
         description="Registered AI specialists per sector, the model policy they run under, and their recorded runs."
         lastUpdated={runs[0]?.startedAt ?? null}
       />
-      <div className="mb-6">
+      <div className="mb-6 grid gap-6">
         <AskPanel />
+        <ModelUsagePanel />
       </div>
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
         <Panel className="p-5">

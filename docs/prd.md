@@ -158,7 +158,7 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-41** Audit log viewer with filters and chain verification. _Implemented (slice H): Audit & Administration; case events outside the reader's clearance are withheld and counted; verification recomputes the chain from genesis and is itself audited._
 - **FR-42** Institution isolation under row-level security. _Implemented._
 - **FR-43** User, role and institution administration (demo directory; production from IdP groups). _Implemented (slice H): provision people from the IdP (no passwords), grant and revoke roles and sector workspaces with a reason, never your own access; production group sync Planned with FR-02._
-- **FR-44** Model and analysis configuration screen (registry, templates, policy versions). _Partial (AI Command)._
+- **FR-44** Model and analysis configuration screen (registry, templates, policy versions). _Partial (AI Command; 5I adds model status, prices, budget and usage)._
 
 ### 5.9 Competitive intelligence (separate from institutional data)
 
@@ -179,8 +179,8 @@ labelled as such, never implying a live institution or the ability to move capit
 - **FR-56** Validation tasking and roll-up: request validation of any finding from a named person or desk with a due date; asset-class desks as divisions; executive roll-up with assumptions visible. _Implemented (5E): desks under the Investment Committee and Executive Office, validation batches to desks or people with due dates, answers with verdict, reasoning and assumptions, roll-up by counts, overdue requests in the intervention inbox._
 - **FR-57** Scenario room and a second template (oil price shock on the portfolio); declarative scenario templates. _Implemented (5F): `oil-shock 1.0.0` on readable positions with register assumptions, conservative envelope ranges, runs kept apart from Hormuz runs; scenario room comparing up to four runs by template; both templates described declaratively._
 - **FR-58** Ask TIGERIS: grounded questions over cases, graph, memory and sector models with citations; email and Teams notification adapters, off until configured. _Implemented (5G): deterministic retrieval over readable cases, memory, evidence, signals and approved definitions with quoted citations and no model call; Teams webhook and HTTPS mail relay alerts for new interventions, off until configured, carrying no restricted or confidential detail._
-- **FR-59** Production foundations: OIDC with Microsoft Entra ID, container and Helm packaging, backups with restore tests, observability, S3-compatible evidence store. _Planned (5H)._
-- **FR-60** AI economics and model configuration: Claude adapter off by default, tokens and cost per run, case and decision, monthly budget with hard stop; model configuration screen (FR-44). _Planned (5I)._
+- **FR-59** Production foundations: OIDC with Microsoft Entra ID, container and Helm packaging, backups with restore tests, observability, S3-compatible evidence store. _Implemented (5H, D-122): images, Helm and live Entra/MinIO round trips not exercised here; discovery and redirect verified against a real Entra tenant._
+- **FR-60** AI economics and model configuration: Claude adapter off by default, tokens and cost per run, case and decision, monthly budget with hard stop; model configuration screen (FR-44). _Implemented (5I, D-123) for Ask TIGERIS; scenario and analysis drafts stay on the deterministic stub, so per-case and per-decision cost is not yet split._
 
 ## 6. Technical requirements (selected)
 

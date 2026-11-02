@@ -25,6 +25,25 @@ const schema = z.object({
    * Optional model-provider endpoint (local OpenAI-compatible server or hosted provider). Recorded and shown as
    * configured, never called while external model calls are disabled by policy (D-14).
    */
+  /**
+   * Claude through the gateway (D-112, D-113): drafts Ask TIGERIS answers from cited records only. Off unless the key,
+   * both prices (USD per million tokens, from your Anthropic agreement) and a monthly budget are all set.
+   */
+  ANTHROPIC_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
+  ANTHROPIC_BASE_URL: z.string().url().default('https://api.anthropic.com'),
+  ANTHROPIC_PRICE_INPUT_PER_MTOK: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.coerce.number().positive().optional(),
+  ),
+  ANTHROPIC_PRICE_OUTPUT_PER_MTOK: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.coerce.number().positive().optional(),
+  ),
+  MODEL_MONTHLY_BUDGET_USD: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.coerce.number().positive().optional(),
+  ),
   /** OpenID Connect sign-in (Entra ID: https://login.microsoftonline.com/<tenant>/v2.0). Off when the issuer is empty. */
   OIDC_ISSUER: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
   OIDC_CLIENT_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),

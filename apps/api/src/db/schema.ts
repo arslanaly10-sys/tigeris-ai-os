@@ -1019,3 +1019,19 @@ export const templateRuns = pgTable('template_runs', {
   createdBy: uuid('created_by').notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
+
+// ───────────────────────────── Phase 5I: model usage (migration 0019) ─────────────────────────────
+
+export const modelUsage = pgTable('model_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  institutionId: uuid('institution_id').notNull(),
+  feature: text('feature').notNull(),
+  model: text('model').notNull(),
+  outcome: text('outcome').notNull(),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  costUsd: numeric('cost_usd').notNull().default('0'),
+  principalId: uuid('principal_id'),
+  detail: text('detail'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});

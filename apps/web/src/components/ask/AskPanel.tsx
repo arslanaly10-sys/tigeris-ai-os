@@ -141,3 +141,68 @@ export function NotificationChannels() {
     </Panel>
   );
 }
+
+const OUTCOME_LABEL = {
+  used: 'Drafted by the model',
+  fallback_budget: 'Skipped: budget reached',
+  fallback_error: 'Skipped: call failed',
+  fallback_grounding: 'Skipped: failed grounding',
+} as const;
+
+/** Model use and budget (Phase 5I, FR-44): what the gateway may call, what it cost this month, and every fallback. */
+export function ModelUsagePanel() {
+  const q = useQuery({ queryKey: ['models'], queryFn: api.models });
+  const m = q.data;
+  return (
+    <Panel aria-labelledby="models-heading">
+      <PanelHeader
+        id="models-heading"
+        icon={<Radio className="h-4 w-4" aria-hidden />}
+        title="Model use and budget"
+        description="External models only draft prose from cited records; code computes every quantity. Each call and each fallback is recorded with its tokens and cost."
+      />
+      <LoadState isPending={q.isPending} error={q.error} />
+      {m ? (
+        <div className="grid gap-3 border-t border-line px-5 py-4 text-sm">
+          <p className="flex flex-wrap items-center gap-2">
+            <ChannelPill
+              c={{
+                key: 'inbox',
+                label: '',
+                status: m.enabled ? 'configured' : 'off',
+                detail: '',
+                lastDelivery: null,
+              }}
+            />
+            <span className="text-ink">{m.model}</span>
+            <span className="text-ink-muted">{m.reason}</span>
+          </p>
+          <p className="tabular text-ink">
+            Spent this month: USD {m.spentThisMonthUsd.toFixed(4)}
+            {m.monthlyBudgetUsd ? ` of USD ${m.monthlyBudgetUsd} budget` : ' (no budget set)'} · prices{' '}
+            {m.prices.inputPerMTok && m.prices.outputPerMTok
+              ? `USD ${m.prices.inputPerMTok} in / ${m.prices.outputPerMTok} out per million tokens`
+              : 'not set'}
+          </p>
+          {m.recent.length ? (
+            <ul className="divide-y divide-line rounded-md border border-line">
+              {m.recent.map((r, i) => (
+                <li key={i} className="flex flex-wrap justify-between gap-2 px-3 py-2 text-xs">
+                  <span className="text-ink">
+                    {OUTCOME_LABEL[r.outcome]} · {r.feature}
+                  </span>
+                  <span className="tabular text-ink-muted">
+                    {r.inputTokens} in / {r.outputTokens} out tokens · USD {r.costUsd.toFixed(4)} ·{' '}
+                    {formatRelative(r.at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-ink-muted">No model calls this month.</p>
+          )}
+        </div>
+      ) : null}
+    </Panel>
+  );
+}

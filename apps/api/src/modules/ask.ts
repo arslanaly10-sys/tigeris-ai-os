@@ -14,6 +14,7 @@ import { appendAudit } from '../audit/audit';
 import { withInstitution } from '../db/client';
 import { cases, evidenceObjects, memoryEntries, semanticDefinitions, signals } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps } from './context';
+import { claudeDraft } from './claude';
 import { caseReadable } from './scope';
 
 export const ASK_VERSION = 'ask 1.0.0';
@@ -166,10 +167,24 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
           }
         }
         const top = citations.sort((a, b) => b.score - a.score || a.ref.localeCompare(b.ref)).slice(0, 6);
-        const answer = top.length
+        const deterministic = top.length
           ? `${top.length} record${top.length === 1 ? '' : 's'} you may read match${top.length === 1 ? 'es' : ''} this question. ` +
             top.map((t, i) => `[${i + 1}] ${t.label} ${t.ref}: ${t.excerpt}`).join(' ')
           : 'No record you may read answers this question. TIGERIS does not guess; try other words, or ask an analyst to open a case.';
+        // Claude may rewrite the answer from these citations only (5I); the markers are part of each display so
+        // the grounding check accepts "[n]" references.
+        const drafted = await claudeDraft(
+          tx,
+          ctx,
+          'ask',
+          body.data.question,
+          top.map((t, i) => ({
+            ref: t.ref,
+            label: t.label,
+            display: `[${i + 1}] ${t.ref} ${t.title}: ${t.excerpt}`,
+          })),
+          deterministic,
+        );
         await appendAudit(tx, {
           institutionId: ctx.institutionId,
           actorPrincipalId: ctx.principalId,
@@ -183,14 +198,15 @@ export async function askRoutes(app: FastifyInstance, deps: AppDeps) {
             version: ASK_VERSION,
             questionSha256: createHash('sha256').update(body.data.question).digest('hex'),
             citations: top.map((t) => `${t.kind}:${t.ref}`),
+            drafter: drafted.drafter,
           },
         });
         return {
           version: ASK_VERSION,
           question: body.data.question,
           terms: ts,
-          answer,
-          drafter: 'deterministic (no model called)',
+          answer: drafted.text,
+          drafter: drafted.drafter,
           citations: top.map(({ score: _score, ...c }) => c),
         };
       });

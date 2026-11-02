@@ -19,6 +19,7 @@ import { scenarioRoomRoutes } from './modules/scenario-room';
 import { askRoutes } from './modules/ask';
 import { notifyRoutes } from './modules/notify';
 import { oidcRoutes } from './modules/auth/oidc';
+import { modelRoutes } from './modules/claude';
 import { reportRoutes } from './modules/reports';
 import { ciRoutes } from './modules/ci';
 import { connectorRoutes } from './modules/connectors';
@@ -105,5 +106,6 @@ export async function buildApp(opts: BuildOptions) {
   await scenarioRoomRoutes(app, deps);
   await askRoutes(app, deps);
   await notifyRoutes(app, deps);
+  await modelRoutes(app, deps);
   return app;
 }

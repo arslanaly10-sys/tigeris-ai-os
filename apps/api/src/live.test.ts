@@ -127,6 +127,33 @@ describe('live data (D-127)', () => {
     expect(pw.series).toEqual([]);
   });
 
+  it('raises a Hormuz intervention from a fetched drop in transits, naming the fetch run', async () => {
+    const day = (i: number) => Date.UTC(2026, 9, 30 - i);
+    const features = Array.from({ length: 35 }, (_, i) => ({
+      attributes: {
+        date: day(i),
+        portname: 'Strait of Hormuz',
+        n_total: i < 7 ? 55 : 100,
+        n_tanker: i < 7 ? 20 : 40,
+        capacity: 1000,
+      },
+    }));
+    respond(JSON.stringify({ features }));
+    expect((await sync('CON-PORTWATCH-HORMUZ')).json()).toMatchObject({ status: 'succeeded', created: 105 });
+    await app.inject({
+      method: 'POST',
+      url: '/api/interventions/sweep',
+      headers: await as('administrator'),
+      payload: {},
+    });
+    const inbox = (
+      await app.inject({ method: 'GET', url: '/api/interventions?mine=false', headers: await as('analyst') })
+    ).json() as { items: { title: string; ruleKey: string; inputs: { label: string; value: string }[] }[] };
+    const hit = inbox.items.find((i) => i.ruleKey === 'W-HORMUZ');
+    expect(hit?.title).toBe('PortWatch:Strait of Hormuz:n_total is 45% below its recent level');
+    expect(hit!.inputs.find((i) => i.label === 'Latest fetch run')!.value).toMatch(/^RUN-/);
+  });
+
   it('reports a blocked host as a failed fetch, not as data', async () => {
     respond('<html>denied</html>', 403);
     const res = await sync('CON-ECB-FX');

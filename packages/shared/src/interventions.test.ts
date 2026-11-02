@@ -223,3 +223,41 @@ describe('overdue validation', () => {
     ).toEqual([]);
   });
 });
+
+describe('series drop (D-127)', () => {
+  const day = (i: number) => new Date(Date.UTC(2026, 9, 30 - i)).toISOString().slice(0, 10);
+  const series = (recent: number, base: number, n = 35) => ({
+    seriesKey: 'PortWatch:Strait of Hormuz:n_total',
+    connectorKey: 'CON-PORTWATCH-HORMUZ',
+    source: 'IMF PortWatch',
+    points: Array.from({ length: n }, (_, i) => ({
+      observedOn: day(i),
+      value: i < 7 ? recent : base,
+      runKey: 'RUN-1',
+    })),
+    classification: 'internal' as const,
+    sectorKey: 'supply_chain',
+  });
+  const r = rule('series_drop', { dropPct: 30 });
+
+  it('raises when the recent average falls past the threshold, naming both windows', () => {
+    const [f] = evaluateWatchRule(r, { ...empty, series: [series(60, 100)] });
+    expect(f).toMatchObject({
+      severity: 'attention',
+      subjectRef: 'series:PortWatch:Strait of Hormuz:n_total',
+    });
+    expect(f!.title).toContain('40% below');
+    expect(f!.detail).toContain('2026-10-24 to 2026-10-30');
+    expect(f!.inputs.map((i) => i.label)).toEqual(['Recent average', 'Baseline average', 'Latest fetch run']);
+  });
+
+  it('escalates to breach at twice the threshold, and stays quiet within it', () => {
+    expect(evaluateWatchRule(r, { ...empty, series: [series(30, 100)] })[0]!.severity).toBe('breach');
+    expect(evaluateWatchRule(r, { ...empty, series: [series(80, 100)] })).toEqual([]);
+  });
+
+  it('makes no claim with too few points', () => {
+    expect(evaluateWatchRule(r, { ...empty, series: [series(10, 100, 12)] })).toEqual([]);
+    expect(evaluateWatchRule(r, empty)).toEqual([]);
+  });
+});

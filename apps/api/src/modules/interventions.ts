@@ -30,12 +30,13 @@ import {
   type Role,
   type RuleOperator,
   type RuleSeverity,
+  type SeriesObservation,
   type Sensitivity,
   type Urgency,
   type WatchKind,
   type WatchRuleItem,
 } from '@tigeris/shared';
-import { and, desc, eq, inArray, isNull, max, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, isNull, max, or, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { appendAudit } from '../audit/audit';
@@ -43,14 +44,17 @@ import { QUEUES } from '../jobs';
 import { withInstitution, type Tx } from '../db/client';
 import {
   cases,
+  connectorRuns,
   connectors,
   interventions,
+  observations,
   memoryEntries,
   outcomeReviews,
   principals,
   scenarioRuns,
   semanticRules,
   signals,
+  sources,
   watchRules,
 } from '../db/schema';
 import { ctxOf, requireSession, type AppDeps, type RequestContext } from './context';
@@ -80,6 +84,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
   ]);
   const read = await observer(tx, FULL_SCOPE);
   const monitored = await monitoredFigures(tx);
+  const series = await fetchedSeries(tx);
   const validations = await openValidations(tx);
   const semantic: Observations['semantic'] = [];
   for (const r of rules) {
@@ -109,6 +114,7 @@ async function observe(tx: Tx, now: Date): Promise<Observations> {
   }
   return {
     now: now.toISOString(),
+    series,
     monitored,
     validations,
     semantic,
@@ -156,6 +162,37 @@ type RunValues = {
  * Post-decision monitoring (5C): each approved decision's expected figures (kept on its memory entry) with the
  * range from the run it was decided on, and the central value of the same figure in the latest run on that case.
  */
+/** Fetched series (D-127): the last 60 points of each, only from connectors whose last fetch succeeded. */
+async function fetchedSeries(tx: Tx): Promise<SeriesObservation[]> {
+  const rows = await tx
+    .select({ o: observations, c: connectors, s: sources, runKey: connectorRuns.key })
+    .from(observations)
+    .innerJoin(connectors, eq(connectors.id, observations.connectorId))
+    .innerJoin(sources, eq(sources.id, connectors.sourceId))
+    .innerJoin(connectorRuns, eq(connectorRuns.id, observations.runId))
+    .where(isNotNull(connectors.lastSuccessAt))
+    .orderBy(observations.seriesKey, desc(observations.observedOn));
+  const out = new Map<string, SeriesObservation>();
+  for (const r of rows) {
+    const key = `${r.c.key}|${r.o.seriesKey}`;
+    const x =
+      out.get(key) ??
+      out
+        .set(key, {
+          seriesKey: r.o.seriesKey,
+          connectorKey: r.c.key,
+          source: `${r.s.publisher}: ${r.s.title}`,
+          points: [],
+          classification: r.c.classification as Sensitivity,
+          sectorKey: r.c.sectorKey,
+        })
+        .get(key)!;
+    if (x.points.length < 60)
+      x.points.push({ observedOn: r.o.observedOn, value: Number(r.o.value), runKey: r.runKey });
+  }
+  return [...out.values()];
+}
+
 async function monitoredFigures(tx: Tx): Promise<MonitorObservation[]> {
   const entries = await tx
     .select({
@@ -376,6 +413,14 @@ const WatchBody = z.object({
 
 /** Parameters each kind accepts, checked before a draft is stored. */
 const PARAMS: Record<WatchKind, z.ZodType> = {
+  series_drop: z
+    .object({
+      seriesKey: z.string().min(1).max(200),
+      recentPoints: z.number().int().min(3).max(60).optional(),
+      baselinePoints: z.number().int().min(7).max(365).optional(),
+      dropPct: z.number().min(1).max(100).optional(),
+    })
+    .strict(),
   semantic: z
     .object({
       statuses: z

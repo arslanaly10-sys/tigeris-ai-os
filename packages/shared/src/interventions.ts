@@ -15,6 +15,7 @@ export const WATCH_KINDS = [
   'decision_drift',
   'decision_monitor',
   'validation_overdue',
+  'series_drop',
 ] as const;
 export type WatchKind = (typeof WATCH_KINDS)[number];
 
@@ -25,6 +26,7 @@ export const WATCH_KIND_LABEL: Record<WatchKind, string> = {
   decision_drift: 'Decision outcome outside its expected range',
   decision_monitor: 'Approved decision drifting from its expected figures',
   validation_overdue: 'Validation request past its due date',
+  series_drop: 'Fetched data series falling well below its own recent level',
 };
 
 export const INTERVENTION_STATUSES = ['open', 'acknowledged', 'resolved', 'dismissed'] as const;
@@ -135,8 +137,19 @@ export interface ValidationObservation {
   caseId: string | null;
 }
 
+/** A fetched data series (D-127): its points most recent first, only from successful connector fetches. */
+export interface SeriesObservation {
+  seriesKey: string;
+  connectorKey: string;
+  source: string;
+  points: { observedOn: string; value: number; runKey: string }[];
+  classification: Sensitivity;
+  sectorKey: string | null;
+}
+
 export interface Observations {
   now: string;
+  series?: SeriesObservation[];
   validations?: ValidationObservation[];
   monitored?: MonitorObservation[];
   semantic: SemanticObservation[];
@@ -316,6 +329,52 @@ export function evaluateWatchRule(rule: WatchRuleSpec, obs: Observations): Findi
             sectorKey: v.sectorKey,
             caseId: v.caseId,
           } satisfies Finding;
+        });
+    }
+    case 'series_drop': {
+      // Recent average against the baseline just before it; too few points means no claim at all.
+      const recentN = asNumber(rule.params.recentPoints, 7);
+      const baseN = asNumber(rule.params.baselinePoints, 28);
+      const dropPct = asNumber(rule.params.dropPct, 30);
+      const wanted = rule.params.seriesKey as string | undefined;
+      return (obs.series ?? [])
+        .filter((x) => !wanted || x.seriesKey === wanted)
+        .flatMap((x): Finding[] => {
+          const recent = x.points.slice(0, recentN);
+          const base = x.points.slice(recentN, recentN + baseN);
+          if (recent.length < recentN || base.length < Math.ceil(baseN / 2)) return [];
+          const mean = (a: { value: number }[]) => a.reduce((t, p) => t + p.value, 0) / a.length;
+          const r = mean(recent);
+          const b = mean(base);
+          if (b <= 0) return [];
+          const change = ((r - b) / b) * 100;
+          if (change > -dropPct) return [];
+          const span = (a: { observedOn: string }[]) =>
+            `${a[a.length - 1]!.observedOn} to ${a[0]!.observedOn}`;
+          return [
+            {
+              subjectRef: `series:${x.seriesKey}`,
+              severity: change <= -2 * dropPct ? 'breach' : rule.severity,
+              title: `${x.seriesKey} is ${num(-change)}% below its recent level`,
+              detail: `Average ${num(r)} over ${span(recent)} against ${num(b)} over ${span(base)} (${x.source}). Threshold: a drop of ${num(dropPct)}% or more.`,
+              inputs: [
+                {
+                  label: 'Recent average',
+                  value: `${num(r)} (${recent.length} points)`,
+                  ref: `series:${x.seriesKey}:recent`,
+                },
+                {
+                  label: 'Baseline average',
+                  value: `${num(b)} (${base.length} points)`,
+                  ref: `series:${x.seriesKey}:baseline`,
+                },
+                { label: 'Latest fetch run', value: recent[0]!.runKey, ref: `connector:${x.connectorKey}` },
+              ],
+              classification: x.classification,
+              sectorKey: x.sectorKey,
+              caseId: null,
+            },
+          ];
         });
     }
     case 'decision_drift':

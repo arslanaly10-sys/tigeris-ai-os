@@ -312,6 +312,14 @@ function paramsText(r: WatchRuleItem) {
       return `Failing, or scheduled and not synced for ${(p.maxDays as number | undefined) ?? 7} days`;
     case 'decision_drift':
       return 'Outcome reviews with the verdict "missed"';
+    case 'decision_monitor':
+      return `A newer run more than ${(p.breachWidths as number | undefined) ?? 1} range width(s) outside the decision's expected range`;
+    case 'validation_overdue':
+      return `Validation requests ${(p.graceDays as number | undefined) ?? 0} day(s) past their due date`;
+    case 'series_drop':
+      return `${p.seriesKey as string}: average of the last ${(p.recentPoints as number | undefined) ?? 7} points at least ${
+        (p.dropPct as number | undefined) ?? 30
+      }% below the ${(p.baselinePoints as number | undefined) ?? 28} before them (fetched data only)`;
   }
 }
 

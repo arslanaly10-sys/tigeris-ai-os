@@ -63,4 +63,19 @@ export const WATCH_RULES = [
     rationale:
       'A finding still waiting for a desk after its due date should not be relied on without a follow-up.',
   },
+  {
+    key: 'W-HORMUZ',
+    label: 'Daily transits through the Strait of Hormuz well below their recent level',
+    kind: 'series_drop',
+    params: {
+      seriesKey: 'PortWatch:Strait of Hormuz:n_total',
+      recentPoints: 7,
+      baselinePoints: 28,
+      dropPct: 30,
+    },
+    severity: 'attention',
+    routeRoles: ['analyst', 'executive'],
+    rationale:
+      'A sustained fall in Hormuz transits (IMF PortWatch, fetched) is an early warning for energy and shipping holdings; it raises nothing until real data has been fetched.',
+  },
 ] as const;

@@ -6,8 +6,8 @@ import * as schema from './schema';
 export type Db = PostgresJsDatabase<typeof schema>;
 export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
-export function createDb(url: string, max = 10) {
-  const client = postgres(url, { max, onnotice: () => {} });
+export function createDb(url: string, max = 10, opts: { prepare?: boolean } = {}) {
+  const client = postgres(url, { max, onnotice: () => {}, ...opts });
   const db = drizzle(client, { schema });
   return { db, close: () => client.end({ timeout: 5 }) };
 }

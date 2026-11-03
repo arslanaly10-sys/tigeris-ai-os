@@ -8,3 +8,5 @@ test-results
 .taste-skill
 # Helm templates are Go templates, not YAML Prettier can parse
 deploy/helm/**/templates
+dist-snapshot
+apps/web/snapshot/snapshot-data.json

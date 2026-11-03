@@ -8,7 +8,7 @@ import '@fontsource-variable/source-serif-4';
 import '@fontsource/ibm-plex-sans-arabic/400.css';
 import '@fontsource/ibm-plex-sans-arabic/500.css';
 import '@fontsource/ibm-plex-sans-arabic/600.css';
-import '@/styles.css';
+import './styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MotionConfig } from 'motion/react';
 import { StrictMode } from 'react';

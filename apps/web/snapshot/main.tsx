@@ -13,7 +13,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MotionConfig } from 'motion/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { HashRouter } from 'react-router';
+import { HashRouter, MemoryRouter } from 'react-router';
 import { App } from '@/App';
 import { ApiError } from '@/lib/api';
 import { I18nProvider } from '@/lib/i18n';
@@ -32,6 +32,10 @@ const queryClient = new QueryClient({
   },
 });
 
+// Opened as a file or from a web host: addresses work (#/cases/...). In a preview frame without an address
+// (about:srcdoc, blob:), navigation stays in memory.
+const Router = /^(https?|file):$/.test(location.protocol) ? HashRouter : MemoryRouter;
+
 const recorded = new Date((snapshot as unknown as Snapshot).recordedAt).toUTCString().slice(5, 22);
 
 createRoot(document.getElementById('root')!).render(
@@ -47,9 +51,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <MotionConfig reducedMotion="user">
-          <HashRouter>
+          <Router>
             <App />
-          </HashRouter>
+          </Router>
         </MotionConfig>
       </I18nProvider>
     </QueryClientProvider>

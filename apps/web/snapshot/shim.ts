@@ -9,22 +9,37 @@ export interface Snapshot {
 const KEY = 'tigeris-snapshot-principal';
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+// In a sandboxed preview the browser may refuse storage; the session then lives in memory for this page.
+let memory: string | null = null;
 const current = () => {
   try {
-    return sessionStorage.getItem(KEY);
+    return sessionStorage.getItem(KEY) ?? memory;
   } catch {
-    return null;
+    return memory;
   }
 };
+const remember = (id: string | null) => {
+  memory = id;
+  try {
+    if (id) sessionStorage.setItem(KEY, id);
+    else sessionStorage.removeItem(KEY);
+  } catch {
+    /* storage refused: memory only */
+  }
+};
+
+/** Path and query of a request, without relying on the page's own address (previews have none). */
+function requestPath(input: RequestInfo | URL): { pathname: string; search: string } | null {
+  const raw = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  const m = /^(?:[a-z][a-z0-9+.-]*:\/\/[^/]*)?(\/[^?#]*)(\?[^#]*)?/i.exec(raw);
+  return m ? { pathname: m[1]!, search: m[2] ?? '' } : null;
+}
 
 export function installSnapshotFetch(s: Snapshot) {
   const real = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = new URL(
-      typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
-      location.href,
-    );
-    if (!url.pathname.startsWith('/api/')) return real(input, init);
+    const url = requestPath(input);
+    if (!url || !url.pathname.startsWith('/api/')) return real(input, init);
     const method = (init?.method ?? 'GET').toUpperCase();
     const path = url.pathname + url.search;
     if (path === '/api/auth/demo-principals') return json(200, s.principals);
@@ -33,19 +48,11 @@ export function installSnapshotFetch(s: Snapshot) {
     if (path === '/api/auth/demo-session' && method === 'POST') {
       const id = JSON.parse(String(init?.body ?? '{}')).principalId as string;
       if (!s.byPrincipal[id]) return json(404, { error: 'not_found' });
-      try {
-        sessionStorage.setItem(KEY, id);
-      } catch {
-        /* private mode: the session lasts for this page only */
-      }
+      remember(id);
       return json(200, { ok: true });
     }
     if (path === '/api/auth/logout') {
-      try {
-        sessionStorage.removeItem(KEY);
-      } catch {
-        /* nothing stored */
-      }
+      remember(null);
       return json(200, { ok: true });
     }
     const who = current();

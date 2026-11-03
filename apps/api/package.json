@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "esbuild": "0.25.10",
     "tsx": "^4.19.2",
     "vitest": "^3.0.0"
   }

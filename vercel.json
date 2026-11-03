@@ -2,11 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter @tigeris/api exec tsx src/db/vercel-setup.ts && pnpm --filter @tigeris/web build",
+  "buildCommand": "pnpm --filter @tigeris/api exec tsx src/db/vercel-setup.ts && pnpm --filter @tigeris/api exec node scripts/build-vercel.mjs && pnpm --filter @tigeris/web build",
   "outputDirectory": "apps/web/dist",
   "functions": {
-    "api/index.ts": {
-      "maxDuration": 30
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "apps/api/dist/**"
     }
   },
   "rewrites": [
